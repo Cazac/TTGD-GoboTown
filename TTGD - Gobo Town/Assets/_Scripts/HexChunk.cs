@@ -1,28 +1,172 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class HexChunk : MonoBehaviour
 {
+    ////////////////////////////////
 
-    public MeshRenderer meshRenderer;
-    public MeshFilter meshFilter;
+    [Header("BLANKVAR")]
+    public GameObject chunkedHexModel_GO;
+    public List<HexCell> hexCellsInChunk_List;
 
-    int vertexIndex = 0;
-    List<Vector3> vertices = new List<Vector3>();
-    List<int> triangles = new List<int>();
-    List<Vector2> uvs = new List<Vector2>();
+    ////////////////////////////////
 
-    bool[,,] voxelMap = new bool[VoxelData.ChunkWidth, VoxelData.ChunkHeight, VoxelData.ChunkWidth];
 
-    void Start()
+
+
+    [Header("Mesh Colors")]
+    Vector3[] vertices_Arr;
+    Vector2[] uvs_Arr;
+    Color[] colors_Arr;
+
+    public Gradient gradientColors;
+
+    /////////////////////////////////////////////////////////////////
+
+    public void CollectChunkData()
     {
+        hexCellsInChunk_List = new List<HexCell>();
 
-        PopulateVoxelMap();
-        CreateMeshData();
-        CreateMesh();
+        foreach (Transform hexCell in gameObject.transform)
+        {
+            hexCellsInChunk_List.Add(hexCell.gameObject.GetComponent<HexCell>());
+        }
 
+        //Remove First one as it is the new chunk itself
+        hexCellsInChunk_List.RemoveAt(0);
     }
+
+    /////////////////////////////////////////////////////////////////
+
+    public void Chunk()
+    {
+        CollectChunkData();
+
+        //Chunk Meshes
+        MeshFilter[] meshFilter_List = gameObject.GetComponentsInChildren<MeshFilter>();
+        CombineInstance[] combine = new CombineInstance[meshFilter_List.Length];
+
+
+        int i = 0;
+        while (i < meshFilter_List.Length)
+        {
+            combine[i].mesh = meshFilter_List[i].sharedMesh;
+            combine[i].transform = meshFilter_List[i].transform.localToWorldMatrix;
+            meshFilter_List[i].gameObject.SetActive(false);
+
+            i++;
+        }
+
+        chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh = new Mesh();
+        chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
+        chunkedHexModel_GO.transform.gameObject.SetActive(true);
+
+
+        ColorTheChunk();
+    }
+
+    public void Unchunk()
+    {
+        chunkedHexModel_GO.SetActive(false);
+
+        foreach (HexCell hexCell in hexCellsInChunk_List)
+        {
+            hexCell.HexObject.SetActive(true);
+        }
+    }
+
+    public void Rechunk()
+    {
+        chunkedHexModel_GO.SetActive(true);
+
+        foreach (HexCell hexCell in hexCellsInChunk_List)
+        {
+            hexCell.HexObject.SetActive(false);
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+    public void ColorTheChunk()
+    {
+        Mesh mesh = chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh;
+
+        vertices_Arr = mesh.vertices;
+        uvs_Arr = new Vector2[vertices_Arr.Length];
+        colors_Arr = new Color[vertices_Arr.Length];
+
+        GradientColorKey[] colorKey;
+        GradientAlphaKey[] alphaKey;
+
+        gradientColors = new Gradient();
+
+        // Populate the color keys at the relative time 0 and 1 (0 and 100%)
+        colorKey = new GradientColorKey[2];
+        colorKey[0].color = new Color(0, 1, 0, 1);
+        colorKey[0].time = 0.0f;
+        colorKey[1].color = new Color(0.2f, 0.6f, 0.2f, 1);
+        colorKey[1].time = 1.0f;
+
+        // Populate the alpha  keys at relative time 0 and 1  (0 and 100%)
+        alphaKey = new GradientAlphaKey[2];
+        alphaKey[0].alpha = 1.0f;
+        alphaKey[0].time = 0.0f;
+        alphaKey[1].alpha = 0.0f;
+        alphaKey[1].time = 1.0f;
+
+        gradientColors.SetKeys(colorKey, alphaKey);
+
+
+
+        //float random = 
+
+
+        for (int i = 0; i < colors_Arr.Length; i++)
+        {
+            colors_Arr[i] = gradientColors.Evaluate(Random.Range(0, 1f));
+        }
+
+        mesh.colors = colors_Arr;
+
+
+        mesh.RecalculateNormals();
+    }
+
+
+
+
+
+
+
+
+
+
+    /*
+public MeshRenderer meshRenderer;
+public MeshFilter meshFilter;
+
+int vertexIndex = 0;
+List<Vector3> vertices = new List<Vector3>();
+List<int> triangles = new List<int>();
+List<Vector2> uvs = new List<Vector2>();
+
+bool[,,] voxelMap = new bool[VoxelData.ChunkWidth, VoxelData.ChunkHeight, VoxelData.ChunkWidth];
+
+/////////////////////////////////////////////////////////////////
+
+
+void Start()
+{
+
+    //PopulateVoxelMap();
+    //CreateMeshData();
+    //CreateMesh();
+
+}
+
 
     void PopulateVoxelMap()
     {
@@ -117,5 +261,7 @@ public class HexChunk : MonoBehaviour
         meshFilter.mesh = mesh;
 
     }
+    */
 
+    /////////////////////////////////////////////////////////////////
 }

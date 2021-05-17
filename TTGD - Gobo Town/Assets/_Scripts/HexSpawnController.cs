@@ -9,12 +9,13 @@ public class HexSpawnController : MonoBehaviour
     ////////////////////////////////
 
     [SerializeField]
-    HexCell[,] allHexs_Arr;
-    GameObject[,] allChunks_Arr;
+    HexCell[,] allHexsCells_Arr;
+    HexChunk[,] allHexChunks_Arr;
 
 
     [Header("Prefabs")]
     public GameObject hexChunk_Prefab;
+    public GameObject hexChunkModel_Prefab;
     public GameObject hexBlank_Prefab;
 
     [Header("Hex Counts")]
@@ -39,19 +40,36 @@ public class HexSpawnController : MonoBehaviour
 
 
 
+    public Gradient gradientColors;
+
+
+
+
+
+    /////////////////////////////////////////////////////////////////
 
     private void Start()
     {
         offcenter_I = spacing_I / 2;
 
-        SpawnHexMap();
+        HexMap_Spawn();
     }
 
-    void Update()
+    private void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
         {
-            SpawnHexMap();
+            HexMap_Spawn();
+        }
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            HexMap_Unchunk();
+        }
+
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            HexMap_Rechunk();
         }
 
         if (Input.GetMouseButtonDown(0))
@@ -60,36 +78,66 @@ public class HexSpawnController : MonoBehaviour
         }
     }
 
+    /////////////////////////////////////////////////////////////////
 
-    private void SpawnHexMap()
+    private void HexMap_Spawn()
     {
-        
+        //Create New Arrays
+        allHexsCells_Arr = new HexCell[mapHex_RowCount, mapHex_ColumnCount];
+        allHexChunks_Arr = new HexChunk[(int)Mathf.Ceil(mapHex_RowCount / mapHex_ChunkSize), (int)Mathf.Ceil(mapHex_ColumnCount / mapHex_ChunkSize)];
+
+        HexMap_RemoveOldMap();
+        HexMap_SpawnAllHexChunks();
+        HexMap_SpawnAllHexCells();
+        HexMap_Chuck();
+        HexMap_StoreAllHexCells();
+
+    
+
+
+
+
+
+    }
+
+ 
+
+
+
+    /////////////////////////////////////////////////////////////////
+
+    private void HexMap_RemoveOldMap()
+    {
         foreach (Transform child in container.transform)
         {
             Destroy(child.gameObject);
         }
+    }
 
-
-
-        allHexs_Arr = new HexCell[mapHex_RowCount, mapHex_ColumnCount];
-        allChunks_Arr = new GameObject[(int)Mathf.Ceil(mapHex_RowCount / mapHex_ChunkSize), (int)Mathf.Ceil(mapHex_ColumnCount / mapHex_ChunkSize)];
-
+    private void HexMap_SpawnAllHexChunks()
+    {
         //Spawn Chunks
-        for (int i = 0; i < allChunks_Arr.GetLength(0); i++)
+        for (int i = 0; i < allHexChunks_Arr.GetLength(0); i++)
         {
-            for (int j = 0; j < allChunks_Arr.GetLength(1); j++)
+            for (int j = 0; j < allHexChunks_Arr.GetLength(1); j++)
             {
-                allChunks_Arr[i, j] = Instantiate(hexChunk_Prefab, new Vector3(0, 0, 0), Quaternion.identity, container.transform);
+                GameObject newChunk = Instantiate(hexChunk_Prefab, new Vector3(0, 0, 0), Quaternion.identity, container.transform);
+                GameObject newChunkModel = Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, newChunk.transform);
 
-                allChunks_Arr[i, j].name = "Chunk: " + i + "/" + j;
+                newChunk.GetComponent<HexChunk>().chunkedHexModel_GO = newChunkModel;
+                allHexChunks_Arr[i, j] = newChunk.GetComponent<HexChunk>();
+
+                allHexChunks_Arr[i, j].gameObject.name = "Chunk: " + i + "/" + j;
             }
         }
+    }
 
-
-        // X == Left and Right
+    private void HexMap_SpawnAllHexCells()
+    {
+       //Spawn Cells
         for (int x = 0; x < mapHex_RowCount; x++)
         {
-            // Y == Up and Down
+            // X == Left and Right / Y == Up and Down
             for (int y = 0; y < mapHex_ColumnCount; y++)
             {
                 //Randomzie Height
@@ -98,7 +146,7 @@ public class HexSpawnController : MonoBehaviour
 
                 GameObject newHex;
 
-                GameObject chunkContainer = GetChunkContainer(x,y);
+                GameObject chunkContainer = GetChunkContainer(x, y);
 
                 //Regular Spawn Position VS Offset
                 if (y % 2 == 0)
@@ -117,113 +165,57 @@ public class HexSpawnController : MonoBehaviour
                 newHexCell.UpdateCellColor(newHexCell.colorActive);
 
                 //Store it
-                allHexs_Arr[x, y] = newHexCell;
+                allHexsCells_Arr[x, y] = newHexCell;
             }
         }
-
-
-
-
-        foreach (HexCell hexCell in allHexs_Arr)
-        {
-
-
-
-          
-
-
-        }
-
-
-
-        StartCoroutine(ChunkMeDaddy());
-     
     }
 
-
-    private IEnumerator ChunkMeDaddy()
+    private void HexMap_StoreAllHexCells()
     {
-        yield return new WaitForSeconds(1f);
-
-
-        foreach (GameObject chunk in allChunks_Arr)
+        foreach (HexCell hexCell in allHexsCells_Arr)
         {
-            yield return new WaitForSeconds(1f);
-
-            //Chunk Meshes
-            MeshFilter[] meshFilters = chunk.GetComponentsInChildren<MeshFilter>();
-            CombineInstance[] combine = new CombineInstance[meshFilters.Length];
-
-            int i = 0;
-            while (i < meshFilters.Length)
-            {
-                combine[i].mesh = meshFilters[i].sharedMesh;
-                combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
-                meshFilters[i].gameObject.SetActive(false);
-
-                i++;
-            }
-            chunk.transform.GetComponent<MeshFilter>().mesh = new Mesh();
-            chunk.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
-            chunk.transform.gameObject.SetActive(true);
-
-
-
-
-            /*
-            MaterialPropertyBlock matPropBlock = new MaterialPropertyBlock();
-            Renderer hexRenderer = chunk.GetComponent<Renderer>();
-
-            Color colorRangeMin = Color.green;
-            Color colorRangeMax = Color.blue;
-
-            float value = Random.Range(0, 1f);
-
-
-
-            // Get the current value of the material properties in the renderer.
-            hexRenderer.GetPropertyBlock(matPropBlock);
-            // Assign our new value.
-            matPropBlock.SetColor("_Color", Color.Lerp(colorRangeMin, colorRangeMax, value));
-            // Apply the edited values to the renderer.
-            hexRenderer.SetPropertyBlock(matPropBlock);
-
-    */
-
-
-            gradient = new Gradient();
-
-            // Populate the color keys at the relative time 0 and 1 (0 and 100%)
-            colorKey = new GradientColorKey[2];
-            colorKey[0].color = Color.red;
-            colorKey[0].time = 0.0f;
-            colorKey[1].color = Color.blue;
-            colorKey[1].time = 1.0f;
-
-            // Populate the alpha  keys at relative time 0 and 1  (0 and 100%)
-            alphaKey = new GradientAlphaKey[2];
-            alphaKey[0].alpha = 1.0f;
-            alphaKey[0].time = 0.0f;
-            alphaKey[1].alpha = 0.0f;
-            alphaKey[1].time = 1.0f;
-
-            gradient.SetKeys(colorKey, alphaKey);
-
-            // What's the color at the relative time 0.25 (25 %) ?
-            Debug.Log(gradient.Evaluate(0.25f));
 
         }
-
-        yield break;
     }
 
+    /////////////////////////////////////////////////////////////////
+
+    private void HexMap_Chuck()
+    {
+        foreach (HexChunk hexChunk in allHexChunks_Arr)
+        {
+            hexChunk.Chunk();
+        }
+    }
+
+    private void HexMap_Unchunk()
+    {
+        Debug.Log("Test Code: Unchunk");
+
+        foreach (HexChunk hexChunk in allHexChunks_Arr)
+        {
+            hexChunk.Unchunk();
+        }
+    }
+
+    private void HexMap_Rechunk()
+    {
+        Debug.Log("Test Code: Rechunk");
+
+        foreach (HexChunk hexChunk in allHexChunks_Arr)
+        {
+            hexChunk.Rechunk();
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////
 
     private GameObject GetChunkContainer(int x, int y)
     {
-        return allChunks_Arr[(int)Mathf.Floor(x / mapHex_ChunkSize), (int)Mathf.Floor(y / mapHex_ChunkSize)];
+        return allHexChunks_Arr[(int)Mathf.Floor(x / mapHex_ChunkSize), (int)Mathf.Floor(y / mapHex_ChunkSize)].gameObject;
     }
 
-    void HandleInput()
+    private void HandleInput()
     {
         Ray inputRay = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
@@ -240,4 +232,51 @@ public class HexSpawnController : MonoBehaviour
         }
     }
 
+    /////////////////////////////////////////////////////////////////
 }
+
+
+
+
+/*
+MaterialPropertyBlock matPropBlock = new MaterialPropertyBlock();
+Renderer hexRenderer = chunk.GetComponent<Renderer>();
+
+Color colorRangeMin = Color.green;
+Color colorRangeMax = Color.blue;
+
+float value = Random.Range(0, 1f);
+
+
+
+// Get the current value of the material properties in the renderer.
+hexRenderer.GetPropertyBlock(matPropBlock);
+// Assign our new value.
+matPropBlock.SetColor("_Color", Color.Lerp(colorRangeMin, colorRangeMax, value));
+// Apply the edited values to the renderer.
+hexRenderer.SetPropertyBlock(matPropBlock);
+
+
+
+
+gradient = new Gradient();
+
+// Populate the color keys at the relative time 0 and 1 (0 and 100%)
+colorKey = new GradientColorKey[2];
+colorKey[0].color = Color.red;
+colorKey[0].time = 0.0f;
+colorKey[1].color = Color.blue;
+colorKey[1].time = 1.0f;
+
+// Populate the alpha  keys at relative time 0 and 1  (0 and 100%)
+alphaKey = new GradientAlphaKey[2];
+alphaKey[0].alpha = 1.0f;
+alphaKey[0].time = 0.0f;
+alphaKey[1].alpha = 0.0f;
+alphaKey[1].time = 1.0f;
+
+gradient.SetKeys(colorKey, alphaKey);
+
+// What's the color at the relative time 0.25 (25 %) ?
+Debug.Log(gradient.Evaluate(0.25f));
+    */

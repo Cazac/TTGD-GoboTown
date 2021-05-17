@@ -41,6 +41,8 @@ public class HexCell : MonoBehaviour
     private MaterialPropertyBlock matPropBlock;
 
 
+    /////////////////////////////////////////////////////////////////
+
     public HexDirection GetOppositeDirection(HexDirection direction)
     {
         int directionValue = (int)direction;
