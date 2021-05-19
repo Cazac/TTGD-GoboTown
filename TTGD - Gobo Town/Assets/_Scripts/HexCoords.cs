@@ -5,6 +5,7 @@ using UnityEngine;
 [System.Serializable]
 public struct HexCoords
 {
+    ////////////////////////////////
 
     [SerializeField]
     private int x;
@@ -19,7 +20,8 @@ public struct HexCoords
     public int Y { get { return y; } }
     public int Z { get { return z; } }
     public int L { get { return l; } }
- 
+
+    /////////////////////////////////////////////////////////////////
 
     public static HexCoords GenerateCoords(int x, int y)
     {
@@ -44,4 +46,6 @@ public struct HexCoords
 
         return "Hex Coords: (" + hexCoordInfo_X + " - " + hexCoordInfo_Y + " - " + hexCoordInfo_Z + " - " + hexCoordInfo_L + ")";
     }
+
+    /////////////////////////////////////////////////////////////////
 }

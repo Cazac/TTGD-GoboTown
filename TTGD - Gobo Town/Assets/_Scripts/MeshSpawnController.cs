@@ -1,41 +1,74 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class MeshSpawnController : MonoBehaviour
 {
     ////////////////////////////////
 
+    [SerializeField]
+    HexCell[,] allHexsCells_Arr;
+    HexChunk[,] allHexChunks_Arr;
 
-    public int hexCount;
+    [Header("Hex Map Options")]
+    public bool isChunking;
 
+    [Header("Containers")]
+    public GameObject hexMapContainer_GO;
 
-    public GameObject emptyHex_Prefab;
+    [Header("Prefabs")]
+    public GameObject hexMesh_Prefab;
+    public GameObject hexChunk_Prefab;
+    public GameObject hexChunkModel_Prefab;
 
     [Header("Hex Sizes")]
-    public const float outerRadius = 0.1f;
-
+    public const float outerRadius = 0.05f;
     public const float innerRadius = outerRadius * 0.866025404f;
 
-    public static Vector3[] corners = {
-        new Vector3(0f, 0f, outerRadius),
-        new Vector3(innerRadius, 0f, 0.5f * outerRadius),
-        new Vector3(innerRadius, 0f, -0.5f * outerRadius),
-        new Vector3(0f, 0f, -outerRadius),
-        new Vector3(-innerRadius, 0f, -0.5f * outerRadius),
-        new Vector3(-innerRadius, 0f, 0.5f * outerRadius),
-        new Vector3(0f, 0f, outerRadius)
-    };
+    [Header("Hex Counts")]
+    public float mapHex_Height = 0.05f;
+    public int mapHex_RowCount = 10;
+    public int mapHex_ColumnCount = 10;
+    public int mapHex_ChunkSize = 10;
+
+    private const float spacing_I = innerRadius * 2f;
+    private const float spacing_J = outerRadius * 1.5f;
+    private const float offcenter_I = spacing_I / 2;
+
+
+    public Gradient gradientColors;
 
     /////////////////////////////////////////////////////////////////
 
     private void Start()
     {
-        for (int i = 0; i < hexCount; i++)
+        //Spawn All Of the Hex Map
+        HexMap_Spawn();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
         {
-            SpawnHex_Hard();
-            SpawnHex_Soft();
+            HexMap_Spawn();
+        }
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            HexMap_Unchunk();
+        }
+
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            HexMap_Rechunk();
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            HandleInput();
         }
     }
 
@@ -43,241 +76,187 @@ public class MeshSpawnController : MonoBehaviour
 
     private void HexMap_Spawn()
     {
+        //Start Counting Timer
+        long startingTimeTicks = DateTime.UtcNow.Ticks;
 
+        //Create New Arrays
+        allHexsCells_Arr = new HexCell[mapHex_RowCount, mapHex_ColumnCount];
+        allHexChunks_Arr = new HexChunk[(int)Mathf.Ceil(mapHex_RowCount / mapHex_ChunkSize), (int)Mathf.Ceil(mapHex_ColumnCount / mapHex_ChunkSize)];
 
-
-
-
-
-
-
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-    public void SpawnHex_Hard()
-    {
-        GameObject newHex = Instantiate(emptyHex_Prefab);
-        newHex.name = "Hex Mesh (Hard)";
-
-        MeshFilter meshFilter = newHex.GetComponent<MeshFilter>();
-        Mesh hexMesh = new Mesh();
-        List<Vector3> vertices = new List<Vector3>();
-        List<int> triangles = new List<int>();
-
-        hexMesh.Clear();
-        vertices.Clear();
-        triangles.Clear();
-
-        GenerateMesh_Top(vertices, triangles);
-        GenerateMesh_Side(vertices, triangles);
-
-        hexMesh.vertices = vertices.ToArray();
-        hexMesh.triangles = triangles.ToArray();
-        hexMesh.RecalculateNormals();
-
-
-        meshFilter.mesh = hexMesh;
-    }
-
-    public void SpawnHex_Soft()
-    {
-        GameObject newHex = Instantiate(emptyHex_Prefab);
-        newHex.name = "Hex Mesh (Soft)";
-
-        MeshFilter meshFilter = newHex.GetComponent<MeshFilter>();
-        Mesh hexMesh = new Mesh();
-        List<Vector3> vertices = new List<Vector3>();
-        List<int> triangles = new List<int>();
-
-        hexMesh.Clear();
-        vertices.Clear();
-        triangles.Clear();
-
-        Vector3 center = new Vector3(1f, 0.1f, 0f);
-        GenerateTriangle_All(center, vertices, triangles);
-
-        hexMesh.vertices = vertices.ToArray();
-        hexMesh.triangles = triangles.ToArray();
-        hexMesh.RecalculateNormals();
-
-
-        meshFilter.mesh = hexMesh;
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-    private void GenerateMesh_Side(List<Vector3> vertices, List<int> triangles)
-    {
-        Vector3 height = new Vector3(0f, -0.1f, 0f);
-        Vector3 center = new Vector3(0f, 0.1f, 0f);
-
-
-        for (int i = 0; i < 6; i++)
+        //Create Either a Chunked or Non-Chunked Version
+        if (isChunking)
         {
-            GenerateTriangle(
-                center + corners[i] + height,
-                center + corners[i + 1],
-                center + corners[i],
-                vertices,
-                triangles
-            );
+            HexMap_RemoveOldMap();
+            HexMap_SpawnAllHexChunks();
+            HexMap_SpawnAllHexCells();
+            HexMap_RandomizeHeight();
+            HexMap_Chunk();
+            HexMap_StoreAllHexCells();
+        }
+        else
+        {
+            HexMap_RemoveOldMap();
+            HexMap_SpawnAllHexCells();
+            HexMap_RandomizeHeight();
+            HexMap_StoreAllHexCells();
         }
 
+        //Finish Counting Timer
+        long endingTimeTicks = DateTime.UtcNow.Ticks;
+        float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
+        Debug.Log("Test Code: Map Generation Completed in: " + finishTime + "s");
+    }
 
+  
+    /////////////////////////////////////////////////////////////////
 
-        for (int i = 0; i < 6; i++)
+    private void HexMap_RemoveOldMap()
+    {
+        //Destory All Old Hex Chunks / Cells
+        foreach (Transform child in hexMapContainer_GO.transform)
         {
-            GenerateTriangle(
-                center + corners[i] + height,
-                center + corners[i + 1] + height,
-                center + corners[i + 1],
-
-                vertices,
-                triangles
-            );
+            //Destroy Top-Level Child
+            Destroy(child.gameObject);
         }
     }
 
-    /////////////////////////////////////////////////////////////////
-
-    private void GenerateMesh_Top(List<Vector3> vertices, List<int> triangles)
+    private void HexMap_SpawnAllHexChunks()
     {
-        //Vector3 center = cell.transform.localPosition;
-        for (int i = 0; i < 6; i++)
+        //Spawn Chunks By I
+        for (int i = 0; i < allHexChunks_Arr.GetLength(0); i++)
         {
-            Vector3 center = new Vector3(0f, 0.1f, 0f);
+            //Spawn Chunks By J
+            for (int j = 0; j < allHexChunks_Arr.GetLength(1); j++)
+            {
+                //Spawn New Chunk Objects
+                GameObject newChunk = Instantiate(hexChunk_Prefab, new Vector3(0, 0, 0), Quaternion.identity, hexMapContainer_GO.transform);
+                GameObject newChunkModel = Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, newChunk.transform);
 
-            GenerateTriangle(
-                center,
-                center + corners[i],
-                center + corners[i + 1],
-                vertices,
-                triangles
-            );
-            
+                //Setup Chunk Script
+                newChunk.GetComponent<HexChunk>().SetupChunk(newChunkModel, i, j);
+
+                //Record Chunk Script For Later
+                allHexChunks_Arr[i, j] = newChunk.GetComponent<HexChunk>();
+            }
         }
     }
 
-    private void GenerateTriangle(Vector3 v1, Vector3 v2, Vector3 v3, List<Vector3> vertices, List<int> triangles)
+    private void HexMap_SpawnAllHexCells()
     {
-        int vertexIndex = vertices.Count;
-        vertices.Add(v1);
-        vertices.Add(v2);
-        vertices.Add(v3);
-        triangles.Add(vertexIndex);
-        triangles.Add(vertexIndex + 1);
-        triangles.Add(vertexIndex + 2);
+        //Spawn Cells By X (Left and Right)
+        for (int x = 0; x < mapHex_RowCount; x++)
+        {
+            //Spawn Cells By Y (Up and Down)
+            for (int y = 0; y < mapHex_ColumnCount; y++)
+            {
+                //Create Gameobjects
+                GameObject newHex;
+                GameObject cellChunk;
+
+                //Check For Chunking
+                if (isChunking)
+                {
+                    //Use a Chunk Container
+                    cellChunk = GetCellChunkContainer(x, y);
+                }
+                else
+                {
+                    //Use The Top Level Container
+                    cellChunk = hexMapContainer_GO;
+                }
+
+                //Regular Spawn Position VS Offset Spacing
+                if (y % 2 == 0)
+                {
+                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapHex_Height, x * spacing_I), Quaternion.identity, cellChunk.transform);
+                }
+                else
+                {
+                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapHex_Height, x * spacing_I + offcenter_I), Quaternion.identity, cellChunk.transform);
+                }
+
+                //Setup Cell
+                HexCell newHexCell = newHex.GetComponent<HexCell>();
+                newHexCell.GenerateHexMesh_Hard();
+                newHexCell.SetLabel(x, y);
+                newHexCell.GenerateCellColor();
+                newHexCell.UpdateCellColor(newHexCell.colorActive);
+
+                //Store it
+                allHexsCells_Arr[x, y] = newHexCell;
+            }
+        }
     }
 
-    private void GenerateTriangle_All(Vector3 center, List<Vector3> vertices, List<int> triangles)
+    private void HexMap_RandomizeHeight()
     {
-        
-        vertices.Add(center);
-        vertices.Add(center + corners[0]);
-        vertices.Add(center + corners[1]);
-        vertices.Add(center + corners[2]);
-        vertices.Add(center + corners[3]);
-        vertices.Add(center + corners[4]);
-        vertices.Add(center + corners[5]);
+        foreach (HexCell hexCell in allHexsCells_Arr)
+        {
+            //Generate Random Heights
+            hexCell.GenerateHeight_Random();
+        }
+    }
 
-        triangles.Add(0);
-        triangles.Add(1);
-        triangles.Add(2);
+    private void HexMap_StoreAllHexCells()
+    {
+        foreach (HexCell hexCell in allHexsCells_Arr)
+        {
 
-        triangles.Add(0);
-        triangles.Add(2);
-        triangles.Add(3);
-
-        triangles.Add(0);
-        triangles.Add(3);
-        triangles.Add(4);
-
-        triangles.Add(0);
-        triangles.Add(4);
-        triangles.Add(5);
-
-        triangles.Add(0);
-        triangles.Add(5);
-        triangles.Add(6);
-
-        triangles.Add(0);
-        triangles.Add(6);
-        triangles.Add(1);
-
-
-
-        Vector3 height = new Vector3(0f, 0.1f, 0f);
-
-        vertices.Add(vertices[1] - height);
-        vertices.Add(vertices[2] - height);
-        vertices.Add(vertices[3] - height);
-        vertices.Add(vertices[4] - height);
-        vertices.Add(vertices[5] - height);
-        vertices.Add(vertices[6] - height);
-
-
-
-        triangles.Add(2);
-        triangles.Add(1);
-        triangles.Add(7);
-
-        triangles.Add(3);
-        triangles.Add(2);
-        triangles.Add(8);
-
-        triangles.Add(4);
-        triangles.Add(3);
-        triangles.Add(9);
-
-        triangles.Add(5);
-        triangles.Add(4);
-        triangles.Add(10);
-
-        triangles.Add(6);
-        triangles.Add(5);
-        triangles.Add(11);
-
-        triangles.Add(1);
-        triangles.Add(6);
-        triangles.Add(12);
-
-
-
-
-
-
-        //
-
-
- 
-        triangles.Add(7);
-        triangles.Add(8);
-        triangles.Add(2);
-
-        triangles.Add(8);
-        triangles.Add(9);
-        triangles.Add(3);
-
-        triangles.Add(9);
-        triangles.Add(10);
-        triangles.Add(4);
-
-        triangles.Add(10);
-        triangles.Add(11);
-        triangles.Add(5);
-
-        triangles.Add(11);
-        triangles.Add(12);
-        triangles.Add(6);
-
-        triangles.Add(12);
-        triangles.Add(7);
-        triangles.Add(1);
+        }
     }
 
     /////////////////////////////////////////////////////////////////
 
+    private void HexMap_Chunk()
+    {
+        foreach (HexChunk hexChunk in allHexChunks_Arr)
+        {
+            hexChunk.Chunk();
+        }
+    }
+
+    private void HexMap_Unchunk()
+    {
+        Debug.Log("Test Code: Unchunk");
+
+        foreach (HexChunk hexChunk in allHexChunks_Arr)
+        {
+            hexChunk.Unchunk();
+        }
+    }
+
+    private void HexMap_Rechunk()
+    {
+        Debug.Log("Test Code: Rechunk");
+
+        foreach (HexChunk hexChunk in allHexChunks_Arr)
+        {
+            hexChunk.Rechunk();
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+    private GameObject GetCellChunkContainer(int x, int y)
+    {
+        return allHexChunks_Arr[(int)Mathf.Floor(x / mapHex_ChunkSize), (int)Mathf.Floor(y / mapHex_ChunkSize)].gameObject;
+    }
+
+    private void HandleInput()
+    {
+        Ray inputRay = Camera.main.ScreenPointToRay(Input.mousePosition);
 
 
+        if (Physics.Raycast(inputRay, out RaycastHit hit))
+        {
+            HexCell hitCell = hit.collider.gameObject.transform.parent.GetComponentInParent<HexCell>();
+
+            if (hitCell != null)
+            {
+                hitCell.ClickCell();
+            }
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////
 }

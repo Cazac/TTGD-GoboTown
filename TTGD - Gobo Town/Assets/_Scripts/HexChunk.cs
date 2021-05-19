@@ -8,21 +8,11 @@ public class HexChunk : MonoBehaviour
 {
     ////////////////////////////////
 
-    [Header("BLANKVAR")]
+    [Header("Hex Chunk Model")]
     public GameObject chunkedHexModel_GO;
+
+    [Header("Hex Chunk Cells")]
     public List<HexCell> hexCellsInChunk_List;
-
-    ////////////////////////////////
-
-
-
-
-    [Header("Mesh Colors")]
-    Vector3[] vertices_Arr;
-    Vector2[] uvs_Arr;
-    Color[] colors_Arr;
-
-    public Gradient gradientColors;
 
     /////////////////////////////////////////////////////////////////
 
@@ -43,24 +33,28 @@ public class HexChunk : MonoBehaviour
 
     public void Chunk()
     {
+        //Collect Info on which scripts should be included in the chunk
         CollectChunkData();
 
         //Chunk Meshes
-        MeshFilter[] meshFilter_List = gameObject.GetComponentsInChildren<MeshFilter>();
-        CombineInstance[] combine = new CombineInstance[meshFilter_List.Length];
+        MeshFilter[] meshFilter_Arr = gameObject.GetComponentsInChildren<MeshFilter>();
+        List<MeshFilter> meshFilter_List = new List<MeshFilter>(meshFilter_Arr);
+        meshFilter_List.RemoveAt(0);
+        meshFilter_Arr = meshFilter_List.ToArray();
+        CombineInstance[] combine = new CombineInstance[meshFilter_Arr.Length];
 
 
         int i = 0;
-        while (i < meshFilter_List.Length)
+        while (i < meshFilter_Arr.Length)
         {
-            combine[i].mesh = meshFilter_List[i].sharedMesh;
-            combine[i].transform = meshFilter_List[i].transform.localToWorldMatrix;
-            meshFilter_List[i].gameObject.SetActive(false);
+            combine[i].mesh = meshFilter_Arr[i].sharedMesh;
+            combine[i].transform = meshFilter_Arr[i].transform.localToWorldMatrix;
+            meshFilter_Arr[i].gameObject.SetActive(false);
 
             i++;
         }
 
-        chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh = new Mesh();
+
         chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
         chunkedHexModel_GO.transform.gameObject.SetActive(true);
 
@@ -74,7 +68,7 @@ public class HexChunk : MonoBehaviour
 
         foreach (HexCell hexCell in hexCellsInChunk_List)
         {
-            hexCell.HexObject.SetActive(true);
+            hexCell.hexObject_MeshFilter.gameObject.SetActive(true);
         }
     }
 
@@ -84,7 +78,7 @@ public class HexChunk : MonoBehaviour
 
         foreach (HexCell hexCell in hexCellsInChunk_List)
         {
-            hexCell.HexObject.SetActive(false);
+            hexCell.hexObject_MeshFilter.gameObject.SetActive(false);
         }
     }
 
@@ -92,176 +86,54 @@ public class HexChunk : MonoBehaviour
 
     public void ColorTheChunk()
     {
+        //Get Info
         Mesh mesh = chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh;
+        Vector3[] vertices_Arr = mesh.vertices;
+        Color[] colors_Arr = new Color[vertices_Arr.Length];
 
-        vertices_Arr = mesh.vertices;
-        uvs_Arr = new Vector2[vertices_Arr.Length];
-        colors_Arr = new Color[vertices_Arr.Length];
-
-        GradientColorKey[] colorKey;
-        GradientAlphaKey[] alphaKey;
-
-        gradientColors = new Gradient();
-
-        // Populate the color keys at the relative time 0 and 1 (0 and 100%)
-        colorKey = new GradientColorKey[2];
-        colorKey[0].color = new Color(0, 1, 0, 1);
-        colorKey[0].time = 0.0f;
-        colorKey[1].color = new Color(0.2f, 0.6f, 0.2f, 1);
-        colorKey[1].time = 1.0f;
-
-        // Populate the alpha  keys at relative time 0 and 1  (0 and 100%)
-        alphaKey = new GradientAlphaKey[2];
-        alphaKey[0].alpha = 1.0f;
-        alphaKey[0].time = 0.0f;
-        alphaKey[1].alpha = 0.0f;
-        alphaKey[1].time = 1.0f;
-
-        gradientColors.SetKeys(colorKey, alphaKey);
-
-
-
-        //float random = 
-
-
+        //Loop through all color Verts
         for (int i = 0; i < colors_Arr.Length; i++)
         {
-            colors_Arr[i] = gradientColors.Evaluate(Random.Range(0, 1f));
+            //54 is the count of verts on a hex
+            colors_Arr[i] = hexCellsInChunk_List[(int)Mathf.Floor(i / 54)].colorActive;
         }
 
+        //Set Color Array on Mesh
         mesh.colors = colors_Arr;
 
-
+        //Not Needed ??
         mesh.RecalculateNormals();
     }
 
-
-
-
-
-
-
-
-
-
-    /*
-public MeshRenderer meshRenderer;
-public MeshFilter meshFilter;
-
-int vertexIndex = 0;
-List<Vector3> vertices = new List<Vector3>();
-List<int> triangles = new List<int>();
-List<Vector2> uvs = new List<Vector2>();
-
-bool[,,] voxelMap = new bool[VoxelData.ChunkWidth, VoxelData.ChunkHeight, VoxelData.ChunkWidth];
-
-/////////////////////////////////////////////////////////////////
-
-
-void Start()
-{
-
-    //PopulateVoxelMap();
-    //CreateMeshData();
-    //CreateMesh();
-
-}
-
-
-    void PopulateVoxelMap()
+    public void SetupChunk(GameObject HexModel_GO, int i, int j)
     {
-
-        for (int y = 0; y < VoxelData.ChunkHeight; y++)
-        {
-            for (int x = 0; x < VoxelData.ChunkWidth; x++)
-            {
-                for (int z = 0; z < VoxelData.ChunkWidth; z++)
-                {
-
-                    voxelMap[x, y, z] = true;
-
-                }
-            }
-        }
-
+        chunkedHexModel_GO = HexModel_GO;
+        gameObject.name = "Chunk: " + i + "/" + j;
     }
-
-    void CreateMeshData()
-    {
-
-        for (int y = 0; y < VoxelData.ChunkHeight; y++)
-        {
-            for (int x = 0; x < VoxelData.ChunkWidth; x++)
-            {
-                for (int z = 0; z < VoxelData.ChunkWidth; z++)
-                {
-
-                    AddVoxelDataToChunk(new Vector3(x, y, z));
-
-                }
-            }
-        }
-
-    }
-
-    bool CheckVoxel(Vector3 pos)
-    {
-
-        int x = Mathf.FloorToInt(pos.x);
-        int y = Mathf.FloorToInt(pos.y);
-        int z = Mathf.FloorToInt(pos.z);
-
-        if (x < 0 || x > VoxelData.ChunkWidth - 1 || y < 0 || y > VoxelData.ChunkHeight - 1 || z < 0 || z > VoxelData.ChunkWidth - 1)
-            return false;
-
-        return voxelMap[x, y, z];
-
-    }
-
-    void AddVoxelDataToChunk(Vector3 pos)
-    {
-
-        for (int p = 0; p < 6; p++)
-        {
-
-            if (!CheckVoxel(pos + VoxelData.faceChecks[p]))
-            {
-
-                vertices.Add(pos + VoxelData.voxelVerts[VoxelData.voxelTris[p, 0]]);
-                vertices.Add(pos + VoxelData.voxelVerts[VoxelData.voxelTris[p, 1]]);
-                vertices.Add(pos + VoxelData.voxelVerts[VoxelData.voxelTris[p, 2]]);
-                vertices.Add(pos + VoxelData.voxelVerts[VoxelData.voxelTris[p, 3]]);
-                uvs.Add(VoxelData.voxelUvs[0]);
-                uvs.Add(VoxelData.voxelUvs[1]);
-                uvs.Add(VoxelData.voxelUvs[2]);
-                uvs.Add(VoxelData.voxelUvs[3]);
-                triangles.Add(vertexIndex);
-                triangles.Add(vertexIndex + 1);
-                triangles.Add(vertexIndex + 2);
-                triangles.Add(vertexIndex + 2);
-                triangles.Add(vertexIndex + 1);
-                triangles.Add(vertexIndex + 3);
-                vertexIndex += 4;
-
-            }
-        }
-
-    }
-
-    void CreateMesh()
-    {
-
-        Mesh mesh = new Mesh();
-        mesh.vertices = vertices.ToArray();
-        mesh.triangles = triangles.ToArray();
-        mesh.uv = uvs.ToArray();
-
-        mesh.RecalculateNormals();
-
-        meshFilter.mesh = mesh;
-
-    }
-    */
 
     /////////////////////////////////////////////////////////////////
 }
+
+
+/*
+GradientColorKey[] colorKey;
+GradientAlphaKey[] alphaKey;
+
+gradientColors = new Gradient();
+
+// Populate the color keys at the relative time 0 and 1 (0 and 100%)
+colorKey = new GradientColorKey[2];
+colorKey[0].color = new Color(0, 1, 0, 1);
+colorKey[0].time = 0.0f;
+colorKey[1].color = new Color(0.2f, 0.6f, 0.2f, 1);
+colorKey[1].time = 1.0f;
+
+// Populate the alpha  keys at relative time 0 and 1  (0 and 100%)
+alphaKey = new GradientAlphaKey[2];
+alphaKey[0].alpha = 1.0f;
+alphaKey[0].time = 0.0f;
+alphaKey[1].alpha = 0.0f;
+alphaKey[1].time = 1.0f;
+
+gradientColors.SetKeys(colorKey, alphaKey);
+*/
