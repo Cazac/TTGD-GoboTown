@@ -44,6 +44,7 @@ public class HexChunk : MonoBehaviour
         CombineInstance[] combine = new CombineInstance[meshFilter_Arr.Length];
 
 
+   
         int i = 0;
         while (i < meshFilter_Arr.Length)
         {
@@ -55,7 +56,10 @@ public class HexChunk : MonoBehaviour
         }
 
 
-        chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
+        chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine, true, true);
+
+        chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh.subMeshCount = 2;
+
         chunkedHexModel_GO.transform.gameObject.SetActive(true);
 
 

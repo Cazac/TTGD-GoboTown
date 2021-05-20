@@ -161,7 +161,7 @@ public class HexSpawnController : MonoBehaviour
 
                 HexCell newHexCell = newHex.GetComponent<HexCell>();
                 newHexCell.SetLabel(x, y);
-                newHexCell.GenerateCellColor();
+                newHexCell.GenerateCellColor(gradientColors);
                 newHexCell.UpdateCellColor(newHexCell.colorActive);
 
                 //Store it

@@ -15,8 +15,10 @@ public class MeshSpawnController : MonoBehaviour
 
     [Header("Hex Map Options")]
     public bool isChunking;
+    public bool isTexturing;
 
     [Header("Containers")]
+    public GameObject ground_GO;
     public GameObject hexMapContainer_GO;
 
     [Header("Prefabs")]
@@ -39,7 +41,15 @@ public class MeshSpawnController : MonoBehaviour
     private const float offcenter_I = spacing_I / 2;
 
 
-    public Gradient gradientColors;
+    [Header("Mesh Colors")]
+    public Gradient hexCellColorGradient_PlainsColored;
+    public Gradient hexCellColorGradient_PlainsTextured;
+
+    public Material hexCellColorMaterial_PlainsColored;
+    public Material hexCellColorMaterial_PlainsTextured;
+
+
+    //public Gradient gradientColors;
 
     /////////////////////////////////////////////////////////////////
 
@@ -86,6 +96,7 @@ public class MeshSpawnController : MonoBehaviour
         //Create Either a Chunked or Non-Chunked Version
         if (isChunking)
         {
+            HexMap_SpawnGround();
             HexMap_RemoveOldMap();
             HexMap_SpawnAllHexChunks();
             HexMap_SpawnAllHexCells();
@@ -95,6 +106,7 @@ public class MeshSpawnController : MonoBehaviour
         }
         else
         {
+            HexMap_SpawnGround();
             HexMap_RemoveOldMap();
             HexMap_SpawnAllHexCells();
             HexMap_RandomizeHeight();
@@ -105,9 +117,13 @@ public class MeshSpawnController : MonoBehaviour
         long endingTimeTicks = DateTime.UtcNow.Ticks;
         float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
         Debug.Log("Test Code: Map Generation Completed in: " + finishTime + "s");
+
+        HexMap_CenterCamera();
     }
 
-  
+
+
+
     /////////////////////////////////////////////////////////////////
 
     private void HexMap_RemoveOldMap()
@@ -118,6 +134,50 @@ public class MeshSpawnController : MonoBehaviour
             //Destroy Top-Level Child
             Destroy(child.gameObject);
         }
+    }
+
+    private void HexMap_SpawnGround()
+    {
+        Mesh newMesh = new Mesh();
+
+
+        List<Vector3> verts_List = new List<Vector3>();
+        List<int> tris_List = new List<int>();
+
+
+        float extraTrim = 0.15f;
+
+        float x = innerRadius * mapHex_RowCount * 1.75f;
+        float y = outerRadius * mapHex_ColumnCount * 1.75f;
+
+        verts_List.Add(new Vector3(-extraTrim, 0f, -extraTrim));
+        verts_List.Add(new Vector3(x + extraTrim, 0f, -extraTrim));
+        verts_List.Add(new Vector3(-extraTrim, 0f, y + extraTrim));
+        verts_List.Add(new Vector3(x + extraTrim, 0f, y + extraTrim));
+
+        tris_List.Add(2);
+        tris_List.Add(1);
+        tris_List.Add(0);
+
+        tris_List.Add(1);
+        tris_List.Add(2);
+        tris_List.Add(3);
+
+
+        //Set Mesh Info
+        newMesh.vertices = verts_List.ToArray();
+        newMesh.triangles = tris_List.ToArray();
+
+        //Refresh Normals Info
+        newMesh.RecalculateNormals();
+        newMesh.Optimize();
+
+        //Set Mesh To Gameobject
+        ground_GO.GetComponent<MeshFilter>().mesh = newMesh;
+
+
+        
+
     }
 
     private void HexMap_SpawnAllHexChunks()
@@ -179,8 +239,29 @@ public class MeshSpawnController : MonoBehaviour
                 HexCell newHexCell = newHex.GetComponent<HexCell>();
                 newHexCell.GenerateHexMesh_Hard();
                 newHexCell.SetLabel(x, y);
-                newHexCell.GenerateCellColor();
+
+                if (isTexturing)
+                {
+                    if (0.5f > Random.Range(0f, 1f))
+                    {
+                        newHexCell.UpdateMaterial(hexCellColorMaterial_PlainsTextured);
+                        newHexCell.GenerateCellColor(hexCellColorGradient_PlainsTextured);
+                    }
+                    else
+                    {
+                        newHexCell.UpdateMaterial(hexCellColorMaterial_PlainsColored);
+                        newHexCell.GenerateCellColor(hexCellColorGradient_PlainsColored);
+                    }
+                }
+                else
+                {
+                    newHexCell.UpdateMaterial(hexCellColorMaterial_PlainsColored);
+                    newHexCell.GenerateCellColor(hexCellColorGradient_PlainsColored);
+                }
+
+  
                 newHexCell.UpdateCellColor(newHexCell.colorActive);
+
 
                 //Store it
                 allHexsCells_Arr[x, y] = newHexCell;
@@ -203,6 +284,18 @@ public class MeshSpawnController : MonoBehaviour
         {
 
         }
+    }
+
+    private void HexMap_CenterCamera()
+    {
+
+        float extraTrim = 0.15f;
+        float x = innerRadius * mapHex_RowCount * 1.75f;
+        float left = -extraTrim;
+        float right = x + extraTrim;
+        float xPos = Mathf.Lerp(left, right, 0.5f);
+
+        Camera.main.transform.position = new Vector3(xPos, 0.75f, -0.25f);
     }
 
     /////////////////////////////////////////////////////////////////

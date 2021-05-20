@@ -49,8 +49,7 @@ public class HexCell : MonoBehaviour
     public Color colorActive;
     public Color colorClicked;
 
-    [Header("Mesh Colors")]
-    public Gradient colorRangeGradient;
+
     private Color[] colors_Arr;
 
     /////////////////////////////////////////////////////////////////
@@ -111,12 +110,16 @@ public class HexCell : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    public void GenerateCellColor()
+    public void GenerateCellColor(Gradient colorRangeGradient)
     {
         //Set Random Value From Gradeint
         colorActive = colorRangeGradient.Evaluate(Random.Range(0, 1f));
     }
 
+    public void UpdateMaterial(Material hexCellColorMaterial_PlainsTextured)
+    {
+        hexObject_MeshRenderer.material = hexCellColorMaterial_PlainsTextured;
+    }
 
     public void UpdateCellColor(Color newColor)
     {
