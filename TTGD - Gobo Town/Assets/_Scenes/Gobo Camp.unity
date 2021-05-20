@@ -750,13 +750,13 @@ MonoBehaviour:
   hexChunk_Prefab: {fileID: 4053091745430206964, guid: bde8425326c5d7246a94a92444287dca, type: 3}
   hexChunkModel_Prefab: {fileID: 4053091745430206964, guid: 7ce53fe3b7f230447937e6fd375f30f0, type: 3}
   mapHex_Height: 0.05
-  mapHex_RowCount: 50
-  mapHex_ColumnCount: 50
+  mapHex_RowCount: 100
+  mapHex_ColumnCount: 100
   mapHex_ChunkSize: 10
   hexCellColorGradient_PlainsColored:
     serializedVersion: 2
-    key0: {r: 1, g: 1, b: 1, a: 1}
-    key1: {r: 1, g: 1, b: 1, a: 1}
+    key0: {r: 0.06203568, g: 1, b: 0, a: 1}
+    key1: {r: 0.050314464, g: 0.8018868, b: 0, a: 1}
     key2: {r: 0, g: 0, b: 0, a: 0}
     key3: {r: 0, g: 0, b: 0, a: 0}
     key4: {r: 0, g: 0, b: 0, a: 0}
@@ -784,8 +784,8 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   hexCellColorGradient_PlainsTextured:
     serializedVersion: 2
-    key0: {r: 1, g: 1, b: 1, a: 1}
-    key1: {r: 1, g: 1, b: 1, a: 1}
+    key0: {r: 0.68592256, g: 0.9245283, b: 0.2660199, a: 1}
+    key1: {r: 0.69861287, g: 0.8, b: 0, a: 1}
     key2: {r: 0, g: 0, b: 0, a: 0}
     key3: {r: 0, g: 0, b: 0, a: 0}
     key4: {r: 0, g: 0, b: 0, a: 0}

@@ -124,7 +124,7 @@ public class HexSpawnController : MonoBehaviour
                 GameObject newChunk = Instantiate(hexChunk_Prefab, new Vector3(0, 0, 0), Quaternion.identity, container.transform);
                 GameObject newChunkModel = Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, newChunk.transform);
 
-                newChunk.GetComponent<HexChunk>().chunkedHexModel_GO = newChunkModel;
+                newChunk.GetComponent<HexChunk>().chunkedHexModel1_GO = newChunkModel;
                 allHexChunks_Arr[i, j] = newChunk.GetComponent<HexChunk>();
 
                 allHexChunks_Arr[i, j].gameObject.name = "Chunk: " + i + "/" + j;
@@ -184,7 +184,7 @@ public class HexSpawnController : MonoBehaviour
     {
         foreach (HexChunk hexChunk in allHexChunks_Arr)
         {
-            hexChunk.Chunk();
+            hexChunk.Chunk(false);
         }
     }
 

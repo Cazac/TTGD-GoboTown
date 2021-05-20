@@ -50,6 +50,9 @@ public class HexCell : MonoBehaviour
     public Color colorClicked;
 
 
+
+    public int hexCellMatID;
+
     private Color[] colors_Arr;
 
     /////////////////////////////////////////////////////////////////
@@ -116,8 +119,9 @@ public class HexCell : MonoBehaviour
         colorActive = colorRangeGradient.Evaluate(Random.Range(0, 1f));
     }
 
-    public void UpdateMaterial(Material hexCellColorMaterial_PlainsTextured)
+    public void UpdateMaterial(int matID, Material hexCellColorMaterial_PlainsTextured)
     {
+        hexCellMatID = matID;
         hexObject_MeshRenderer.material = hexCellColorMaterial_PlainsTextured;
     }
 

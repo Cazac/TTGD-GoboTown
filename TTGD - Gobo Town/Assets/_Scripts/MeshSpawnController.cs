@@ -190,10 +190,11 @@ public class MeshSpawnController : MonoBehaviour
             {
                 //Spawn New Chunk Objects
                 GameObject newChunk = Instantiate(hexChunk_Prefab, new Vector3(0, 0, 0), Quaternion.identity, hexMapContainer_GO.transform);
-                GameObject newChunkModel = Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, newChunk.transform);
+                GameObject newChunkModel1 = Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, newChunk.transform);
+                GameObject newChunkModel2 = Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, newChunk.transform);
 
                 //Setup Chunk Script
-                newChunk.GetComponent<HexChunk>().SetupChunk(newChunkModel, i, j);
+                newChunk.GetComponent<HexChunk>().SetupChunk(newChunkModel1, newChunkModel2, i, j);
 
                 //Record Chunk Script For Later
                 allHexChunks_Arr[i, j] = newChunk.GetComponent<HexChunk>();
@@ -244,18 +245,18 @@ public class MeshSpawnController : MonoBehaviour
                 {
                     if (0.5f > Random.Range(0f, 1f))
                     {
-                        newHexCell.UpdateMaterial(hexCellColorMaterial_PlainsTextured);
+                        newHexCell.UpdateMaterial(2, hexCellColorMaterial_PlainsTextured);
                         newHexCell.GenerateCellColor(hexCellColorGradient_PlainsTextured);
                     }
                     else
                     {
-                        newHexCell.UpdateMaterial(hexCellColorMaterial_PlainsColored);
+                        newHexCell.UpdateMaterial(1, hexCellColorMaterial_PlainsColored);
                         newHexCell.GenerateCellColor(hexCellColorGradient_PlainsColored);
                     }
                 }
                 else
                 {
-                    newHexCell.UpdateMaterial(hexCellColorMaterial_PlainsColored);
+                    newHexCell.UpdateMaterial(1, hexCellColorMaterial_PlainsColored);
                     newHexCell.GenerateCellColor(hexCellColorGradient_PlainsColored);
                 }
 
@@ -295,7 +296,7 @@ public class MeshSpawnController : MonoBehaviour
         float right = x + extraTrim;
         float xPos = Mathf.Lerp(left, right, 0.5f);
 
-        Camera.main.transform.position = new Vector3(xPos, 0.75f, -0.25f);
+        Camera.main.transform.position = new Vector3(xPos, 0.7f, -0.55f);
     }
 
     /////////////////////////////////////////////////////////////////
@@ -304,7 +305,7 @@ public class MeshSpawnController : MonoBehaviour
     {
         foreach (HexChunk hexChunk in allHexChunks_Arr)
         {
-            hexChunk.Chunk();
+            hexChunk.Chunk(false);
         }
     }
 
