@@ -14,8 +14,9 @@ public class HexChunk : MonoBehaviour
     public GameObject chunkedHexModel2_GO;
 
     [Header("Hex Chunk Cells")]
-    public List<HexCell> hexCellsInChunk_List;
+    public List<HexCell> hexCellsInChunk_List = new List<HexCell>();
 
+    [Header("Hex Materials")]
     public Material mat1;
     public Material mat2;
 
@@ -23,104 +24,46 @@ public class HexChunk : MonoBehaviour
 
     public void CollectChunkData()
     {
-        hexCellsInChunk_List = new List<HexCell>();
-
+        //Collect All The Hexes in the Transform of the object
         foreach (Transform hexCell in gameObject.transform)
         {
+            //Add the Hex Cell To The List
             hexCellsInChunk_List.Add(hexCell.gameObject.GetComponent<HexCell>());
         }
 
-        //Remove First one as it is the new chunk itself
+        //Remove 2 ones as it is the new chunk mesh render itself not a hex
         hexCellsInChunk_List.RemoveAt(0);
         hexCellsInChunk_List.RemoveAt(0);
-
-        Debug.Log("Test Code: " + hexCellsInChunk_List.Count);
     }
 
     /////////////////////////////////////////////////////////////////
 
-    public void Chunk(bool oldOrNew)
-    {
-        if (oldOrNew)
-        {
-            Chunk_OldGood();
-        }
-        else
-        {
-            Chunk_NewBroken();
-        }
-    }
-
-    public void Unchunk()
-    {
-        chunkedHexModel1_GO.SetActive(false);
-
-        foreach (HexCell hexCell in hexCellsInChunk_List)
-        {
-            hexCell.hexObject_MeshFilter.gameObject.SetActive(true);
-        }
-    }
-
-    public void Rechunk()
-    {
-        chunkedHexModel1_GO.SetActive(true);
-
-        foreach (HexCell hexCell in hexCellsInChunk_List)
-        {
-            hexCell.hexObject_MeshFilter.gameObject.SetActive(false);
-        }
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-    private void Chunk_OldGood()
+    public void Chunk()
     {
         //Collect Info on which scripts should be included in the chunk
         CollectChunkData();
 
-        //Chunk Meshes
+        //Collect Info To Chunk The Meshes
         MeshFilter[] meshFilter_Arr = gameObject.GetComponentsInChildren<MeshFilter>();
         List<MeshFilter> meshFilter_List = new List<MeshFilter>(meshFilter_Arr);
-        meshFilter_List.RemoveAt(0);
-        meshFilter_Arr = meshFilter_List.ToArray();
-        CombineInstance[] combine = new CombineInstance[meshFilter_Arr.Length];
 
-        int i = 0;
-        while (i < meshFilter_Arr.Length)
-        {
-            combine[i].mesh = meshFilter_Arr[i].sharedMesh;
-            combine[i].transform = meshFilter_Arr[i].transform.localToWorldMatrix;
-            meshFilter_Arr[i].gameObject.SetActive(false);
-
-            i++;
-        }
-       
-        chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine, true, true);
-        chunkedHexModel1_GO.transform.gameObject.SetActive(true);
-
-        ColorTheChunk();
-    }
-
-    private void Chunk_NewBroken()
-    {
-        //Collect Info on which scripts should be included in the chunk
-        CollectChunkData();
-
-
-
-
-        MeshFilter[] meshFilter_Arr = gameObject.GetComponentsInChildren<MeshFilter>();
-        List<MeshFilter> meshFilter_List = new List<MeshFilter>(meshFilter_Arr);
+        //Remove The Modeling Chunks
         meshFilter_List.RemoveAt(0);
         meshFilter_List.RemoveAt(1);
         meshFilter_Arr = meshFilter_List.ToArray();
 
 
 
-        CombineInstance[] combine = new CombineInstance[meshFilter_Arr.Length];
+        //CombineInstance[] combine = new CombineInstance[meshFilter_Arr.Length];
 
         List<CombineInstance> combiningList_1 = new List<CombineInstance>();
         List<CombineInstance> combiningList_2 = new List<CombineInstance>();
+
+
+        List<List<CombineInstance>> combiningListOfLists_List = new List<List<CombineInstance>>();
+
+
+
 
         foreach (HexCell hexCell in hexCellsInChunk_List)
         {
@@ -177,17 +120,43 @@ public class HexChunk : MonoBehaviour
         chunkedHexModel1_GO.transform.gameObject.SetActive(true);
 
 
-        return;
+    }
 
+    public void Unchunk()
+    {
+        chunkedHexModel1_GO.SetActive(false);
 
-        /*
+        foreach (HexCell hexCell in hexCellsInChunk_List)
+        {
+            hexCell.hexObject_MeshFilter.gameObject.SetActive(true);
+        }
+    }
+
+    public void Rechunk()
+    {
+        chunkedHexModel1_GO.SetActive(true);
+
+        foreach (HexCell hexCell in hexCellsInChunk_List)
+        {
+            hexCell.hexObject_MeshFilter.gameObject.SetActive(false);
+        }
+    }
+
+    private void Chunk_OLD()
+    {
+        //Collect Info on which scripts should be included in the chunk
+        CollectChunkData();
+
+        //Collect Info To Chunk The Meshes
+        MeshFilter[] meshFilter_Arr = gameObject.GetComponentsInChildren<MeshFilter>();
+        List<MeshFilter> meshFilter_List = new List<MeshFilter>(meshFilter_Arr);
+        meshFilter_List.RemoveAt(0);
+        meshFilter_Arr = meshFilter_List.ToArray();
+        CombineInstance[] combine = new CombineInstance[meshFilter_Arr.Length];
 
         int i = 0;
         while (i < meshFilter_Arr.Length)
         {
-            Mesh newestMesh = CombineMeshes(meshFilter_Arr);
-
-
             combine[i].mesh = meshFilter_Arr[i].sharedMesh;
             combine[i].transform = meshFilter_Arr[i].transform.localToWorldMatrix;
             meshFilter_Arr[i].gameObject.SetActive(false);
@@ -195,187 +164,13 @@ public class HexChunk : MonoBehaviour
             i++;
         }
 
-
-
-        while (meshFilter_Arr.Length > 0)
-        {
-
-
-            meshFilter_Arr.
-        }
-
-
-        for (int i = 0; i < meshFilter_Arr.Length; i++)
-        {
-
-
-        }
-
-        */
-
-       // Mesh newestMesh = CombineMeshes(meshFilter_Arr);
-        //chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine, true, true);
-
-
-
-        chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh = newestMesh;
+        chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine, true, true);
         chunkedHexModel1_GO.transform.gameObject.SetActive(true);
 
-        int k = 0;
-        while (k < meshFilter_Arr.Length)
-        {
-            meshFilter_Arr[k].gameObject.SetActive(false);
-
-            k++;
-        }
-
-
-        return;
-
-        /////////////////////////////////////////////////////////////////
-
-        List<int> matID_List = new List<int>();
-        List<CombineInstance> subMeshes_1 = new List<CombineInstance>();
-        List<CombineInstance> subMeshes_2 = new List<CombineInstance>();
-
-
-
-        List<Vector3> submeshVerts_1 = new List<Vector3>();
-        List<int> submeshTris_1 = new List<int>();
-
-
-        Matrix4x4 localToWorld = transform.localToWorldMatrix;
-
-
-        foreach (HexCell hexCell in hexCellsInChunk_List)
-        {
-            CombineInstance newInstance = new CombineInstance();
-
-            newInstance.mesh = hexCell.hexObject_MeshFilter.sharedMesh;
-            hexCell.hexObject_MeshFilter.gameObject.SetActive(false);
-
-            if (hexCell.hexCellMatID == 1)
-            {
-                Vector3[] vert_Arr = new Vector3[hexCell.hexObject_MeshFilter.mesh.vertices.Length];
-                for (int i = 0; i < hexCell.hexObject_MeshFilter.mesh.vertices.Length; i++)
-                {
-                    foreach (Vector3 vert in vert_Arr)
-                    {
-                        //Debug.Log("Test Code: Loop");
-                        //submeshVerts_1.Add((vert));
-                    }
-                }
-
-                subMeshes_1.Add(newInstance);
-            }
-            else
-            {
-                //subMeshes_2.Add(newInstance);
-            }
-        }
-
-
-     
-
-
-        /*
-        for (int j = 0; j < subMeshes_1.Count; j++)
-        {
-            submeshTris_1 = submeshTris_1.Concat(new List<int>(subMeshes_1[j].mesh.GetTriangles(0))).ToList();
-
-
-
-            //HERE IS THE ISSUES I NEED A WORLD SPACE VERSION TO MERGE THE VERTS TOGETHER
-            submeshVerts_1 = submeshVerts_1.Concat(new List<Vector3>(subMeshes_1[j].mesh.vertices)).ToList();
-        }
-
-        /*
-        int[] submeshTris_2 = new int[0];
-        for (int j = 0; j < subMeshes_2.Count; j++)
-        {
-            submeshTris_2 = subMeshes_2[j].mesh.GetTriangles(0);
-
-        }
-        */
-
-
-        Debug.Log("Test Code: Mesh Length(1) " + subMeshes_1.Count);
-        //Debug.Log("Test Code: Mesh Length(2) " + subMeshes_2.Count);
-        Debug.Log("Test Code: Verts Length(1) " + submeshVerts_1.Count);
-        //Debug.Log("Test Code: Verts Length(2) " + submeshVerts_2.Count);
-        Debug.Log("Test Code: Tris Length(1) " + submeshTris_1.Count);
-        //Debug.Log("Test Code: Tris Length(2) " + submeshTris_2.Length);
-
-
-
-        chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh.subMeshCount = 2;
-        chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh.SetVertices(submeshVerts_1.ToArray());
-        chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh.SetTriangles(submeshTris_1.ToArray(), 0);
-
-
-
-        //chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh.SetTriangles(submeshTris_2, 0);
-
-      
-
-
-        /////////////////////////////////////////////////////////////////
-
-
-        //chunkedHexModel_GO.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine, true, true);
-        chunkedHexModel1_GO.transform.gameObject.SetActive(true);
-
-        //chunkedHexModel_GO.transform.GetComponent<MeshRenderer>().materials[0] = mat1;
-        //chunkedHexModel_GO.transform.GetComponent<MeshRenderer>().materials[1] = mat2;
-
-        //chunkedHexModel_GO.transform.GetComponent<MeshRenderer>().mater = new 
-
-
-        //ColorTheChunk();
-    }
-    
-    private void Chunk_NewBroken2()
-    {
-        //Collect Info on which scripts should be included in the chunk
-        CollectChunkData();
-
-
-        MeshFilter[] meshFilter_Arr = gameObject.GetComponentsInChildren<MeshFilter>();
-        List<MeshFilter> meshFilter_List = new List<MeshFilter>(meshFilter_Arr);
-        meshFilter_List.RemoveAt(0);
-        meshFilter_List.RemoveAt(1);
-        meshFilter_Arr = meshFilter_List.ToArray();
-
-
-
-        Mesh mesh;
-        Material[] materials;
-
-        MeshTile[] meshTiles = new MeshTile[meshFilter_Arr.Length];
-        SmartMeshData[] meshData;
-
-         meshData = new SmartMeshData[meshTiles.Length];
-        for (int i = 0; i < meshTiles.Length; i++)
-        {
-            meshData[i] = new SmartMeshData(meshTiles[i].mesh, meshTiles[i].materials, meshTiles[i].transform.localPosition, meshTiles[i].transform.localRotation);
-        }
-
-        Mesh combinedMesh = GetComponent<MeshFilter>().mesh = new Mesh();
-        combinedMesh.name = "Combined Mesh";
-        Material[] combinedMaterials;
-
-        combinedMesh.CombineMeshesSmart(meshData, out combinedMaterials);
-
-        GetComponent<MeshRenderer>().sharedMaterials = combinedMaterials;
+        ColorTheChunk();
     }
 
-
-
-    public class MeshTile : MonoBehaviour
-    {
-        public Mesh mesh;
-        public Material[] materials;
-    }
+    /////////////////////////////////////////////////////////////////
 
     private Mesh CombineMeshes(MeshFilter[] incomingMeshes)
     {
@@ -458,6 +253,8 @@ public class HexChunk : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 }
+
+//Might Need this for mergeiung color between biomes
 
 
 /*

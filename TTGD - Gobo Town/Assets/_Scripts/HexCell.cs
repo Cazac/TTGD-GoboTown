@@ -18,13 +18,13 @@ public class HexCell : MonoBehaviour
 
     public static Vector3[] hexMeshCorners = 
     {
-        new Vector3(0f, 0f, MeshSpawnController.outerRadius),
-        new Vector3(MeshSpawnController.innerRadius, 0f, 0.5f * MeshSpawnController.outerRadius),
-        new Vector3(MeshSpawnController.innerRadius, 0f, -0.5f * MeshSpawnController.outerRadius),
-        new Vector3(0f, 0f, -MeshSpawnController.outerRadius),
-        new Vector3(-MeshSpawnController.innerRadius, 0f, -0.5f * MeshSpawnController.outerRadius),
-        new Vector3(-MeshSpawnController.innerRadius, 0f, 0.5f * MeshSpawnController.outerRadius),
-        new Vector3(0f, 0f, MeshSpawnController.outerRadius)
+        new Vector3(0f, 0f, HexSpawnController.outerRadius),
+        new Vector3(HexSpawnController.innerRadius, 0f, 0.5f * HexSpawnController.outerRadius),
+        new Vector3(HexSpawnController.innerRadius, 0f, -0.5f * HexSpawnController.outerRadius),
+        new Vector3(0f, 0f, -HexSpawnController.outerRadius),
+        new Vector3(-HexSpawnController.innerRadius, 0f, -0.5f * HexSpawnController.outerRadius),
+        new Vector3(-HexSpawnController.innerRadius, 0f, 0.5f * HexSpawnController.outerRadius),
+        new Vector3(0f, 0f, HexSpawnController.outerRadius)
     };
 
     ////////////////////////////////
@@ -47,7 +47,6 @@ public class HexCell : MonoBehaviour
 
     [Header("Hex Color Options")]
     public Color colorActive;
-    public Color colorClicked;
 
 
 

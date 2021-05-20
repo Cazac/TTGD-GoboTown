@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -12,46 +13,48 @@ public class HexSpawnController : MonoBehaviour
     HexCell[,] allHexsCells_Arr;
     HexChunk[,] allHexChunks_Arr;
 
+    [Header("Hex Map Options")]
+    public bool isChunking;
+
+    [Header("Containers")]
+    public GameObject ground_GO;
+    public GameObject hexMapContainer_GO;
 
     [Header("Prefabs")]
+    public GameObject hexMesh_Prefab;
     public GameObject hexChunk_Prefab;
     public GameObject hexChunkModel_Prefab;
-    public GameObject hexBlank_Prefab;
 
-    [Header("Hex Counts")]
+    [Header("Hex Sizes")]
+    public const float outerRadius = 0.05f;
+    public const float innerRadius = outerRadius * 0.866025404f;
+    private const float spacing_I = innerRadius * 2f;
+    private const float spacing_J = outerRadius * 1.5f;
+    private const float offcenter_I = spacing_I / 2;
+
+    [Header("Map Settings")]
+    public float mapHex_Height = 0.05f;
     public int mapHex_RowCount = 10;
     public int mapHex_ColumnCount = 10;
     public int mapHex_ChunkSize = 10;
+    public int mapHex_Seed = 135135;
 
-    public float spacing_I = 0.15f; 
-    public float spacing_J = 0.1732f;
-    private float offcenter_I;
+    [Header("Mesh Colors")]
+    public Gradient hexCellColorGradient_PlainsColored;
+    public Gradient hexCellColorGradient_PlainsTextured;
 
+    [Header("Mesh Materials")]
+    public Material hexCellColorMaterial_PlainsColored;
+    public Material hexCellColorMaterial_PlainsTextured;
 
-    public GameObject container;
-
-
-
-
-    Gradient gradient;
-    GradientColorKey[] colorKey;
-    GradientAlphaKey[] alphaKey;
-
-
-
-
-    public Gradient gradientColors;
-
-
-
-
+    [Header("Randomization States To Be Used")]
+    private Random.State mapGeneration_SeededStated; //= Random.state;
 
     /////////////////////////////////////////////////////////////////
 
     private void Start()
     {
-        offcenter_I = spacing_I / 2;
-
+        //Spawn All Of the Hex Map
         HexMap_Spawn();
     }
 
@@ -59,6 +62,8 @@ public class HexSpawnController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.R))
         {
+            mapHex_Seed = Random.Range(100000, 999999);
+            HexMap_SetMapSeed();
             HexMap_Spawn();
         }
 
@@ -82,91 +87,187 @@ public class HexSpawnController : MonoBehaviour
 
     private void HexMap_Spawn()
     {
+        //Start Counting Timer
+        long startingTimeTicks = DateTime.UtcNow.Ticks;
+
         //Create New Arrays
         allHexsCells_Arr = new HexCell[mapHex_RowCount, mapHex_ColumnCount];
         allHexChunks_Arr = new HexChunk[(int)Mathf.Ceil(mapHex_RowCount / mapHex_ChunkSize), (int)Mathf.Ceil(mapHex_ColumnCount / mapHex_ChunkSize)];
 
-        HexMap_RemoveOldMap();
-        HexMap_SpawnAllHexChunks();
-        HexMap_SpawnAllHexCells();
-        HexMap_Chuck();
-        HexMap_StoreAllHexCells();
+        //Create Either a Chunked or Non-Chunked Version
+        if (isChunking)
+        {
+            HexMap_SetMapSeed();
+            HexMap_SpawnGround();
+            HexMap_RemoveOldMap();
+            HexMap_SpawnAllHexChunks();
+            HexMap_SpawnAllHexCells();
+            HexMap_RandomizeHeight();
+            HexMap_Chunk();
+            HexMap_StoreAllHexCells();
+            HexMap_CenterCamera();
+        }
+        else
+        {
+            HexMap_SetMapSeed();
+            HexMap_SpawnGround();
+            HexMap_RemoveOldMap();
+            HexMap_SpawnAllHexCells();
+            HexMap_RandomizeHeight();
+            HexMap_StoreAllHexCells();
+            HexMap_CenterCamera();
+        }
 
-    
-
-
-
-
-
+        //Finish Counting Timer
+        long endingTimeTicks = DateTime.UtcNow.Ticks;
+        float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
+        Debug.Log("Test Code: Map Generation Completed in: " + finishTime + "s");
     }
-
- 
-
-
 
     /////////////////////////////////////////////////////////////////
 
+    private void HexMap_SetMapSeed()
+    {
+        Random.InitState(mapHex_Seed);
+    }
+
     private void HexMap_RemoveOldMap()
     {
-        foreach (Transform child in container.transform)
+        //Destory All Old Hex Chunks / Cells
+        foreach (Transform child in hexMapContainer_GO.transform)
         {
+            //Destroy Top-Level Child
             Destroy(child.gameObject);
         }
     }
 
+    private void HexMap_SpawnGround()
+    {
+        //Setup New Mesh
+        Mesh newMesh = new Mesh();
+        List<Vector3> verts_List = new List<Vector3>();
+        List<int> tris_List = new List<int>();
+
+        //Setup Sizing
+        float extraTrim = 0.15f;
+        float x = innerRadius * mapHex_RowCount * 1.75f;
+        float y = outerRadius * mapHex_ColumnCount * 1.75f;
+
+        //Set Square Verts
+        verts_List.Add(new Vector3(-extraTrim, 0f, -extraTrim));
+        verts_List.Add(new Vector3(x + extraTrim, 0f, -extraTrim));
+        verts_List.Add(new Vector3(-extraTrim, 0f, y + extraTrim));
+        verts_List.Add(new Vector3(x + extraTrim, 0f, y + extraTrim));
+
+        //Create Tris
+        tris_List.Add(2);
+        tris_List.Add(1);
+        tris_List.Add(0);
+
+        tris_List.Add(1);
+        tris_List.Add(2);
+        tris_List.Add(3);
+
+        //Set Mesh Info
+        newMesh.vertices = verts_List.ToArray();
+        newMesh.triangles = tris_List.ToArray();
+
+        //Refresh Normals Info
+        newMesh.RecalculateNormals();
+        newMesh.Optimize();
+
+        //Set Mesh To Gameobject
+        ground_GO.GetComponent<MeshFilter>().mesh = newMesh;
+    }
+
     private void HexMap_SpawnAllHexChunks()
     {
-        //Spawn Chunks
+        //Spawn Chunks By I
         for (int i = 0; i < allHexChunks_Arr.GetLength(0); i++)
         {
+            //Spawn Chunks By J
             for (int j = 0; j < allHexChunks_Arr.GetLength(1); j++)
             {
-                GameObject newChunk = Instantiate(hexChunk_Prefab, new Vector3(0, 0, 0), Quaternion.identity, container.transform);
-                GameObject newChunkModel = Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, newChunk.transform);
+                //Spawn New Chunk Objects
+                GameObject newChunk = Instantiate(hexChunk_Prefab, new Vector3(0, 0, 0), Quaternion.identity, hexMapContainer_GO.transform);
+                GameObject newChunkModel1 = Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, newChunk.transform);
+                GameObject newChunkModel2 = Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, newChunk.transform);
 
-                newChunk.GetComponent<HexChunk>().chunkedHexModel1_GO = newChunkModel;
+                //Setup Chunk Script
+                newChunk.GetComponent<HexChunk>().SetupChunk(newChunkModel1, newChunkModel2, i, j);
+
+                //Record Chunk Script For Later
                 allHexChunks_Arr[i, j] = newChunk.GetComponent<HexChunk>();
-
-                allHexChunks_Arr[i, j].gameObject.name = "Chunk: " + i + "/" + j;
             }
         }
     }
 
     private void HexMap_SpawnAllHexCells()
     {
-       //Spawn Cells
+        //Spawn Cells By X (Left and Right)
         for (int x = 0; x < mapHex_RowCount; x++)
         {
-            // X == Left and Right / Y == Up and Down
+            //Spawn Cells By Y (Up and Down)
             for (int y = 0; y < mapHex_ColumnCount; y++)
             {
-                //Randomzie Height
-                float height = Random.Range(0, 0.02f);
-                height = (x * 0.01f) + (y * 0.01f);
-
+                //Create Gameobjects
                 GameObject newHex;
+                GameObject cellChunk;
 
-                GameObject chunkContainer = GetChunkContainer(x, y);
-
-                //Regular Spawn Position VS Offset
-                if (y % 2 == 0)
+                //Check For Chunking
+                if (isChunking)
                 {
-                    newHex = Instantiate(hexBlank_Prefab, new Vector3(y * spacing_J, height, x * spacing_I), Quaternion.identity, chunkContainer.transform);
+                    //Use a Chunk Container
+                    cellChunk = GetCellChunkContainer(x, y);
                 }
                 else
                 {
-                    newHex = Instantiate(hexBlank_Prefab, new Vector3(y * spacing_J, height, x * spacing_I + offcenter_I), Quaternion.identity, chunkContainer.transform);
+                    //Use The Top Level Container
+                    cellChunk = hexMapContainer_GO;
+                }
+
+                //Regular Spawn Position VS Offset Spacing
+                if (y % 2 == 0)
+                {
+                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapHex_Height, x * spacing_I), Quaternion.identity, cellChunk.transform);
+                }
+                else
+                {
+                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapHex_Height, x * spacing_I + offcenter_I), Quaternion.identity, cellChunk.transform);
+                }
+
+                //Setup Cell
+                HexCell newHexCell = newHex.GetComponent<HexCell>();
+                newHexCell.GenerateHexMesh_Hard();
+                newHexCell.SetLabel(x, y);
+
+                if (0.5f > Random.Range(0f, 1f))
+                {
+                    newHexCell.UpdateMaterial(2, hexCellColorMaterial_PlainsTextured);
+                    newHexCell.GenerateCellColor(hexCellColorGradient_PlainsTextured);
+                }
+                else
+                {
+                    newHexCell.UpdateMaterial(1, hexCellColorMaterial_PlainsColored);
+                    newHexCell.GenerateCellColor(hexCellColorGradient_PlainsColored);
                 }
 
 
-                HexCell newHexCell = newHex.GetComponent<HexCell>();
-                newHexCell.SetLabel(x, y);
-                newHexCell.GenerateCellColor(gradientColors);
                 newHexCell.UpdateCellColor(newHexCell.colorActive);
+
 
                 //Store it
                 allHexsCells_Arr[x, y] = newHexCell;
             }
+        }
+    }
+
+    private void HexMap_RandomizeHeight()
+    {
+        foreach (HexCell hexCell in allHexsCells_Arr)
+        {
+            //Generate Random Heights
+            hexCell.GenerateHeight_Random();
         }
     }
 
@@ -178,13 +279,25 @@ public class HexSpawnController : MonoBehaviour
         }
     }
 
+    private void HexMap_CenterCamera()
+    {
+
+        float extraTrim = 0.15f;
+        float x = innerRadius * mapHex_RowCount * 1.75f;
+        float left = -extraTrim;
+        float right = x + extraTrim;
+        float xPos = Mathf.Lerp(left, right, 0.5f);
+
+        Camera.main.transform.position = new Vector3(xPos, 0.7f, -0.55f);
+    }
+
     /////////////////////////////////////////////////////////////////
 
-    private void HexMap_Chuck()
+    private void HexMap_Chunk()
     {
         foreach (HexChunk hexChunk in allHexChunks_Arr)
         {
-            hexChunk.Chunk(false);
+            hexChunk.Chunk();
         }
     }
 
@@ -210,7 +323,7 @@ public class HexSpawnController : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    private GameObject GetChunkContainer(int x, int y)
+    private GameObject GetCellChunkContainer(int x, int y)
     {
         return allHexChunks_Arr[(int)Mathf.Floor(x / mapHex_ChunkSize), (int)Mathf.Floor(y / mapHex_ChunkSize)].gameObject;
     }
@@ -218,12 +331,11 @@ public class HexSpawnController : MonoBehaviour
     private void HandleInput()
     {
         Ray inputRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
 
 
-        if (Physics.Raycast(inputRay, out hit))
+        if (Physics.Raycast(inputRay, out RaycastHit hit))
         {
-            HexCell hitCell = hit.collider.gameObject.GetComponentInParent<HexCell>();
+            HexCell hitCell = hit.collider.gameObject.transform.parent.GetComponentInParent<HexCell>();
 
             if (hitCell != null)
             {
@@ -234,49 +346,3 @@ public class HexSpawnController : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 }
-
-
-
-
-/*
-MaterialPropertyBlock matPropBlock = new MaterialPropertyBlock();
-Renderer hexRenderer = chunk.GetComponent<Renderer>();
-
-Color colorRangeMin = Color.green;
-Color colorRangeMax = Color.blue;
-
-float value = Random.Range(0, 1f);
-
-
-
-// Get the current value of the material properties in the renderer.
-hexRenderer.GetPropertyBlock(matPropBlock);
-// Assign our new value.
-matPropBlock.SetColor("_Color", Color.Lerp(colorRangeMin, colorRangeMax, value));
-// Apply the edited values to the renderer.
-hexRenderer.SetPropertyBlock(matPropBlock);
-
-
-
-
-gradient = new Gradient();
-
-// Populate the color keys at the relative time 0 and 1 (0 and 100%)
-colorKey = new GradientColorKey[2];
-colorKey[0].color = Color.red;
-colorKey[0].time = 0.0f;
-colorKey[1].color = Color.blue;
-colorKey[1].time = 1.0f;
-
-// Populate the alpha  keys at relative time 0 and 1  (0 and 100%)
-alphaKey = new GradientAlphaKey[2];
-alphaKey[0].alpha = 1.0f;
-alphaKey[0].time = 0.0f;
-alphaKey[1].alpha = 0.0f;
-alphaKey[1].time = 1.0f;
-
-gradient.SetKeys(colorKey, alphaKey);
-
-// What's the color at the relative time 0.25 (25 %) ?
-Debug.Log(gradient.Evaluate(0.25f));
-    */
