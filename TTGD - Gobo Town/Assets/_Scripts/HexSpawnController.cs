@@ -41,11 +41,15 @@ public class HexSpawnController : MonoBehaviour
 
     [Header("Mesh Colors")]
     public Gradient hexCellColorGradient_PlainsColored;
-    public Gradient hexCellColorGradient_PlainsTextured;
+    public Gradient hexCellColorGradient_PlainsTextured1;
+    public Gradient hexCellColorGradient_PlainsTextured2;
+    public Gradient hexCellColorGradient_PlainsTextured3;
 
     [Header("Mesh Materials")]
     public Material hexCellColorMaterial_PlainsColored;
-    public Material hexCellColorMaterial_PlainsTextured;
+    public Material hexCellColorMaterial_PlainsTextured1;
+    public Material hexCellColorMaterial_PlainsTextured2;
+    public Material hexCellColorMaterial_PlainsTextured3;
 
     [Header("Randomization States To Be Used")]
     private Random.State mapGeneration_SeededStated; //= Random.state;
@@ -190,11 +194,9 @@ public class HexSpawnController : MonoBehaviour
             {
                 //Spawn New Chunk Objects
                 GameObject newChunk = Instantiate(hexChunk_Prefab, new Vector3(0, 0, 0), Quaternion.identity, hexMapContainer_GO.transform);
-                GameObject newChunkModel1 = Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, newChunk.transform);
-                GameObject newChunkModel2 = Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, newChunk.transform);
 
                 //Setup Chunk Script
-                newChunk.GetComponent<HexChunk>().SetupChunk(newChunkModel1, newChunkModel2, i, j);
+                newChunk.GetComponent<HexChunk>().SetupChunk(i, j);
 
                 //Record Chunk Script For Later
                 allHexChunks_Arr[i, j] = newChunk.GetComponent<HexChunk>();
@@ -241,16 +243,34 @@ public class HexSpawnController : MonoBehaviour
                 newHexCell.GenerateHexMesh_Hard();
                 newHexCell.SetLabel(x, y);
 
-                if (0.5f > Random.Range(0f, 1f))
+
+                int randomColorType = Random.Range(0, 4);
+
+
+                switch (randomColorType)
                 {
-                    newHexCell.UpdateMaterial(2, hexCellColorMaterial_PlainsTextured);
-                    newHexCell.GenerateCellColor(hexCellColorGradient_PlainsTextured);
+                    case 0:
+                        newHexCell.UpdateMaterial(1, hexCellColorMaterial_PlainsColored);
+                        newHexCell.GenerateCellColor(hexCellColorGradient_PlainsColored);
+                        break;
+
+                    case 1:
+                        newHexCell.UpdateMaterial(2, hexCellColorMaterial_PlainsTextured1);
+                        newHexCell.GenerateCellColor(hexCellColorGradient_PlainsTextured1);
+                        break;
+
+                    case 2:
+                        newHexCell.UpdateMaterial(3, hexCellColorMaterial_PlainsTextured2);
+                        newHexCell.GenerateCellColor(hexCellColorGradient_PlainsTextured2);
+                        break;
+
+                    case 3:
+                        newHexCell.UpdateMaterial(4, hexCellColorMaterial_PlainsTextured3);
+                        newHexCell.GenerateCellColor(hexCellColorGradient_PlainsTextured3);
+                        break;
                 }
-                else
-                {
-                    newHexCell.UpdateMaterial(1, hexCellColorMaterial_PlainsColored);
-                    newHexCell.GenerateCellColor(hexCellColorGradient_PlainsColored);
-                }
+
+     
 
 
                 newHexCell.UpdateCellColor(newHexCell.colorActive);
@@ -297,7 +317,7 @@ public class HexSpawnController : MonoBehaviour
     {
         foreach (HexChunk hexChunk in allHexChunks_Arr)
         {
-            hexChunk.Chunk();
+            hexChunk.Chunk(hexChunkModel_Prefab);
         }
     }
 

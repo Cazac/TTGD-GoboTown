@@ -43,7 +43,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b008c7490ef04dd46910d4028e03a959, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chunkedHexModel_GO: {fileID: 0}
-  hexCellsInChunk_List: []
-  mat1: {fileID: 2100000, guid: 7da8827a67e25bc4e8fb5f699be4cce3, type: 2}
-  mat2: {fileID: 2100000, guid: bcaed99dcddb3f842aa7e4f551785177, type: 2}
+  chunkedHexModels_List: []
+  hexCellsInChunk_Arr: []
+  hexChunkMaterials_List:
+  - {fileID: 2100000, guid: 4dd058dc033685840bdbe095e98559f9, type: 2}
+  - {fileID: 2100000, guid: bcaed99dcddb3f842aa7e4f551785177, type: 2}
+  - {fileID: 2100000, guid: 5d117b0f7a8b533428f158da3c7eb494, type: 2}
+  - {fileID: 2100000, guid: 3f9fe78ce08761d409f508279236d69e, type: 2}

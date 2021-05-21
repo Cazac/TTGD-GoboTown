@@ -9,124 +9,128 @@ public class HexChunk : MonoBehaviour
 {
     ////////////////////////////////
 
-    [Header("Hex Chunk Model")]
-    public GameObject chunkedHexModel1_GO;
-    public GameObject chunkedHexModel2_GO;
+    [Header("Hex Chunk Models")]
+    public List<MeshFilter> chunkedHexModels_List;
 
     [Header("Hex Chunk Cells")]
-    public List<HexCell> hexCellsInChunk_List = new List<HexCell>();
+    public HexCell[] hexCellsInChunk_Arr;
 
-    [Header("Hex Materials")]
-    public Material mat1;
-    public Material mat2;
+    [Header("Hex Chunk Materials")]
+    public List<Material> hexChunkMaterials_List;
+    List<int> currentMatIDs_List;
 
     /////////////////////////////////////////////////////////////////
 
     public void CollectChunkData()
     {
-        //Collect All The Hexes in the Transform of the object
-        foreach (Transform hexCell in gameObject.transform)
-        {
-            //Add the Hex Cell To The List
-            hexCellsInChunk_List.Add(hexCell.gameObject.GetComponent<HexCell>());
-        }
-
-        //Remove 2 ones as it is the new chunk mesh render itself not a hex
-        hexCellsInChunk_List.RemoveAt(0);
-        hexCellsInChunk_List.RemoveAt(0);
+        //Collect All The Hex Cells from the Transform Children of the Object
+        hexCellsInChunk_Arr = gameObject.GetComponentsInChildren<HexCell>();
     }
 
     /////////////////////////////////////////////////////////////////
 
-    public void Chunk()
+    public void Chunk(GameObject hexChunkModel_Prefab)
     {
         //Collect Info on which scripts should be included in the chunk
         CollectChunkData();
 
-        //Collect Info To Chunk The Meshes
-        MeshFilter[] meshFilter_Arr = gameObject.GetComponentsInChildren<MeshFilter>();
-        List<MeshFilter> meshFilter_List = new List<MeshFilter>(meshFilter_Arr);
-
-        //Remove The Modeling Chunks
-        meshFilter_List.RemoveAt(0);
-        meshFilter_List.RemoveAt(1);
-        meshFilter_Arr = meshFilter_List.ToArray();
-
-
-
-        //CombineInstance[] combine = new CombineInstance[meshFilter_Arr.Length];
-
-        List<CombineInstance> combiningList_1 = new List<CombineInstance>();
-        List<CombineInstance> combiningList_2 = new List<CombineInstance>();
-
-
+        //Setup Lists
         List<List<CombineInstance>> combiningListOfLists_List = new List<List<CombineInstance>>();
+        chunkedHexModels_List = new List<MeshFilter>();
+        currentMatIDs_List = new List<int>();
+        //hexChunkMaterials_List = new List<Material>();
 
-
-
-
-        foreach (HexCell hexCell in hexCellsInChunk_List)
+        //Loop All Hex Cells TO Merge Meshes
+        foreach (HexCell hexCell in hexCellsInChunk_Arr)
         {
-            if (hexCell.hexCellMatID == 1)
+            //Check If The Material Has Already Been Added
+            if (!currentMatIDs_List.Contains(hexCell.hexCellMatID))
             {
-                CombineInstance currentCombiningInstance = new CombineInstance();
-
-                currentCombiningInstance.mesh = hexCell.hexObject_MeshFilter.sharedMesh;
-                currentCombiningInstance.transform = hexCell.hexObject_MeshFilter.transform.localToWorldMatrix;
-                hexCell.hexObject_MeshFilter.gameObject.SetActive(false);
-
-                combiningList_1.Add(currentCombiningInstance);
+                //Add To The List Of IDed Mats Then Setup a New List For It
+                currentMatIDs_List.Add(hexCell.hexCellMatID);
+                combiningListOfLists_List.Add(new List<CombineInstance>());
             }
-            else
-            {
-                CombineInstance currentCombiningInstance = new CombineInstance();
 
-                currentCombiningInstance.mesh = hexCell.hexObject_MeshFilter.sharedMesh;
-                currentCombiningInstance.transform = hexCell.hexObject_MeshFilter.transform.localToWorldMatrix;
-                hexCell.hexObject_MeshFilter.gameObject.SetActive(false);
+            //Create A Combining Mesh Instance and Fill It
+            CombineInstance newCombiningInstance = new CombineInstance();
+            newCombiningInstance.mesh = hexCell.hexObject_MeshFilter.sharedMesh;
+            newCombiningInstance.transform = hexCell.hexObject_MeshFilter.transform.localToWorldMatrix;
 
-                combiningList_2.Add(currentCombiningInstance);
-            }
+            //Get The position using the Mat ID to locate which list to use and add The Combining Mesh Instance
+            int posID = currentMatIDs_List.FindIndex(x => x == hexCell.hexCellMatID);
+            combiningListOfLists_List[posID].Add(newCombiningInstance);
+        
+            //Set The Old Cell Model To Off
+            hexCell.hexObject_MeshFilter.gameObject.SetActive(false);
         }
 
-
-        chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh = new Mesh();
-        chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combiningList_1.ToArray(), true, true);
-        Mesh MeshSet_1 = chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh;
-
-        chunkedHexModel2_GO.transform.GetComponent<MeshFilter>().mesh = new Mesh();
-        chunkedHexModel2_GO.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combiningList_2.ToArray(), true, true);
-        Mesh MeshSet_2 = chunkedHexModel2_GO.transform.GetComponent<MeshFilter>().mesh;
-
-
-
-        meshFilter_Arr = new MeshFilter[2];
-        meshFilter_Arr[0] = chunkedHexModel1_GO.transform.GetComponent<MeshFilter>();
-        meshFilter_Arr[1] = chunkedHexModel2_GO.transform.GetComponent<MeshFilter>();
-
-        Mesh newestMesh = CombineMeshes(meshFilter_Arr);
-        chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh = newestMesh;
-
-
-
-        int j = 0;
-        while (j < meshFilter_Arr.Length)
+        //Create All Of the Mesh Filter Gameobjects
+        for (int i = 0; i < combiningListOfLists_List.Count; i++)
         {
-            meshFilter_Arr[j].gameObject.SetActive(false);
-
-            j++;
+            //Spawn a new Model for each Mat and Record it
+            chunkedHexModels_List.Add(Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, gameObject.transform).GetComponent<MeshFilter>());
         }
 
-        chunkedHexModel1_GO.transform.gameObject.SetActive(true);
+        for (int i = 0; i < chunkedHexModels_List.Count; i++)
+        {
+            //Spawn a new Model for each Mat
+            chunkedHexModels_List[i].mesh = new Mesh();
+            chunkedHexModels_List[i].mesh.CombineMeshes(combiningListOfLists_List[i].ToArray(), true, true);
+            chunkedHexModels_List[i].transform.GetComponent<MeshRenderer>().material = SearchMaterialByID(i);
+        }
+
+        
+
+        ///*
+
+        //I Dont Think this works with 3+ meshes ???
+        while (chunkedHexModels_List.Count > 1)
+        {
+            //Generate then Set The New Mesh
+            Mesh newestMesh = CombineMeshes(chunkedHexModels_List.ToArray());
+            chunkedHexModels_List[0].mesh = newestMesh;
+
+            //Destory The Extra Mesh Filter Gameobejcts and remove them from the list
+            Destroy(chunkedHexModels_List[chunkedHexModels_List.Count - 1].gameObject);
+            chunkedHexModels_List.RemoveAt(chunkedHexModels_List.Count - 1);
+        }
+        
+
+
+
+        Material[] CollectedMats_Arr = new Material[currentMatIDs_List.Count];
+
+
+        for (int i = 0; i < CollectedMats_Arr.Length; i++)
+        {
+            CollectedMats_Arr[i] = SearchMaterialByID(i);
+        }
+
+        chunkedHexModels_List[0].gameObject.GetComponent<MeshRenderer>().materials = CollectedMats_Arr;
+        
+         
+         //*/
+
+
+        for (int i = 0; i < chunkedHexModels_List.Count; i++)
+        {
+            //chunkedHexModels_List[i].gameObject.name = "Chunk Model";
+            //chunkedHexModels_List[i].gameObject.transform.SetAsFirstSibling();
+        }
 
 
     }
 
+  
+
     public void Unchunk()
     {
-        chunkedHexModel1_GO.SetActive(false);
+        foreach (MeshFilter chunkedModel in chunkedHexModels_List)
+        {
+            chunkedModel.gameObject.SetActive(false);
+        }
 
-        foreach (HexCell hexCell in hexCellsInChunk_List)
+        foreach (HexCell hexCell in hexCellsInChunk_Arr)
         {
             hexCell.hexObject_MeshFilter.gameObject.SetActive(true);
         }
@@ -134,40 +138,15 @@ public class HexChunk : MonoBehaviour
 
     public void Rechunk()
     {
-        chunkedHexModel1_GO.SetActive(true);
+        foreach (MeshFilter chunkedModel in chunkedHexModels_List)
+        {
+            chunkedModel.gameObject.SetActive(true);
+        } 
 
-        foreach (HexCell hexCell in hexCellsInChunk_List)
+        foreach (HexCell hexCell in hexCellsInChunk_Arr)
         {
             hexCell.hexObject_MeshFilter.gameObject.SetActive(false);
         }
-    }
-
-    private void Chunk_OLD()
-    {
-        //Collect Info on which scripts should be included in the chunk
-        CollectChunkData();
-
-        //Collect Info To Chunk The Meshes
-        MeshFilter[] meshFilter_Arr = gameObject.GetComponentsInChildren<MeshFilter>();
-        List<MeshFilter> meshFilter_List = new List<MeshFilter>(meshFilter_Arr);
-        meshFilter_List.RemoveAt(0);
-        meshFilter_Arr = meshFilter_List.ToArray();
-        CombineInstance[] combine = new CombineInstance[meshFilter_Arr.Length];
-
-        int i = 0;
-        while (i < meshFilter_Arr.Length)
-        {
-            combine[i].mesh = meshFilter_Arr[i].sharedMesh;
-            combine[i].transform = meshFilter_Arr[i].transform.localToWorldMatrix;
-            meshFilter_Arr[i].gameObject.SetActive(false);
-
-            i++;
-        }
-
-        chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine, true, true);
-        chunkedHexModel1_GO.transform.gameObject.SetActive(true);
-
-        ColorTheChunk();
     }
 
     /////////////////////////////////////////////////////////////////
@@ -223,8 +202,17 @@ public class HexChunk : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
+    private Material SearchMaterialByID(int i)
+    {
+        return hexChunkMaterials_List[currentMatIDs_List[i] - 1];
+    }
+
     public void ColorTheChunk()
     {
+        //Not Needed ?????
+
+
+        /*
         //Get Info
         Mesh mesh = chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh;
         Vector3[] vertices_Arr = mesh.vertices;
@@ -242,12 +230,14 @@ public class HexChunk : MonoBehaviour
 
         //Not Needed ??
         mesh.RecalculateNormals();
+        */
+
     }
 
-    public void SetupChunk(GameObject HexModel1_GO, GameObject HexModel2_GO, int i, int j)
+    public void SetupChunk(int i, int j)
     {
-        chunkedHexModel1_GO = HexModel1_GO;
-        chunkedHexModel2_GO = HexModel2_GO;
+        //chunkedHexModel1_GO = HexModel1_GO;
+        //chunkedHexModel2_GO = HexModel2_GO;
         gameObject.name = "Chunk: " + i + "/" + j;
     }
 
