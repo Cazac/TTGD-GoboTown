@@ -21,6 +21,9 @@ public class HexSpawnController : MonoBehaviour
     [Header("Camera Position")]
     public Vector2 cameraRelativePosition;
 
+    [Header("Camera")]
+    public Camera cameraGenerated;
+
     [Header("Containers")]
     public GameObject ground_GO;
     public GameObject hexMapContainer_GO;
@@ -338,7 +341,7 @@ public class HexSpawnController : MonoBehaviour
         float right = x + extraTrim;
         float xPos = Mathf.Lerp(left, right, 0.5f);
 
-        Camera.main.transform.position = new Vector3(xPos, cameraRelativePosition.x, cameraRelativePosition.y);
+        cameraGenerated.transform.position = new Vector3(xPos, cameraRelativePosition.x, cameraRelativePosition.y);
     }
 
     private void HexMap_SpawnDecoration()
