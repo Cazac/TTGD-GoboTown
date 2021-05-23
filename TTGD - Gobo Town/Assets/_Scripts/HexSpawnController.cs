@@ -15,18 +15,26 @@ public class HexSpawnController : MonoBehaviour
 
     [Header("Hex Map Options")]
     public bool isChunking;
+    public bool isSlowSpawning;
+    public bool isShowingGenerationTime;
+
+    [Header("Camera Position")]
+    public Vector2 cameraRelativePosition;
 
     [Header("Containers")]
     public GameObject ground_GO;
     public GameObject hexMapContainer_GO;
 
-    [Header("Prefabs")]
+    [Header("Hex Prefabs")]
     public GameObject hexMesh_Prefab;
     public GameObject hexChunk_Prefab;
     public GameObject hexChunkModel_Prefab;
 
+    [Header("Decoration Prefabs")]
+    public GameObject hexGrass_Prefab;
+
     [Header("Hex Sizes")]
-    public const float outerRadius = 0.05f;
+    public const float outerRadius = 0.1f;
     public const float innerRadius = outerRadius * 0.866025404f;
     private const float spacing_I = innerRadius * 2f;
     private const float spacing_J = outerRadius * 1.5f;
@@ -60,6 +68,9 @@ public class HexSpawnController : MonoBehaviour
     {
         //Spawn All Of the Hex Map
         HexMap_Spawn();
+
+        AssetDatabase.CreateAsset(allHexsCells_Arr[0,0].hexObject_MeshFilter.mesh, "Assets/NewHexMesh.mesh");
+        AssetDatabase.SaveAssets();
     }
 
     private void Update()
@@ -106,10 +117,14 @@ public class HexSpawnController : MonoBehaviour
             HexMap_RemoveOldMap();
             HexMap_SpawnAllHexChunks();
             HexMap_SpawnAllHexCells();
-            HexMap_RandomizeHeight();
-            HexMap_Chunk();
-            HexMap_StoreAllHexCells();
             HexMap_CenterCamera();
+            HexMap_ColorCellsOnMap();
+            HexMap_RandomizeHeight();
+            HexMap_StoreAllHexCells();
+
+            HexMap_Chunk();
+
+            HexMap_SpawnDecoration();
         }
         else
         {
@@ -117,15 +132,19 @@ public class HexSpawnController : MonoBehaviour
             HexMap_SpawnGround();
             HexMap_RemoveOldMap();
             HexMap_SpawnAllHexCells();
+            HexMap_CenterCamera();
+            HexMap_ColorCellsOnMap();
             HexMap_RandomizeHeight();
             HexMap_StoreAllHexCells();
-            HexMap_CenterCamera();
         }
 
-        //Finish Counting Timer
-        long endingTimeTicks = DateTime.UtcNow.Ticks;
-        float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
-        Debug.Log("Test Code: Map Generation Completed in: " + finishTime + "s");
+        if (isShowingGenerationTime)
+        {
+            //Finish Counting Timer
+            long endingTimeTicks = DateTime.UtcNow.Ticks;
+            float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
+            Debug.Log("Test Code: Map Generation Completed in: " + finishTime + "s");
+        }
     }
 
     /////////////////////////////////////////////////////////////////
@@ -243,43 +262,54 @@ public class HexSpawnController : MonoBehaviour
                 newHexCell.GenerateHexMesh_Hard();
                 newHexCell.SetLabel(x, y);
 
-
-                int randomColorType = Random.Range(0, 4);
-
-
-                switch (randomColorType)
-                {
-                    case 0:
-                        newHexCell.UpdateMaterial(1, hexCellColorMaterial_PlainsColored);
-                        newHexCell.GenerateCellColor(hexCellColorGradient_PlainsColored);
-                        break;
-
-                    case 1:
-                        newHexCell.UpdateMaterial(2, hexCellColorMaterial_PlainsTextured1);
-                        newHexCell.GenerateCellColor(hexCellColorGradient_PlainsTextured1);
-                        break;
-
-                    case 2:
-                        newHexCell.UpdateMaterial(3, hexCellColorMaterial_PlainsTextured2);
-                        newHexCell.GenerateCellColor(hexCellColorGradient_PlainsTextured2);
-                        break;
-
-                    case 3:
-                        newHexCell.UpdateMaterial(4, hexCellColorMaterial_PlainsTextured3);
-                        newHexCell.GenerateCellColor(hexCellColorGradient_PlainsTextured3);
-                        break;
-                }
-
-     
-
-
-                newHexCell.UpdateCellColor(newHexCell.colorActive);
-
+       
 
                 //Store it
                 allHexsCells_Arr[x, y] = newHexCell;
             }
         }
+    }
+
+    private void HexMap_ColorCellsOnMap()
+    {
+        //Spawn Cells By X (Left and Right)
+        for (int x = 0; x < mapHex_RowCount; x++)
+        {
+            //Spawn Cells By Y (Up and Down)
+            for (int y = 0; y < mapHex_ColumnCount; y++)
+            {
+                int randomColorType = Random.Range(0, 4);
+
+                //Debug.Log("Test Code: " + randomColorType);
+
+                switch (randomColorType)
+                {
+                    case 0:
+                        allHexsCells_Arr[x, y].UpdateMaterial(1, hexCellColorMaterial_PlainsColored);
+                        allHexsCells_Arr[x, y].GenerateCellColor(hexCellColorGradient_PlainsColored);
+                        break;
+
+                    case 1:
+                        allHexsCells_Arr[x, y].UpdateMaterial(2, hexCellColorMaterial_PlainsTextured1);
+                        allHexsCells_Arr[x, y].GenerateCellColor(hexCellColorGradient_PlainsTextured1);
+                        break;
+
+                    case 2:
+                        allHexsCells_Arr[x, y].UpdateMaterial(3, hexCellColorMaterial_PlainsTextured2);
+                        allHexsCells_Arr[x, y].GenerateCellColor(hexCellColorGradient_PlainsTextured2);
+                        break;
+
+                    case 3:
+                        allHexsCells_Arr[x, y].UpdateMaterial(4, hexCellColorMaterial_PlainsTextured3);
+                        allHexsCells_Arr[x, y].GenerateCellColor(hexCellColorGradient_PlainsTextured3);
+                        break;
+                }
+
+                allHexsCells_Arr[x, y].UpdateCellColor(allHexsCells_Arr[x, y].colorActive);
+            }
+        }
+
+
     }
 
     private void HexMap_RandomizeHeight()
@@ -308,7 +338,64 @@ public class HexSpawnController : MonoBehaviour
         float right = x + extraTrim;
         float xPos = Mathf.Lerp(left, right, 0.5f);
 
-        Camera.main.transform.position = new Vector3(xPos, 0.7f, -0.55f);
+        Camera.main.transform.position = new Vector3(xPos, cameraRelativePosition.x, cameraRelativePosition.y);
+    }
+
+    private void HexMap_SpawnDecoration()
+    {
+        //Spawn Cells By X (Left and Right)
+        for (int x = 0; x < mapHex_RowCount; x++)
+        {
+            //Spawn Cells By Y (Up and Down)
+            for (int y = 0; y < mapHex_ColumnCount; y++)
+            {
+
+                int randomID = Random.Range(0, 5);
+
+                if (randomID == 0)
+                {
+                    //Debug.Log("Test Code: Grasss");
+
+                    //GameObject grass = Instantiate(hexGrass_Prefab, new Vector3(0, 0, 0), Quaternion.Euler(0, Random.Range(0, 360f), 0), allHexsCells_Arr[x, y].gameObject.transform);
+
+                    //grass.transform.localPosition = new Vector3(0f, 0.1f, 0f);
+
+
+                }
+
+
+
+
+
+
+            }
+        }
+    }
+
+    private void HexMap_HideAllHexes()
+    {
+        //Spawn Cells By X (Left and Right)
+        for (int x = 0; x < mapHex_RowCount; x++)
+        {
+            //Spawn Cells By Y (Up and Down)
+            for (int y = 0; y < mapHex_ColumnCount; y++)
+            {
+                allHexsCells_Arr[x, y].gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private void HexMap_ShowAllHexes()
+    {
+        //Spawn Cells By X (Left and Right)
+        for (int x = 0; x < mapHex_RowCount; x++)
+        {
+            //Spawn Cells By Y (Up and Down)
+            for (int y = 0; y < mapHex_ColumnCount; y++)
+            {
+                allHexsCells_Arr[x, y].gameObject.SetActive(true);
+            }
+        }
     }
 
     /////////////////////////////////////////////////////////////////
@@ -362,6 +449,235 @@ public class HexSpawnController : MonoBehaviour
                 hitCell.ClickCell();
             }
         }
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+    private void OLDCODE_SlowHeightAnimation()
+    {
+        // This Requires the Animation Componanted added back onto the cells
+
+        /*
+        yield return new WaitForEndOfFrame();
+
+        //Start Counting Timer
+        long startingTimeTicks = DateTime.UtcNow.Ticks;
+
+        //Create New Arrays
+        allHexsCells_Arr = new HexCell[mapHex_RowCount, mapHex_ColumnCount];
+        allHexChunks_Arr = new HexChunk[(int)Mathf.Ceil(mapHex_RowCount / mapHex_ChunkSize), (int)Mathf.Ceil(mapHex_ColumnCount / mapHex_ChunkSize)];
+
+        //Create Either a Chunked or Non-Chunked Version
+        HexMap_SetMapSeed();
+        HexMap_SpawnGround();
+        HexMap_RemoveOldMap();
+        HexMap_SpawnAllHexChunks();
+        HexMap_SpawnAllHexCells();
+        HexMap_CenterCamera();
+        HexMap_ColorCellsOnMap();
+        HexMap_RandomizeHeight();
+        HexMap_StoreAllHexCells();
+
+
+        //yield return new WaitForSeconds(1f);
+
+        HexMap_HideAllHexes();
+
+        //yield return new WaitForSeconds(1f);
+
+
+
+        float coloringTime = 4f;
+        float timePerLoop = coloringTime / (mapHex_RowCount * mapHex_ColumnCount);
+
+
+
+        float loopsPerWaitCycle = 20 / timePerLoop * 0.001f;
+        float currentCellsPassed = 0;
+
+
+        int dim = mapHex_RowCount;
+
+        for (int k = 0; k < dim * 2; k++)
+        {
+            for (int j = 0; j <= k; j++)
+            {
+                int i = k - j;
+                if (i < dim && j < dim)
+                {
+
+                    if (currentCellsPassed >= loopsPerWaitCycle)
+                    {
+                        currentCellsPassed = 0;
+
+                        //Wait 1 Millisecond
+                        yield return new WaitForFixedUpdate();
+                    }
+                    else
+                    {
+                        currentCellsPassed++;
+                    }
+
+                    allHexsCells_Arr[i, j].gameObject.SetActive(true);
+                    allHexsCells_Arr[i, j].hexObject_GO.GetComponent<Animator>().Play("Popup");
+
+                }
+            }
+
+        }
+
+
+
+
+
+        //Finish Counting Timer
+        long endingTimeTicks = DateTime.UtcNow.Ticks;
+        float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
+        Debug.Log("Test Code: Map Generation Completed in: " + finishTime + "s");
+
+        yield break;
+        */
+    }
+
+    private void OLDCODE_SlowColorAnimation()
+    {
+        /*
+       yield return new WaitForEndOfFrame();
+
+       //Start Counting Timer
+       long startingTimeTicks = DateTime.UtcNow.Ticks;
+
+       //Create New Arrays
+       allHexsCells_Arr = new HexCell[mapHex_RowCount, mapHex_ColumnCount];
+       allHexChunks_Arr = new HexChunk[(int)Mathf.Ceil(mapHex_RowCount / mapHex_ChunkSize), (int)Mathf.Ceil(mapHex_ColumnCount / mapHex_ChunkSize)];
+
+       //Create Either a Chunked or Non-Chunked Version
+       HexMap_SetMapSeed();
+       HexMap_SpawnGround();
+       HexMap_RemoveOldMap();
+       HexMap_SpawnAllHexChunks();
+       HexMap_SpawnAllHexCells();
+       HexMap_CenterCamera();
+       HexMap_ColorCellsOnMap();
+       HexMap_RandomizeHeight();
+       HexMap_StoreAllHexCells();
+
+
+       //yield return new WaitForSeconds(1f);
+
+       HexMap_HideAllHexes();
+
+       //yield return new WaitForSeconds(1f);
+
+
+
+        float coloringTime = 2f;
+        float timePerLoop = coloringTime / (mapHex_RowCount * mapHex_ColumnCount);
+
+
+
+        float loopsPerWaitCycle = 20 / timePerLoop * 0.001f;
+        float currentCellsPassed = 0;
+
+
+        int dim = mapHex_RowCount;
+
+        for (int k = 0; k < dim * 2; k++)
+        {
+            for (int j = 0; j <= k; j++)
+            {
+                int i = k - j;
+                if (i < dim && j < dim)
+                {
+
+                    if (currentCellsPassed >= loopsPerWaitCycle)
+                    {
+                        currentCellsPassed = 0;
+
+                        //Wait 1 Millisecond
+                        yield return new WaitForFixedUpdate();
+                    }
+                    else
+                    {
+                        currentCellsPassed++;
+                    }
+
+                    int randomColorType = Random.Range(0, 4);
+                    switch (randomColorType)
+                    {
+                        case 0:
+                            allHexsCells_Arr[i, j].UpdateMaterial(1, hexCellColorMaterial_PlainsColored);
+                            allHexsCells_Arr[i, j].GenerateCellColor(hexCellColorGradient_PlainsColored);
+                            break;
+
+                        case 1:
+                            allHexsCells_Arr[i, j].UpdateMaterial(1, hexCellColorMaterial_PlainsColored);
+                            allHexsCells_Arr[i, j].GenerateCellColor(hexCellColorGradient_PlainsTextured1);
+                            break;
+
+                        case 2:
+                            allHexsCells_Arr[i, j].UpdateMaterial(2, hexCellColorMaterial_PlainsTextured2);
+                            allHexsCells_Arr[i, j].GenerateCellColor(hexCellColorGradient_PlainsTextured2);
+                            break;
+
+                        case 3:
+                            allHexsCells_Arr[i, j].UpdateMaterial(2, hexCellColorMaterial_PlainsTextured2);
+                            allHexsCells_Arr[i, j].GenerateCellColor(hexCellColorGradient_PlainsTextured3);
+                            break;
+                    }
+
+                    allHexsCells_Arr[i, j].UpdateCellColor(allHexsCells_Arr[i, j].colorActive);
+
+
+                }
+            }
+
+        }
+
+
+
+
+
+
+
+         //Finish Counting Timer
+       long endingTimeTicks = DateTime.UtcNow.Ticks;
+       float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
+       Debug.Log("Test Code: Map Generation Completed in: " + finishTime + "s");
+
+       yield break;
+   */
+    }
+
+    private void OLDCODE_HowToSetCodeGradients()
+    {
+
+        //Might Need this for mergeiung color between biomes
+
+
+        /*
+        GradientColorKey[] colorKey;
+        GradientAlphaKey[] alphaKey;
+
+        gradientColors = new Gradient();
+
+        // Populate the color keys at the relative time 0 and 1 (0 and 100%)
+        colorKey = new GradientColorKey[2];
+        colorKey[0].color = new Color(0, 1, 0, 1);
+        colorKey[0].time = 0.0f;
+        colorKey[1].color = new Color(0.2f, 0.6f, 0.2f, 1);
+        colorKey[1].time = 1.0f;
+
+        // Populate the alpha  keys at relative time 0 and 1  (0 and 100%)
+        alphaKey = new GradientAlphaKey[2];
+        alphaKey[0].alpha = 1.0f;
+        alphaKey[0].time = 0.0f;
+        alphaKey[1].alpha = 0.0f;
+        alphaKey[1].time = 1.0f;
+
+        gradientColors.SetKeys(colorKey, alphaKey);
+        */
+
     }
 
     /////////////////////////////////////////////////////////////////

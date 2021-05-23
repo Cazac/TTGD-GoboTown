@@ -149,7 +149,7 @@ public class HexCell : MonoBehaviour
     public void GenerateHeight_Random()
     {
         //Randomzie Height
-        float height = Random.Range(0, 0.015f);
+        float height = Random.Range(0.02f, 0.04f);
         SetCellHeight(height);
     }
 
