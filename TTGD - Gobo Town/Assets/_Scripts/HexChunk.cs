@@ -17,7 +17,7 @@ public class HexChunk : MonoBehaviour
 
     [Header("Hex Chunk Materials")]
     public List<Material> hexChunkMaterials_List;
-    List<int> currentMatIDs_List;
+    List<Tuple<int, int>> currentMatIDs_List;
 
     /////////////////////////////////////////////////////////////////
 
@@ -29,7 +29,7 @@ public class HexChunk : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    public void Chunk(GameObject hexChunkModel_Prefab)
+    public void Chunk(GameObject hexChunkModel_Prefab, Material[,] mergedBiomeMats_Arr)
     {
         //Collect Info on which scripts should be included in the chunk
         CollectChunkData();
@@ -37,17 +37,19 @@ public class HexChunk : MonoBehaviour
         //Setup Lists
         List<List<CombineInstance>> combiningListOfLists_List = new List<List<CombineInstance>>();
         chunkedHexModels_List = new List<MeshFilter>();
-        currentMatIDs_List = new List<int>();
-        //hexChunkMaterials_List = new List<Material>();
+        currentMatIDs_List = new List<Tuple<int, int>>();
+        hexChunkMaterials_List = new List<Material>();
 
-        //Loop All Hex Cells TO Merge Meshes
+
+
+        //Loop All Hex Cells To Merge Meshes
         foreach (HexCell hexCell in hexCellsInChunk_Arr)
         {
             //Check If The Material Has Already Been Added
-            if (!currentMatIDs_List.Contains(hexCell.hexCellMatID))
+            if (!currentMatIDs_List.Contains(new Tuple<int, int>(hexCell.hexCellMatID_Biome, hexCell.hexCellMatID_Mat)))
             {
                 //Add To The List Of IDed Mats Then Setup a New List For It
-                currentMatIDs_List.Add(hexCell.hexCellMatID);
+                currentMatIDs_List.Add(new Tuple<int, int>(hexCell.hexCellMatID_Biome, hexCell.hexCellMatID_Mat));
                 combiningListOfLists_List.Add(new List<CombineInstance>());
             }
 
@@ -57,12 +59,14 @@ public class HexChunk : MonoBehaviour
             newCombiningInstance.transform = hexCell.hexObject_MeshFilter.transform.localToWorldMatrix;
 
             //Get The position using the Mat ID to locate which list to use and add The Combining Mesh Instance
-            int posID = currentMatIDs_List.FindIndex(x => x == hexCell.hexCellMatID);
+            int posID = currentMatIDs_List.FindIndex(x => x.Item1 == hexCell.hexCellMatID_Biome && x.Item2 == hexCell.hexCellMatID_Mat);
             combiningListOfLists_List[posID].Add(newCombiningInstance);
         
             //Set The Old Cell Model To Off
             hexCell.hexObject_MeshFilter.gameObject.SetActive(false);
         }
+
+
 
         //Create All Of the Mesh Filter Gameobjects
         for (int i = 0; i < combiningListOfLists_List.Count; i++)
@@ -71,20 +75,22 @@ public class HexChunk : MonoBehaviour
             chunkedHexModels_List.Add(Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, gameObject.transform).GetComponent<MeshFilter>());
         }
 
+
+
         for (int i = 0; i < chunkedHexModels_List.Count; i++)
         {
             //Spawn a new Model for each Mat
             chunkedHexModels_List[i].mesh = new Mesh();
             chunkedHexModels_List[i].mesh.CombineMeshes(combiningListOfLists_List[i].ToArray(), true, true);
-            chunkedHexModels_List[i].transform.GetComponent<MeshRenderer>().material = SearchMaterialByID(i);
+            chunkedHexModels_List[i].transform.GetComponent<MeshRenderer>().material = HexSpawnController.GetChunkMat(currentMatIDs_List[i].Item1, currentMatIDs_List[i].Item2);
         }
+
+
 
         //Setup The General Info
         chunkedHexModels_List[0].gameObject.name = "Chunk Model";
         chunkedHexModels_List[0].gameObject.transform.SetAsFirstSibling();
     }
-
-
 
     public void Unchunk()
     {
@@ -137,8 +143,6 @@ public class HexChunk : MonoBehaviour
             combineInstanceLocal_List.Add(meshCombineInstante);
         }
 
-        //Debug.Log("Test Code: Count " + helperDictionary.Count);
-
         //Combine meshes and build combine instance for combined meshes
         List<CombineInstance> combineInstance_List = new List<CombineInstance>();
         foreach (var e in helperDictionary)
@@ -165,42 +169,9 @@ public class HexChunk : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    private Material SearchMaterialByID(int i)
-    {
-        return hexChunkMaterials_List[currentMatIDs_List[i] - 1];
-    }
-
-    public void ColorTheChunk()
-    {
-        //Not Needed ?????
-
-
-        /*
-        //Get Info
-        Mesh mesh = chunkedHexModel1_GO.transform.GetComponent<MeshFilter>().mesh;
-        Vector3[] vertices_Arr = mesh.vertices;
-        Color[] colors_Arr = new Color[vertices_Arr.Length];
-
-        //Loop through all color Verts
-        for (int i = 0; i < colors_Arr.Length; i++)
-        {
-            //54 is the count of verts on a hex
-            colors_Arr[i] = hexCellsInChunk_List[(int)Mathf.Floor(i / 54)].colorActive;
-        }
-
-        //Set Color Array on Mesh
-        mesh.colors = colors_Arr;
-
-        //Not Needed ??
-        mesh.RecalculateNormals();
-        */
-
-    }
-
     public void SetupChunk(int i, int j)
     {
-        //chunkedHexModel1_GO = HexModel1_GO;
-        //chunkedHexModel2_GO = HexModel2_GO;
+        //Setup Chunk Name
         gameObject.name = "Chunk: " + i + "/" + j;
     }
 

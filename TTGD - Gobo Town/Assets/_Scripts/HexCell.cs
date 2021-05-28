@@ -46,11 +46,12 @@ public class HexCell : MonoBehaviour
     public GameObject IDCanvas;
 
     [Header("Hex Color Options")]
-    public Color colorActive;
+    public Color hexCellColor_Main;
 
 
 
-    public int hexCellMatID;
+    public int hexCellMatID_Biome;
+    public int hexCellMatID_Mat;
 
     private Color[] colors_Arr;
 
@@ -115,13 +116,17 @@ public class HexCell : MonoBehaviour
     public void GenerateCellColor(Gradient colorRangeGradient)
     {
         //Set Random Value From Gradeint
-        colorActive = colorRangeGradient.Evaluate(Random.Range(0, 1f));
+        hexCellColor_Main = colorRangeGradient.Evaluate(Random.Range(0, 1f));
     }
 
-    public void UpdateMaterial(int matID, Material hexCellColorMaterial_PlainsTextured)
+    public void UpdateMaterial(int matID_Biome, int matID_Mat, Material hexCellMaterial)
     {
-        hexCellMatID = matID;
-        hexObject_MeshRenderer.material = hexCellColorMaterial_PlainsTextured;
+        //Set Mat IDs
+        hexCellMatID_Biome = matID_Biome;
+        hexCellMatID_Mat = matID_Mat;
+
+        //Set Renderer Color
+        hexObject_MeshRenderer.material = hexCellMaterial;
     }
 
     public void UpdateCellColor(Color newColor)
@@ -146,10 +151,11 @@ public class HexCell : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    public void GenerateHeight_Random()
+    public void GenerateHeight_Random(int minHeight, int maxHeight, float heightLevel)
     {
         //Randomzie Height
-        float height = Random.Range(0.02f, 0.04f);
+        float height = Random.Range(minHeight, maxHeight);
+        height = height * heightLevel;
         SetCellHeight(height);
     }
 

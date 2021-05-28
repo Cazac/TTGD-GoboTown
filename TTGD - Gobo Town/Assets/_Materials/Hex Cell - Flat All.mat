@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Hex Cell & Hex Chunk - Plains Textured 2
+  m_Name: Hex Cell - Flat All
   m_Shader: {fileID: -6465566751694194690, guid: 0dc04791a3e65a94d990758021ebf276, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -33,7 +33,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - Texture2D_4c74e296a636487890369e85179b45ad:
-        m_Texture: {fileID: 2800000, guid: 41e8236e04a89ed4d87833947b70c51b, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
@@ -105,12 +105,12 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - Vector1_c3e974e2b65e430aa1bda7e7f15fd646: 30
-    - Vector1_c3e974e2b65e430aa1bda7e7f15fd646_1: 5
-    - Vector1_c3e974e2b65e430aa1bda7e7f15fd646_2: 0.25
-    - Vector1_c3e974e2b65e430aa1bda7e7f15fd646_3: 0.25
+    - Vector1_c3e974e2b65e430aa1bda7e7f15fd646: 0
+    - Vector1_c3e974e2b65e430aa1bda7e7f15fd646_1: 0
+    - Vector1_c3e974e2b65e430aa1bda7e7f15fd646_2: 0
+    - Vector1_c3e974e2b65e430aa1bda7e7f15fd646_3: 0
     - Vector1_c3e974e2b65e430aa1bda7e7f15fd646_4: 1
-    - Vector1_c3e974e2b65e430aa1bda7e7f15fd646_5: 1.8
+    - Vector1_c3e974e2b65e430aa1bda7e7f15fd646_5: 0.7
     - _AlphaClip: 0
     - _Blend: 0
     - _BumpScale: 1

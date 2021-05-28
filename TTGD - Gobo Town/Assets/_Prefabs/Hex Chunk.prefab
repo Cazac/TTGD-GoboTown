@@ -47,6 +47,6 @@ MonoBehaviour:
   hexCellsInChunk_Arr: []
   hexChunkMaterials_List:
   - {fileID: 2100000, guid: 4dd058dc033685840bdbe095e98559f9, type: 2}
-  - {fileID: 2100000, guid: bcaed99dcddb3f842aa7e4f551785177, type: 2}
-  - {fileID: 2100000, guid: 5d117b0f7a8b533428f158da3c7eb494, type: 2}
-  - {fileID: 2100000, guid: 3f9fe78ce08761d409f508279236d69e, type: 2}
+  - {fileID: 2100000, guid: 4dd058dc033685840bdbe095e98559f9, type: 2}
+  - {fileID: 2100000, guid: 4dd058dc033685840bdbe095e98559f9, type: 2}
+  - {fileID: 2100000, guid: 4dd058dc033685840bdbe095e98559f9, type: 2}
