@@ -11,7 +11,7 @@ public class HexSpawnController : MonoBehaviour
 
     [Header("Hex Scripts Storage")]
     [SerializeField]
-    HexCell[,] dataHexCells_Arr;
+    HexCell_Data[,] dataHexCells_Arr;
     [SerializeField]
     HexCell[,] allHexsCells_Arr;
     [SerializeField]
@@ -45,6 +45,8 @@ public class HexSpawnController : MonoBehaviour
     private const float offcenter_I = spacing_I / 2;
 
     [Header("Hex Map Settings (Sizing)")]
+    public int mapHexGeneration_RowCount = 1024;
+    public int mapHexGeneration_ColumnCount = 1024;
     public int mapHex_RowCount = 10;
     public int mapHex_ColumnCount = 10;
     public int mapHex_ChunkSize = 10;
@@ -67,6 +69,7 @@ public class HexSpawnController : MonoBehaviour
     private Random.State mapGeneration_SeededStated; //= Random.state;
 
 
+    private SaveFile mySaveFile;
 
     private int biomeMaterialCap = 10;
 
@@ -82,7 +85,10 @@ public class HexSpawnController : MonoBehaviour
             return;
         }
 
-        SetupMatsArray();
+
+        //Creation();
+        //ZoomOut();
+
 
         //Spawn All Of the Hex Map
         HexMap_Spawn();
@@ -107,18 +113,129 @@ public class HexSpawnController : MonoBehaviour
             HexMap_Rechunk();
         }
 
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            HexMap_CreateSave();
+        }
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            HexMap_LoadSave();
+        }
+
+
         if (Input.GetMouseButtonDown(0))
         {
             HandleMouseInput();
         }
     }
 
+    /////////////////////////////////////////////////////////////////
 
     public static Material GetChunkMat(int i, int j)
     {
-
         return mergedBiomeMats_Arr[i, j];
+    }
 
+    /////////////////////////////////////////////////////////////////
+
+    public int[,] hexMap;
+    public int startingSize_Row = 5;
+    public int startingSize_Column = 5;
+
+    public void Creation()
+    {
+        hexMap = new int[startingSize_Row, startingSize_Column];
+
+
+        for (int i = 0; i < startingSize_Row; i++)
+        {
+            for (int j = 0; j < startingSize_Row; j++)
+            {
+                hexMap[i, j] = Random.Range(1, 5);
+            }
+        }
+    }
+
+
+    public void ZoomOut()
+    {
+        int currentSize_Row = hexMap.GetLength(0);
+        int currentSize_Column = hexMap.GetLength(1);
+        int[,] newScaleMap_Arr = new int[currentSize_Row * 2, currentSize_Row * 2];
+
+
+        //Printing Stats - Show Visually Later
+        int rowLength = hexMap.GetLength(0);
+        int colLength = hexMap.GetLength(1);
+        string line = "";
+
+        for (int i = 0; i < rowLength; i++)
+        {
+            for (int j = 0; j < colLength; j++)
+            {
+                line += "[" + hexMap[i, j] + "] ";
+            }
+            Debug.Log(line);
+            line = "";
+        }
+
+
+        //FILL 2 VALUE SETS PER LOOP
+        for (int i = 0; i < currentSize_Row; i++)
+        {
+            for (int j = 0; j < currentSize_Column; j++)
+            {
+
+                Vector2 newSet_TopLeft = new Vector2(i * 2, j * 2);
+                Vector2 newSet_TopRight = new Vector2((i * 2) + 1, j * 2);
+                Vector2 newSet_BottomLeft = new Vector2(i * 2, (j * 2) + 1);
+                Vector2 newSet_BottomRight = new Vector2((i * 2) + 1, (j * 2) + 1);
+
+
+                newScaleMap_Arr[(int)newSet_TopLeft.x, (int)newSet_TopLeft.y] = hexMap[i, j];
+
+                newScaleMap_Arr[(int)newSet_TopRight.x, (int)newSet_TopRight.y] = 0;
+                newScaleMap_Arr[(int)newSet_BottomLeft.x, (int)newSet_BottomLeft.y] = 0;
+                newScaleMap_Arr[(int)newSet_BottomRight.x, (int)newSet_BottomRight.y] = 0;
+            }
+        }
+
+
+
+        Debug.Log("Test Code: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+        rowLength = newScaleMap_Arr.GetLength(0);
+        colLength = newScaleMap_Arr.GetLength(1);
+        line = "";
+
+        for (int i = 0; i < rowLength; i++)
+        {
+            for (int j = 0; j < colLength; j++)
+            {
+                line += "[" + newScaleMap_Arr[i, j] + "] ";
+            }
+            Debug.Log(line);
+            line = "";
+        }
+
+
+
+
+    }
+
+    private void HexMap_LoadSave()
+    {
+
+
+        //Save the Data
+        //Serializer.Save("HexMap.gobo", mySaveFile);
+    }
+
+    private void HexMap_CreateSave()
+    {
+        //Save the Data
+        Serializer.Save("HexMap.gobo", mySaveFile);
     }
 
     /////////////////////////////////////////////////////////////////
@@ -131,7 +248,7 @@ public class HexSpawnController : MonoBehaviour
         return returningError_Tuple;
     }
 
-    private void SetupMatsArray()
+    private void HexMap_SetupMatsArray()
     {
         //Create a list to automate the mat list creation
         List<BiomeInfo_SO> biomeInfoSets_List = new List<BiomeInfo_SO>();
@@ -171,11 +288,21 @@ public class HexSpawnController : MonoBehaviour
         long startingTimeTicks = DateTime.UtcNow.Ticks;
 
         //Create New Arrays
+        dataHexCells_Arr = new HexCell_Data[mapHex_RowCount, mapHex_ColumnCount];
         allHexsCells_Arr = new HexCell[mapHex_RowCount, mapHex_ColumnCount];
         allHexChunks_Arr = new HexChunk[(int)Mathf.Ceil(mapHex_RowCount / mapHex_ChunkSize), (int)Mathf.Ceil(mapHex_ColumnCount / mapHex_ChunkSize)];
 
-        //Spawn Map
+        //Generate Map
         HexMap_SetMapSeed();
+        HexMap_GenerateAllHexCells();
+
+
+
+        //Spawn Map
+
+
+
+        HexMap_SetupMatsArray();
         HexMap_SpawnGround();
         HexMap_RemoveOldMap();
         HexMap_SpawnAllHexChunks();
@@ -194,6 +321,36 @@ public class HexSpawnController : MonoBehaviour
             float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
             Debug.Log("Test Code: Map Generation Completed in: " + finishTime + "s");
         }
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+    private void HexMap_GenerateAllHexCells()
+    {
+        //Spawn Cells By X (Left and Right)
+        for (int x = 0; x < mapHex_RowCount; x++)
+        {
+            //Spawn Cells By Y (Up and Down)
+            for (int y = 0; y < mapHex_ColumnCount; y++)
+            {
+                //Create Gameobject And Find Chunk
+                //HexCell_Data hexCellData = 
+
+
+                //hexCellData.hexCell_BiomeID = 0;
+                //hexCellData.hexCell_Color = "";
+                //hexCellData.hexCell_MatID = 0;
+                //hexCellData.hexCell_heightStep = 0;
+
+                //Store it
+                dataHexCells_Arr[x, y] = new HexCell_Data();
+            }
+        }
+    }
+
+    private void HexMap_GenerateCellColors()
+    {
+
     }
 
     /////////////////////////////////////////////////////////////////
@@ -349,11 +506,24 @@ public class HexSpawnController : MonoBehaviour
 
     private void HexMap_RandomizeHeight()
     {
+        //Spawn Cells By X (Left and Right)
+        for (int x = 0; x < allHexsCells_Arr.GetLength(0); x++)
+        {
+            //Spawn Cells By Y (Up and Down)
+            for (int y = 0; y < allHexsCells_Arr.GetLength(1); y++)
+            {
+                allHexsCells_Arr[x, y].GenerateHeight_Perlin(x, y, mapHex_RowCount, mapHexGeneration_ColumnCount);
+            }
+
+        }
+
+        /*
         foreach (HexCell hexCell in allHexsCells_Arr)
         {
             //Generate Random Heights
             hexCell.GenerateHeight_Random(mapHeightMin, mapHeightMax, mapHeightStep);
         }
+        */
     }
 
     private void HexMap_StoreAllHexCells()

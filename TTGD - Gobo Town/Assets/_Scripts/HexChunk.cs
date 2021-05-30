@@ -46,10 +46,10 @@ public class HexChunk : MonoBehaviour
         foreach (HexCell hexCell in hexCellsInChunk_Arr)
         {
             //Check If The Material Has Already Been Added
-            if (!currentMatIDs_List.Contains(new Tuple<int, int>(hexCell.hexCellMatID_Biome, hexCell.hexCellMatID_Mat)))
+            if (!currentMatIDs_List.Contains(new Tuple<int, int>(hexCell.hexCell_BiomeID, hexCell.hexCell_MatID)))
             {
                 //Add To The List Of IDed Mats Then Setup a New List For It
-                currentMatIDs_List.Add(new Tuple<int, int>(hexCell.hexCellMatID_Biome, hexCell.hexCellMatID_Mat));
+                currentMatIDs_List.Add(new Tuple<int, int>(hexCell.hexCell_BiomeID, hexCell.hexCell_MatID));
                 combiningListOfLists_List.Add(new List<CombineInstance>());
             }
 
@@ -59,7 +59,7 @@ public class HexChunk : MonoBehaviour
             newCombiningInstance.transform = hexCell.hexObject_MeshFilter.transform.localToWorldMatrix;
 
             //Get The position using the Mat ID to locate which list to use and add The Combining Mesh Instance
-            int posID = currentMatIDs_List.FindIndex(x => x.Item1 == hexCell.hexCellMatID_Biome && x.Item2 == hexCell.hexCellMatID_Mat);
+            int posID = currentMatIDs_List.FindIndex(x => x.Item1 == hexCell.hexCell_BiomeID && x.Item2 == hexCell.hexCell_MatID);
             combiningListOfLists_List[posID].Add(newCombiningInstance);
         
             //Set The Old Cell Model To Off

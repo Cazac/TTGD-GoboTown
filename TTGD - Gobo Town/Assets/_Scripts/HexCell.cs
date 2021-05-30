@@ -50,8 +50,9 @@ public class HexCell : MonoBehaviour
 
 
 
-    public int hexCellMatID_Biome;
-    public int hexCellMatID_Mat;
+    public int hexCell_BiomeID;
+    public int hexCell_MatID;
+    public int hexCell_HeightStep;
 
     private Color[] colors_Arr;
 
@@ -122,8 +123,8 @@ public class HexCell : MonoBehaviour
     public void UpdateMaterial(int matID_Biome, int matID_Mat, Material hexCellMaterial)
     {
         //Set Mat IDs
-        hexCellMatID_Biome = matID_Biome;
-        hexCellMatID_Mat = matID_Mat;
+        hexCell_BiomeID = matID_Biome;
+        hexCell_MatID = matID_Mat;
 
         //Set Renderer Color
         hexObject_MeshRenderer.material = hexCellMaterial;
@@ -151,11 +152,39 @@ public class HexCell : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    public void GenerateHeight_Random(int minHeight, int maxHeight, float heightLevel)
+    public void GenerateHeight_Random(int minHeight, int maxHeight, float heightStep)
     {
         //Randomzie Height
         float height = Random.Range(minHeight, maxHeight);
-        height = height * heightLevel;
+        height = height * heightStep;
+        SetCellHeight(height);
+    }
+
+    public void GenerateHeight_Perlin(int x, int y, int xSize, int ySize)
+    {
+        float heightStep = 0.04f;
+
+        float xScaled = (float)x / xSize * 2;
+        float yScaled = (float)y / ySize * 50;
+
+
+
+        float height = Mathf.PerlinNoise(xScaled, yScaled);
+
+        float neutralHeight = 0.5f;
+        float newHeight = 0f;
+
+        //Take Average
+        height = (neutralHeight + height) / 2;
+
+
+        //height = height * heightLevel;
+
+        int divCount = (int)(height / heightStep);
+
+        height = divCount * heightStep;
+
+        Debug.Log("Test Code: " + height);
         SetCellHeight(height);
     }
 
@@ -425,6 +454,7 @@ public class HexCell : MonoBehaviour
         triangles.Add(7);
         triangles.Add(1);
     }
+
 
     /////////////////////////////////////////////////////////////////
 }
