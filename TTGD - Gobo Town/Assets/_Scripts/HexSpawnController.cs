@@ -25,8 +25,8 @@ public class HexSpawnController : MonoBehaviour
 
     [Header("Hex Map Options")]
     public bool isSlowSpawning;
-    public bool isShowingGenerationTime;
     public bool isGeneratingMap;
+    public bool isShowingGenerationTime;
 
     [Header("Hex Map Containers")]
     public GameObject scalingGround_GO;
@@ -298,9 +298,6 @@ public class HexSpawnController : MonoBehaviour
     {
 
     }
-
-
-
 
     private void HexGeneration_Creation()
     {

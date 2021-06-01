@@ -29388,8 +29388,8 @@ MonoBehaviour:
   cameraGenerated: {fileID: 963194227}
   cameraRelativePosition: {x: 1.2, y: -1}
   isSlowSpawning: 0
+  isGeneratingMap: 0
   isShowingGenerationTime: 1
-  isGeneratingMap: 1
   scalingGround_GO: {fileID: 305887436}
   hexMapContainer_GO: {fileID: 1741760701}
   hexMesh_Prefab: {fileID: 2444955979027595997, guid: 956b460145ee4274591057e081db0ac4, type: 3}
