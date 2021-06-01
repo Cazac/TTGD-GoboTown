@@ -48,7 +48,7 @@ public class HexCell : MonoBehaviour
     [Header("Hex Color Options")]
     public Color hexCellColor_Main;
 
-
+    float currentHeight;
 
     public int hexCell_BiomeID;
     public int hexCell_MatID;
@@ -165,7 +165,7 @@ public class HexCell : MonoBehaviour
         float heightStep = 0.04f;
 
         float xScaled = (float)x / xSize * 2;
-        float yScaled = (float)y / ySize * 50;
+        float yScaled = (float)y / ySize * 2;
 
 
 
@@ -184,7 +184,7 @@ public class HexCell : MonoBehaviour
 
         height = divCount * heightStep;
 
-        Debug.Log("Test Code: " + height);
+        //Debug.Log("Test Code: " + height);
         SetCellHeight(height);
     }
 
@@ -195,6 +195,8 @@ public class HexCell : MonoBehaviour
 
     public void SetCellHeight(float height)
     {
+        currentHeight = height;
+
         gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y + height, gameObject.transform.position.z);
     }
 

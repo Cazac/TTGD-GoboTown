@@ -7,7 +7,7 @@ public class CameraExplorer : MonoBehaviour
 
 
 
-    float speed = 1f;
+    public float speed = 1f;
 
 
 
@@ -35,9 +35,28 @@ public class CameraExplorer : MonoBehaviour
         }
 
 
+        if (Input.GetKey(KeyCode.A))
+        {
+            inputMOvement += new Vector3(-1f, 0, 0);
+        }
+
+        if (Input.GetKey(KeyCode.D))
+        {
+            inputMOvement += new Vector3(1f, 0, -0);
+        }
 
 
-        Camera.main.transform.position += inputMOvement.normalized * speed;
+
+        if (Input.GetKey(KeyCode.LeftShift))
+        { 
+            Camera.main.transform.position += inputMOvement.normalized * speed * Time.deltaTime * 2f;
+        }
+        else
+        {
+            Camera.main.transform.position += inputMOvement.normalized * speed * Time.deltaTime;
+        }
+
+
 
 
     }
