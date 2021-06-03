@@ -11,6 +11,8 @@ public class HexCell_Data
     public string hexCell_Color;
     public int hexCell_heightSteps;
 
+    public HexCoords hexCoords;
+
     public List<HexDecoration_Data> hexCellDecorations_List;
     //public List<HexObject_Data> hexCellObjects_List;
     //public List<HexBuilding_Data> hexCellObjects_List;

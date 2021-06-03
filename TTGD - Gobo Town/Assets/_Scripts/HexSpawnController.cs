@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -111,7 +112,12 @@ public class HexSpawnController : MonoBehaviour
     [HideInInspector]
     public SaveFile mySaveFile;
 
+    public int hexCountAllowedFromCamera = 5;
 
+    public HexCell lastCameraCell;
+
+
+    List<HexCell> currentHexsLoaded_List = new List<HexCell>();
 
     /////////////////////////////////////////////////////////////////
 
@@ -142,6 +148,13 @@ public class HexSpawnController : MonoBehaviour
 
     private void Update()
     {
+        //if (Input.GetKeyDown(KeyCode.C))
+        {
+            ReloadHexsAroundCamera();
+        }
+
+
+
         if (oldOffsetX != offsetX)
         {
             oldOffsetX = offsetX;
@@ -154,7 +167,11 @@ public class HexSpawnController : MonoBehaviour
             HexGen_PerlinHeight();
         }
 
-        
+
+
+
+
+
 
 
         ////////////////////////////////
@@ -206,6 +223,160 @@ public class HexSpawnController : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             MouseInput_Click();
+        }
+    }
+
+    private void ReloadHexsAroundCamera()
+    {
+        GenerateAllowedHexsAroundCamera();
+
+
+    }
+
+    private void GenerateAllowedHexsAroundCamera()
+    {
+   
+
+        //Get Camera Position
+        Vector3 cameraPos = cameraGenerated.transform.position;
+
+        //Get The Hex X Position From Camera Spacing
+        int xPos = (int)Math.Round(cameraPos.z / spacing_I, 0);
+        int yPos = (int)Math.Round(cameraPos.x / spacing_J, 0); 
+
+        //Clamp Positions to the array size
+        xPos = Mathf.Clamp(xPos, 0, mapGen_SideLength - 1);
+        yPos = Mathf.Clamp(yPos, 0, mapGen_SideLength - 1);
+
+
+        HexCell newCameraCell = allHexsCells_Arr[xPos, yPos];
+
+        if (lastCameraCell == null)
+        {
+            //currentCameraCell = allHexsCells_Arr[xPos, yPos];
+            //currentCameraCell.ClickCell();
+        }
+        else if (lastCameraCell.name != allHexsCells_Arr[xPos, yPos].name)
+        {
+            //currentCameraCell = allHexsCells_Arr[xPos, yPos];
+            //currentCameraCell.ClickCell();
+        }
+        else
+        {
+            //currentCameraCell.ClickCell();
+            //currentCameraCell = allHexsCells_Arr[xPos, zPos];
+            //currentCameraCell.ClickCell();
+        }
+
+
+        
+
+        int rightCorner = Mathf.Clamp(xPos + hexCountAllowedFromCamera + 1, 0, mapGen_SideLength - 0);
+        int leftCorner = Mathf.Clamp(xPos - hexCountAllowedFromCamera, 0, mapGen_SideLength - 1);
+
+        int topCorner = Mathf.Clamp(yPos + hexCountAllowedFromCamera + 1, 0, mapGen_SideLength - 0);
+        int bottomCorner = Mathf.Clamp(yPos - hexCountAllowedFromCamera, 0, mapGen_SideLength - 1);
+
+
+        //Debug.Log("Test Code: Last " + lastCameraCell.hexCoords.GetPrintableCoords());
+        //Debug.Log("Test Code: New " + newCameraCell.hexCoords.GetPrintableCoords());
+
+        //Match X and Y Coords To Compare 
+        if (lastCameraCell == null)
+        {
+            lastCameraCell = newCameraCell;
+        }
+        else if ((lastCameraCell.hexCoords.X == newCameraCell.hexCoords.X) && (lastCameraCell.hexCoords.Y == newCameraCell.hexCoords.Y))
+        {
+            Debug.Log("Test Code: This Does Not Trigger!");
+            //Do Nothing
+            return;
+        }
+        else
+        {
+            lastCameraCell = newCameraCell;
+        }
+
+
+
+        //Destroy All hexes
+        HexGen_ClearOldMaps();
+
+
+        List<HexCell_Data> wantedHexs_List = new List<HexCell_Data>();
+
+        for (int x = leftCorner; x < rightCorner; x++)
+        {
+            for (int y = bottomCorner; y < topCorner; y++)
+            {
+
+                //HexCell question14 = currentHexsLoaded_List.FirstOrDefault(z => z.hexCoords.X == 14);
+
+
+
+
+                //Just Load the Hex For Now
+                //if (currentHexsLoaded_List.Contains())
+                {
+
+                }
+
+
+                wantedHexs_List.Add(dataHexCells_Arr[x, y]);
+                //allHexsCells_Arr[x, y].ClickCell();
+            }
+        }
+
+        //Spawn Them
+        ConfirmAllowedHexsAroundCamera(wantedHexs_List);
+
+
+
+
+        //Debug.Log("Test Code: " + allHexsCells_Arr[xPos, yPos].name);
+
+        //currentCameraCell = allHexsCells_Arr[xPos, zPos];
+
+        //Debug.Log("Test Code: x:" + xPos);
+        //Debug.Log("Test Code: z:" + zPos);
+
+        //Get Closest Node To Camera Position
+        //dataHexCells_Arr[]
+
+        //Get all 4 cornoer nodes away from cetner point
+
+        //Get All Nodes Between 4 corners
+
+
+
+
+    }
+
+    private void ConfirmAllowedHexsAroundCamera(List<HexCell_Data> wantedHexs_List)
+    {
+        foreach (HexCell_Data hexCellData in wantedHexs_List)
+        {
+            //Create Gameobject And Find Chunk
+            GameObject newHex;
+            //GameObject cellChunk = GetChunkFromCellLocation(x, y);
+
+            //Regular Spawn Position VS Offset Spacing
+            if (hexCellData.hexCoords.Y % 2 == 0)
+            {
+                newHex = Instantiate(hexMesh_Prefab, new Vector3(hexCellData.hexCoords.Y * spacing_J, mapHeightStep, hexCellData.hexCoords.X * spacing_I), Quaternion.identity, hexMapContainer_GO.transform);
+            }
+            else
+            {
+                newHex = Instantiate(hexMesh_Prefab, new Vector3(hexCellData.hexCoords.Y * spacing_J, mapHeightStep, hexCellData.hexCoords.X * spacing_I + offcenter_I), Quaternion.identity, hexMapContainer_GO.transform);
+            }
+
+            //Setup Cell
+            HexCell newHexCell = newHex.GetComponent<HexCell>();
+            newHexCell.CreateCellFromData(hexCellData);
+            newHexCell.SetLabel(hexCellData.hexCoords.X, hexCellData.hexCoords.Y);
+
+            //Store it
+            allHexsCells_Arr[hexCellData.hexCoords.X, hexCellData.hexCoords.Y] = newHexCell;
         }
     }
 
@@ -427,12 +598,6 @@ public class HexSpawnController : MonoBehaviour
                 //Set The MatID / Color Sets
                 mapHex_MatIDSets[x, y] = biomeCellInfo.matID;
                 mapHex_ColorSets[x, y] = ColorUtility.ToHtmlStringRGB(biomeCellInfo.gradient.Evaluate(Random.Range(0, 1f)));
-
-                Debug.Log("Test Code: " + biomeCellInfo.matID);
-
-
-
-                //allHexsCells_Arr[x, y].UpdateMaterial(mapHex_BiomeSets[x, y], biomeCellInfo.matID, biomeCellInfo.material);
             }
         }
     }
@@ -451,7 +616,8 @@ public class HexSpawnController : MonoBehaviour
                     hexCell_BiomeID = mapHex_BiomeSets[x, y],
                     hexCell_heightSteps = mapHex_HeightSets[x, y],
                     hexCell_Color = mapHex_ColorSets[x, y],
-                    hexCell_MatID = mapHex_MatIDSets[x, y]
+                    hexCell_MatID = mapHex_MatIDSets[x, y],
+                    hexCoords = new HexCoords(x, y)
                 };
             }
         }
@@ -483,6 +649,9 @@ public class HexSpawnController : MonoBehaviour
                 HexCell newHexCell = newHex.GetComponent<HexCell>();
                 newHexCell.CreateCellFromData(dataHexCells_Arr[x, y]);
                 newHexCell.SetLabel(x, y);
+
+                //Store it
+                allHexsCells_Arr[x, y] = newHexCell;
             }
         }
     }
