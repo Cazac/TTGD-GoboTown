@@ -52,7 +52,8 @@ public class HexCell : MonoBehaviour
 
     public int hexCell_BiomeID;
     public int hexCell_MatID;
-    public int hexCell_HeightStep;
+    //public int hexCell_HeightPerStep;
+    public float hexCell_TotalHeight;
 
     private Color[] colors_Arr;
 
@@ -198,6 +199,15 @@ public class HexCell : MonoBehaviour
         currentHeight = height;
 
         gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y + height, gameObject.transform.position.z);
+    }
+
+    public void UpdateHeight(float heightSteps)
+    {
+        //Calculate Height and Set Current Value
+        hexCell_TotalHeight = HexSpawnController.hexCell_HeightPerStep * heightSteps;
+
+        //Set the Gameobject Value
+        gameObject.transform.position = new Vector3(gameObject.transform.position.x, hexCell_TotalHeight, gameObject.transform.position.z);
     }
 
     /////////////////////////////////////////////////////////////////
@@ -457,6 +467,24 @@ public class HexCell : MonoBehaviour
         triangles.Add(1);
     }
 
+    /////////////////////////////////////////////////////////////////
+
+    public void CreateCellFromData(HexCell_Data hexCell_Data)
+    {
+        //Create Mesh
+        GenerateHexMesh_Hard();
+
+        //Update Height Set
+        UpdateHeight(hexCell_Data.hexCell_heightSteps);
+
+        //Create a color from the data and set it
+        ColorUtility.TryParseHtmlString("#" + hexCell_Data.hexCell_Color, out Color convertedColor);
+        UpdateCellColor(convertedColor);
+
+
+        //UpdateMaterial(hexCell_Data.hexCell_BiomeID, hexCell_Data.hexCell_Color);
+
+    }
 
     /////////////////////////////////////////////////////////////////
 }

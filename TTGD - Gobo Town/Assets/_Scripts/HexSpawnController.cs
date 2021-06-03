@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -26,6 +24,7 @@ public class HexSpawnController : MonoBehaviour
     [Header("Hex Map Options")]
     public bool isSlowSpawning;
     public bool isGeneratingMap;
+    public bool isShowingBiomeVisuals;
     public bool isShowingGenerationTime;
 
     [Header("Hex Map Containers")]
@@ -49,10 +48,14 @@ public class HexSpawnController : MonoBehaviour
     private const float spacing_J = outerRadius * 1.5f;
     private const float offcenter_I = spacing_I / 2;
 
-    [Header("Hex Map Settings (Sizing)")]
-    private int mapHexGeneration_BiomeGrowthLoopCount;
-    public int mapHexGeneration_BiomeStartCount = 20;
-    public int mapHexGeneration_SideLength = 640;
+    [Header("Map Generation Settings")]
+    public int mapGen_StartingBiomeNodesCount = 20;
+    public int mapGen_SideLength = 160;
+    public int mapGen_OceanSize = 2;
+    public int mapGen_BeachSize = 2;
+
+
+    [Header("Old Spawns")]
     public int mapHex_RowCount = 100;
     public int mapHex_ColumnCount = 100;
     public int mapHex_ChunkSize = 10;
@@ -66,6 +69,8 @@ public class HexSpawnController : MonoBehaviour
     public int mapHex_Seed = 135135;
 
     [Header("Biome Info Sets")]
+    public BiomeInfo_SO[] allBiomes_Arr;
+    public BiomeInfo_SO biomeInfo_Ocean;
     public BiomeInfo_SO biomeInfo_Plains;
     public BiomeInfo_SO biomeInfo_Forest;
 
@@ -77,7 +82,7 @@ public class HexSpawnController : MonoBehaviour
     [HideInInspector]
     public SaveFile mySaveFile;
 
-    private int biomeMaterialCap = 10;
+    private readonly int biomeMaterialCap = 10;
 
 
 
@@ -86,8 +91,23 @@ public class HexSpawnController : MonoBehaviour
 
     public List<Material> biomeVisualColors_List;
 
-    public int[,] hexMap;
 
+ 
+
+
+    //Generation List Sets
+    public int[,] mapHex_BiomeSets;
+    public int[,] mapHex_HeightSets;
+    public int[,] mapHex_MatIDSets;
+    public string[,] mapHex_ColorSets;
+
+    public float oldOffsetX = 0;
+    public float offsetX = 0;
+    public float offsetY = 0;
+
+    public float perlinZoomScale = 30;
+
+    public static readonly float hexCell_HeightPerStep = 0.04f;
 
     /////////////////////////////////////////////////////////////////
 
@@ -107,24 +127,32 @@ public class HexSpawnController : MonoBehaviour
         if (isGeneratingMap)
         {
             //Spawn The Visual Biome Set
-            HexGeneration_Spawn();
+            HexGen_Spawn();
         }
         else
         {
             //Spawn All Of the Hex Map
-            HexMap_Spawn();
+            HexMap_Spawn_OLD();
         }
     }
 
     private void Update()
     {
+        if (oldOffsetX != offsetX)
+        {
+            oldOffsetX = offsetX;
+            HexGen_PerlinHeight();
+        }
+
+
         ////////////////////////////////
 
         if (Input.GetKeyDown(KeyCode.R))
         {
             mapHex_Seed = Random.Range(100000, 999999);
             HexMap_SetMapSeed();
-            HexMap_Spawn();
+            HexGen_Spawn();
+            //HexMap_Spawn_OLD();
         }
 
         if (Input.GetKeyDown(KeyCode.F))
@@ -153,22 +181,12 @@ public class HexSpawnController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.T))
         {
-            HexGeneration_Spawn();
+            HexGen_Spawn();
         }
 
-        if (Input.GetKeyDown(KeyCode.N))
+        if (Input.GetKeyDown(KeyCode.Y))
         {
-            HexGeneration_ZoomOutBiome();
-            HexVisuals_DestroyVisuals();
-            HexVisuals_DisplayVisuals();
-        }
-
-
-        if (Input.GetKeyDown(KeyCode.M))
-        {
-            HexGeneration_FillZeros();
-            HexVisuals_DestroyVisuals();
-            HexVisuals_DisplayVisuals();
+            HexGen_PerlinHeight();
         }
 
         ////////////////////////////////
@@ -181,24 +199,36 @@ public class HexSpawnController : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    private void HexGeneration_Spawn()
+    private void HexGen_Spawn()
     {
         //Start Counting Timer
         long startingTimeTicks = DateTime.UtcNow.Ticks;
 
+        dataHexCells_Arr = new HexCell_Data[mapGen_SideLength, mapGen_SideLength];
+        allHexsCells_Arr = new HexCell[mapGen_SideLength, mapGen_SideLength];
 
-        mapHexGeneration_BiomeGrowthLoopCount = (int) Mathf.Log((float)mapHexGeneration_SideLength / mapHexGeneration_BiomeStartCount, 2);
+        //Create Array of Biomes
+        allBiomes_Arr = new BiomeInfo_SO[3];
+        allBiomes_Arr[0] = biomeInfo_Ocean;
+        allBiomes_Arr[1] = biomeInfo_Plains;
+        allBiomes_Arr[2] = biomeInfo_Forest;
 
+        //Create Base Display List Setups
+        HexGenBiome_CreateInitialBiomes();
 
-        //Create Base Display
-        HexGeneration_Creation();
+        //Create Other List Setups
+        mapHex_HeightSets = new int[mapGen_SideLength, mapGen_SideLength];
+        mapHex_MatIDSets = new int[mapGen_SideLength, mapGen_SideLength];
+        mapHex_ColorSets = new string[mapGen_SideLength, mapGen_SideLength];
 
- 
+        //Use Log() to calucale how many loops are needed to get to the side length value
+        int mapHexGeneration_BiomeGrowthLoopCount = (int)Mathf.Log((float)mapGen_SideLength / mapGen_StartingBiomeNodesCount, 2);
+
         for (int i = 0; i < mapHexGeneration_BiomeGrowthLoopCount; i++)
         {
             //Zoom Then Fill To Expand Map
-            HexGeneration_ZoomOutBiome();
-            HexGeneration_FillZeros();
+            HexGenBiome_ZoomOutBiome();
+            HexGenBiome_FillZeros();
 
             //Need Smoothing
         }
@@ -208,27 +238,53 @@ public class HexSpawnController : MonoBehaviour
         //HexGeneration_PostGeneration_Lakes();
         //HexGeneration_PostGeneration_Beaches();
         //HexGeneration_PostGeneration_InterBiomes();
-        HexGeneration_PostGeneration_Ocean();
+        HexGenBiome_PostGeneration_Ocean();
 
+
+        HexGen_PerlinHeight();
+        HexGen_MatsAndColors();
+   
+
+
+        //Merge Info Together Into Storable Data Hex Cells
+        HexGen_MergeDataToHexCells();
+
+
+        //HexMap_SpawnAllHexChunks();
+        HexGen_ClearOldMaps();
+        HexGen_SpawnAllHexesFromData();
+
+        //Ground Visuals
+        HexGen_SpawnGround();
+
+        //Check if Camera Focus is Biome Map or Hex Map
+        if (isShowingBiomeVisuals)
+        {
+            //Show the Biome Map Visually
+            HexVisuals_DestroyVisuals();
+            HexVisuals_DisplayVisuals();
+        }
+        else
+        {
+            //Center Camera on Hex Map
+            HexGen_CenterCamera();
+        }
+
+       
+
+
+        //Show Generation Time
         if (isShowingGenerationTime)
         {
             //Finish Counting Timer
             long endingTimeTicks = DateTime.UtcNow.Ticks;
             float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
             Debug.Log("Test Code: Biome Generation x" + mapHexGeneration_BiomeGrowthLoopCount + " Completed in: " + finishTime + "s");
-            Debug.Log("Test Code: Size " + hexMap.GetLength(0) + "x" + hexMap.GetLength(1));
+            Debug.Log("Test Code: Size " + mapHex_BiomeSets.GetLength(0) + "x" + mapHex_BiomeSets.GetLength(1));
         }
-
-  
-
-        //Show the Map Visually
-        HexVisuals_DestroyVisuals();
-        HexVisuals_DisplayVisuals();
     }
 
-
-
-    private void HexMap_Spawn()
+    private void HexMap_Spawn_OLD()
     {
         //Start Counting Timer
         long startingTimeTicks = DateTime.UtcNow.Ticks;
@@ -240,7 +296,7 @@ public class HexSpawnController : MonoBehaviour
 
         //Generate Map
         HexMap_SetMapSeed();
-        HexMap_GenerateAllHexCells();
+        //HexMap_GenerateAllHexCells();
 
 
 
@@ -270,53 +326,231 @@ public class HexSpawnController : MonoBehaviour
     }
 
     /////////////////////////////////////////////////////////////////
-
-    private void HexMap_GenerateAllHexCells()
+    
+    private void HexGen_PerlinHeight()
     {
         //Spawn Cells By X (Left and Right)
-        for (int x = 0; x < mapHex_RowCount; x++)
+        for (int x = 0; x < mapHex_HeightSets.GetLength(0); x++)
         {
             //Spawn Cells By Y (Up and Down)
-            for (int y = 0; y < mapHex_ColumnCount; y++)
+            for (int y = 0; y < mapHex_HeightSets.GetLength(1); y++)
+            {
+                //Generate Biome Heights Depending on Biome Generated at this point in the Array
+                switch (mapHex_BiomeSets[x, y])
+                {
+                    //0 == Ocean
+                    case 0:
+                        HexGen_FlatHeight_Ocean(x, y);
+                        break;
+
+                    //1 == Plains
+                    case 1:
+                        HexGen_PerlinHeight_Plains(x, y);
+                        break;
+
+                    //1 == Forest
+                    case 2:
+                        HexGen_PerlinHeight_Plains(x, y);
+                        break;
+
+                    //??? == ???
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    private void HexGen_FlatHeight_Ocean(int x, int y)
+    {
+        //Create a Height Steps value based off of closeset step to the "Real" Height
+        int heightSteps = 4;
+
+        //Set Final Value To Array
+        mapHex_HeightSets[x, y] = heightSteps;
+    }
+
+    private void HexGen_PerlinHeight_Plains(int x, int y)
+    {
+        float neutralHeight = 0.5f;
+
+
+        //USE HEIGHT MAPS BASED OFF BIOMES
+
+
+        //float perlinZoomScale = 20;
+
+        float xScaled = (float)x / perlinZoomScale;
+        float yScaled = (float)y / perlinZoomScale;
+
+
+        float height = Mathf.PerlinNoise(xScaled + offsetX, yScaled + offsetY);
+
+
+
+
+        //Create a Height Value the tends closer to the average of the Neutral Height
+        height = (neutralHeight + height) / 2;
+
+        //Create a Height Steps value based off of closeset step to the "Real" Height
+        int heightSteps = (int)(height / hexCell_HeightPerStep);
+
+        //Set Final Value To Array
+        mapHex_HeightSets[x, y] = heightSteps;
+    }
+
+    private void HexGen_MatsAndColors()
+    {
+        //Spawn Cells By X (Left and Right)
+        for (int x = 0; x < mapHex_MatIDSets.GetLength(0); x++)
+        {
+            //Spawn Cells By Y (Up and Down)
+            for (int y = 0; y < mapHex_MatIDSets.GetLength(1); y++)
+            {
+                //Get The Biome Info Cell based off of the biome in the given cell
+                BiomeCellInfo biomeCellInfo = allBiomes_Arr[mapHex_BiomeSets[x, y]].GetRandomBiomeCell();
+
+                //Set The MatID / Color Sets
+                mapHex_MatIDSets[x, y] = biomeCellInfo.matID;
+                mapHex_ColorSets[x, y] = ColorUtility.ToHtmlStringRGB(biomeCellInfo.gradient.Evaluate(Random.Range(0, 1f)));
+            }
+        }
+    }
+
+    private void HexGen_MergeDataToHexCells()
+    {
+        //Spawn Cells By X (Left and Right)
+        for (int x = 0; x < dataHexCells_Arr.GetLength(1); x++)
+        {
+            //Spawn Cells By Y (Up and Down)
+            for (int y = 0; y < dataHexCells_Arr.GetLength(1); y++)
+            {
+                //Store The Data Collected From Other Methodsit
+                dataHexCells_Arr[x, y] = new HexCell_Data
+                {
+                    hexCell_BiomeID = mapHex_BiomeSets[x, y],
+                    hexCell_heightSteps = mapHex_HeightSets[x, y],
+                    hexCell_Color = mapHex_ColorSets[x, y],
+                    hexCell_MatID = mapHex_MatIDSets[x, y]
+                };
+            }
+        }
+    }
+
+    private void HexGen_SpawnAllHexesFromData()
+    {
+        //Spawn Cells By X (Left and Right)
+        for (int x = 0; x < dataHexCells_Arr.GetLength(0); x++)
+        {
+            //Spawn Cells By Y (Up and Down)
+            for (int y = 0; y < dataHexCells_Arr.GetLength(1); y++)
             {
                 //Create Gameobject And Find Chunk
-                //HexCell_Data hexCellData = 
+                GameObject newHex;
+                //GameObject cellChunk = GetChunkFromCellLocation(x, y);
 
+                //Regular Spawn Position VS Offset Spacing
+                if (y % 2 == 0)
+                {
+                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapHeightStep, x * spacing_I), Quaternion.identity, hexMapContainer_GO.transform);
+                }
+                else
+                {
+                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapHeightStep, x * spacing_I + offcenter_I), Quaternion.identity, hexMapContainer_GO.transform);
+                }
 
-                //hexCellData.hexCell_BiomeID = 0;
-                //hexCellData.hexCell_Color = "";
-                //hexCellData.hexCell_MatID = 0;
-                //hexCellData.hexCell_heightStep = 0;
-
-                //Store it
-                dataHexCells_Arr[x, y] = new HexCell_Data();
+                //Setup Cell
+                HexCell newHexCell = newHex.GetComponent<HexCell>();
+                newHexCell.CreateCellFromData(dataHexCells_Arr[x, y]);
+                newHexCell.SetLabel(x, y);
             }
         }
     }
 
-    private void HexMap_GenerateCellColors()
+    private void HexGen_ClearOldMaps()
     {
-
-    }
-
-    private void HexGeneration_Creation()
-    {
-        hexMap = new int[mapHexGeneration_BiomeStartCount, mapHexGeneration_BiomeStartCount];
-
-
-        for (int i = 0; i < mapHexGeneration_BiomeStartCount; i++)
+        //Destory All Old Hex Chunks / Cells
+        foreach (Transform child in hexMapContainer_GO.transform)
         {
-            for (int j = 0; j < mapHexGeneration_BiomeStartCount; j++)
+            //Destroy Top-Level Child
+            Destroy(child.gameObject);
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+    private void HexGen_SpawnGround()
+    {
+        //Setup New Mesh
+        Mesh newMesh = new Mesh();
+        List<Vector3> verts_List = new List<Vector3>();
+        List<int> tris_List = new List<int>();
+
+        //Setup Sizing
+        float extraTrim = 0.15f;
+        float x = innerRadius * mapGen_SideLength * 1.75f;
+        float y = outerRadius * mapGen_SideLength * 1.75f;
+
+        //Set Square Verts
+        verts_List.Add(new Vector3(-extraTrim, 0f, -extraTrim));
+        verts_List.Add(new Vector3(x + extraTrim, 0f, -extraTrim));
+        verts_List.Add(new Vector3(-extraTrim, 0f, y + extraTrim));
+        verts_List.Add(new Vector3(x + extraTrim, 0f, y + extraTrim));
+
+        //Create Tris
+        tris_List.Add(2);
+        tris_List.Add(1);
+        tris_List.Add(0);
+
+        tris_List.Add(1);
+        tris_List.Add(2);
+        tris_List.Add(3);
+
+        //Set Mesh Info
+        newMesh.vertices = verts_List.ToArray();
+        newMesh.triangles = tris_List.ToArray();
+
+        //Refresh Normals Info
+        newMesh.RecalculateNormals();
+        newMesh.Optimize();
+
+        //Set Mesh To Gameobject
+        scalingGround_GO.GetComponent<MeshFilter>().mesh = newMesh;
+    }
+
+    private void HexGen_CenterCamera()
+    {
+        //Figure out the X Position by size of the generated map
+        float extraTrim = 0.15f;
+        float x = innerRadius * mapGen_SideLength * 1.75f;
+        float left = -extraTrim;
+        float right = x + extraTrim;
+        float xPos = Mathf.Lerp(left, right, 0.5f);
+
+        //Set Camera Position To Look at map from a good angle
+        cameraGenerated.transform.position = new Vector3(xPos, cameraRelativePosition.x, cameraRelativePosition.y);
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+    private void HexGenBiome_CreateInitialBiomes()
+    {
+        mapHex_BiomeSets = new int[mapGen_StartingBiomeNodesCount, mapGen_StartingBiomeNodesCount];
+
+
+        for (int i = 0; i < mapGen_StartingBiomeNodesCount; i++)
+        {
+            for (int j = 0; j < mapGen_StartingBiomeNodesCount; j++)
             {
-                hexMap[i, j] = Random.Range(1, 3);
+                mapHex_BiomeSets[i, j] = Random.Range(1, 3);
             }
         }
     }
 
-    private void HexGeneration_ZoomOutBiome()
+    private void HexGenBiome_ZoomOutBiome()
     {
-        int currentSize_Row = hexMap.GetLength(0);
-        int currentSize_Column = hexMap.GetLength(1);
+        int currentSize_Row = mapHex_BiomeSets.GetLength(0);
+        int currentSize_Column = mapHex_BiomeSets.GetLength(1);
         int[,] newScaleMap_Arr = new int[currentSize_Row * 2, currentSize_Row * 2];
 
 
@@ -333,7 +567,7 @@ public class HexSpawnController : MonoBehaviour
                 Vector2 newSet_BottomRight = new Vector2((i * 2) + 1, (j * 2) + 1);
 
 
-                newScaleMap_Arr[(int)newSet_TopLeft.x, (int)newSet_TopLeft.y] = hexMap[i, j];
+                newScaleMap_Arr[(int)newSet_TopLeft.x, (int)newSet_TopLeft.y] = mapHex_BiomeSets[i, j];
 
                 newScaleMap_Arr[(int)newSet_TopRight.x, (int)newSet_TopRight.y] = 0;
                 newScaleMap_Arr[(int)newSet_BottomLeft.x, (int)newSet_BottomLeft.y] = 0;
@@ -342,39 +576,39 @@ public class HexSpawnController : MonoBehaviour
         }
 
 
-        hexMap = newScaleMap_Arr;
+        mapHex_BiomeSets = newScaleMap_Arr;
     }
 
-    private void HexGeneration_FillZeros()
+    private void HexGenBiome_FillZeros()
     {
         //Foreach Each Set Of Hexs Fill All 0s
-        for (int i = 0; i < hexMap.GetLength(0); i++)
+        for (int i = 0; i < mapHex_BiomeSets.GetLength(0); i++)
         {
-            for (int j = 0; j < hexMap.GetLength(1); j++)
+            for (int j = 0; j < mapHex_BiomeSets.GetLength(1); j++)
             {
                 //Check if current value is 0
-                if (hexMap[i, j] == 0)
+                if (mapHex_BiomeSets[i, j] == 0)
                 {
                     //Check Current Status of I / J to determine where the value comes from
                     if (j % 2 == 0)
                     {
                         //J is an Even Value
-                        HexGeneration_FillZeros_JEven(i, j);
+                        HexGenBiome_FillZeros_JEven(i, j);
                     }
                     else if (i % 2 == 0)
                     {
                         //I is an Even Value
-                        HexGeneration_FillZeros_IEven(i, j);
+                        HexGenBiome_FillZeros_IEven(i, j);
                     }
-                    else if (j + 1 == hexMap.GetLength(1))
+                    else if (j + 1 == mapHex_BiomeSets.GetLength(1))
                     {
                         //J is at Max Value
-                        HexGeneration_FillZeros_JMaxed(i, j);
+                        HexGenBiome_FillZeros_JMaxed(i, j);
                     }
                     else
                     {
                         //Both Values are Odd / Use diagonals
-                        HexGeneration_FillZeros_Diagonals(i, j);
+                        HexGenBiome_FillZeros_Diagonals(i, j);
                     }
                 }
             }
@@ -382,7 +616,7 @@ public class HexSpawnController : MonoBehaviour
 
     }
 
-    private void HexGeneration_FillZeros_JEven(int i, int j)
+    private void HexGenBiome_FillZeros_JEven(int i, int j)
     {
         //Random FOr Left and Right
         int rand = Random.Range(0, 2);
@@ -391,35 +625,35 @@ public class HexSpawnController : MonoBehaviour
         {
             //Left
             case 0:
-                if (HexGeneration_CheckValidHexSpace(i - 1, j))
+                if (HexGenBiome_CheckValidHexSpace(i - 1, j))
                 {
                     //True Left
-                    hexMap[i, j] = hexMap[i - 1, j];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j];
                 }
                 else
                 {
                     //Forced Right
-                    hexMap[i, j] = hexMap[i + 1, j];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j];
                 }
                 break;
 
             //Right
             case 1:
-                if (HexGeneration_CheckValidHexSpace(i + 1, j))
+                if (HexGenBiome_CheckValidHexSpace(i + 1, j))
                 {
                     //True Right
-                    hexMap[i, j] = hexMap[i + 1, j];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j];
                 }
                 else
                 {
                     //Forced Left
-                    hexMap[i, j] = hexMap[i - 1, j];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j];
                 }
                 break;
         }
     }
 
-    private void HexGeneration_FillZeros_IEven(int i, int j)
+    private void HexGenBiome_FillZeros_IEven(int i, int j)
     {
         //Random For Up and Down
         int rand = Random.Range(0, 2);
@@ -428,29 +662,29 @@ public class HexSpawnController : MonoBehaviour
         {
             //Down
             case 0:
-                if (HexGeneration_CheckValidHexSpace(i, j - 1))
+                if (HexGenBiome_CheckValidHexSpace(i, j - 1))
                 {
                     //True Down
-                    hexMap[i, j] = hexMap[i, j - 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i, j - 1];
                 }
                 else
                 {
                     //Forced Up
-                    hexMap[i, j] = hexMap[i, j + 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i, j + 1];
                 }
                 break;
 
             //Up
             case 1:
-                if (HexGeneration_CheckValidHexSpace(i, j + 1))
+                if (HexGenBiome_CheckValidHexSpace(i, j + 1))
                 {
                     //True Up
-                    hexMap[i, j] = hexMap[i, j + 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i, j + 1];
                 }
                 else
                 {
                     //Forced Down
-                    hexMap[i, j] = hexMap[i, j - 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i, j - 1];
                 }
                 break;
 
@@ -458,53 +692,53 @@ public class HexSpawnController : MonoBehaviour
         }
     }
 
-    private void HexGeneration_FillZeros_JMaxed(int i, int j)
+    private void HexGenBiome_FillZeros_JMaxed(int i, int j)
     {
         if (i == 0)
         {
 
             //True Right / Down
-            hexMap[i, j] = hexMap[i + 1, j - 1];
+            mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j - 1];
 
             return;
 
-            if (HexGeneration_CheckValidHexSpace(i + 1, j - 1))
+            if (HexGenBiome_CheckValidHexSpace(i + 1, j - 1))
             {
 
             }
             else
             {
                 //Forced Left / Up
-                hexMap[i, j] = hexMap[i - 1, j + 1];
+                mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j + 1];
             }
         }
-        else if (i + 1 == hexMap.GetLength(0))
+        else if (i + 1 == mapHex_BiomeSets.GetLength(0))
         {
 
             //True Left / Down
-            hexMap[i, j] = hexMap[i - 1, j - 1];
+            mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j - 1];
 
             return;
 
-            if (HexGeneration_CheckValidHexSpace(i + 1, j - 1))
+            if (HexGenBiome_CheckValidHexSpace(i + 1, j - 1))
             {
                 //True Right / Up
-                hexMap[i, j] = hexMap[i + 1, j - 1];
+                mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j - 1];
             }
             else
             {
                 //Forced Left / Up
-                hexMap[i, j] = hexMap[i - 1, j + 1];
+                mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j + 1];
             }
         }
         else
         {
             //Get South
-            HexGeneration_FillZeros_Diagonals(i, j);
+            HexGenBiome_FillZeros_Diagonals(i, j);
         }
     }
 
-    private void HexGeneration_FillZeros_Diagonals(int i, int j)
+    private void HexGenBiome_FillZeros_Diagonals(int i, int j)
     {
         //Random For Diagonal Sets
         int rand = Random.Range(0, 4);
@@ -513,75 +747,75 @@ public class HexSpawnController : MonoBehaviour
         {
             //Left / Down
             case 0:
-                if (HexGeneration_CheckValidHexSpace(i - 1, j - 1))
+                if (HexGenBiome_CheckValidHexSpace(i - 1, j - 1))
                 {
                     //True Left / Down
-                    hexMap[i, j] = hexMap[i - 1, j - 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j - 1];
                 }
                 else
                 {
                     //Forced Right / Up
-                    hexMap[i, j] = hexMap[i + 1, j + 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j + 1];
                 }
                 break;
 
             //Right / Up
             case 1:
-                if (HexGeneration_CheckValidHexSpace(i + 1, j + 1))
+                if (HexGenBiome_CheckValidHexSpace(i + 1, j + 1))
                 {
                     //True Right / Up
-                    hexMap[i, j] = hexMap[i + 1, j + 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j + 1];
                 }
                 else
                 {
                     //Forced Left / Down
-                    hexMap[i, j] = hexMap[i - 1, j - 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j - 1];
                 }
                 break;
 
             //Left / Up
             case 2:
-                if (HexGeneration_CheckValidHexSpace(i - 1, j + 1))
+                if (HexGenBiome_CheckValidHexSpace(i - 1, j + 1))
                 {
                     //True Up
-                    hexMap[i, j] = hexMap[i - 1, j + 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j + 1];
                 }
                 else
                 {
                     //Forced Down
-                    hexMap[i, j] = hexMap[i + 1, j - 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j - 1];
                 }
                 break;
 
             //Right / Down
             case 3:
-                if (HexGeneration_CheckValidHexSpace(i + 1, j - 1))
+                if (HexGenBiome_CheckValidHexSpace(i + 1, j - 1))
                 {
                     //True Right / Down
-                    hexMap[i, j] = hexMap[i + 1, j - 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j - 1];
                 }
                 else
                 {
                     //Forced Left / Up
-                    hexMap[i, j] = hexMap[i - 1, j + 1];
+                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j + 1];
                 }
                 break;
         }
     }
 
-    private bool HexGeneration_CheckValidHexSpace(int i, int j)
+    private bool HexGenBiome_CheckValidHexSpace(int i, int j)
     {
         if (i < 0 || j < 0)
         {
             return false;
         }
 
-        if (hexMap.GetLength(0) < i + 1)
+        if (mapHex_BiomeSets.GetLength(0) < i + 1)
         {
             return false;
         }
 
-        if (hexMap.GetLength(1) < j + 1)
+        if (mapHex_BiomeSets.GetLength(1) < j + 1)
         {
             return false;
         }
@@ -590,24 +824,69 @@ public class HexSpawnController : MonoBehaviour
         return true;
     }
 
-    private void HexGeneration_PostGeneration_Ocean()
+    private void HexGenBiome_PostGeneration_Ocean()
     {
-        int oceanSize = 10;
-
-
-        for (int i = 0; i < mapHexGeneration_SideLength; i++)
+        for (int i = 0; i < mapGen_SideLength; i++)
         {
-            for (int j = 0; j < oceanSize; j++)
+            for (int j = 0; j < mapGen_OceanSize; j++)
             {
-                hexMap[i, j] = 0;
-                hexMap[j, i] = 0;
-                hexMap[i, mapHexGeneration_SideLength - (j + 1)] = 0;
-                hexMap[mapHexGeneration_SideLength - (j + 1), i] = 0;
+                mapHex_BiomeSets[i, j] = 0;
+                mapHex_BiomeSets[j, i] = 0;
+                mapHex_BiomeSets[i, mapGen_SideLength - (j + 1)] = 0;
+                mapHex_BiomeSets[mapGen_SideLength - (j + 1), i] = 0;
             }
         }
     }
 
-    public void SmoothMap()
+    private void HexGenBiome_PostGeneration_Beach()
+    {
+        for (int i = 0; i < mapGen_SideLength; i++)
+        {
+            for (int j = 0; j < mapGen_OceanSize; j++)
+            {
+                mapHex_BiomeSets[i, j] = 0;
+                mapHex_BiomeSets[j, i] = 0;
+                mapHex_BiomeSets[i, mapGen_SideLength - (j + 1)] = 0;
+                mapHex_BiomeSets[mapGen_SideLength - (j + 1), i] = 0;
+            }
+        }
+    }
+
+    private void HexGenBiome_PostGeneration_BiomeSizingMaxMin()
+    {
+        //2 Matrix
+
+        // one bools
+
+        // one the nodes
+
+        // one the "Clusters"
+
+        bool[,] hasBeenSearched_Arr = new bool[mapGen_SideLength, mapGen_SideLength];
+        //int[] = 
+
+        //BiomeCluster[,] biomeCluster_List;
+        
+
+
+
+
+        int oceanSize = 10;
+
+
+        for (int i = 0; i < mapGen_SideLength; i++)
+        {
+            for (int j = 0; j < oceanSize; j++)
+            {
+                mapHex_BiomeSets[i, j] = 0;
+                mapHex_BiomeSets[j, i] = 0;
+                mapHex_BiomeSets[i, mapGen_SideLength - (j + 1)] = 0;
+                mapHex_BiomeSets[mapGen_SideLength - (j + 1), i] = 0;
+            }
+        }
+    }
+
+    private void HexGenBiome_SmoothMap()
     {
         //Get Best Count of 8 corners to round the value ouit
     }
@@ -626,36 +905,26 @@ public class HexSpawnController : MonoBehaviour
 
     public void HexVisuals_DisplayVisuals()
     {
-        Texture2D texture = new Texture2D(mapHexGeneration_SideLength, mapHexGeneration_SideLength);
-        GameObject newHex = Instantiate(biomeVisualQuad_Prefab, new Vector3(0, 5f, 0), Quaternion.identity, biomeVisualContainer_GO.transform);
+        //Create a new texture using the biome ints as colors 
+        Texture2D texture = new Texture2D(mapGen_SideLength, mapGen_SideLength);
+        GameObject newHex = Instantiate(biomeVisualQuad_Prefab, new Vector3(0, 2f, -2f), Quaternion.identity, biomeVisualContainer_GO.transform);
         newHex.GetComponent<Renderer>().material.mainTexture = texture;
 
         for (int y = 0; y < texture.height; y++)
         {
             for (int x = 0; x < texture.width; x++)
             {
-                Color color = biomeVisualColors_List[hexMap[x, y]].color;
+                Color color = biomeVisualColors_List[mapHex_BiomeSets[x, y]].color;
                 texture.SetPixel(x, y, color);
             }
         }
 
-
+        //Apply Pixel Colors To Texture
         texture.Apply();
 
         //Recenter Camera
         cameraGenerated.transform.position = new Vector3(newHex.transform.position.x, newHex.transform.position.y, newHex.transform.position.z - 5);
         cameraGenerated.transform.rotation = new Quaternion(0,0,0,0);
-
-
-        return;
-        for (int i = 0; i < hexMap.GetLength(0); i++)
-        {
-            for (int j = 0; j < hexMap.GetLength(1); j++)
-            {
-                //GameObject newHex = Instantiate(biomeVisualQuad_Prefab, new Vector3(i, j + 3, 0), Quaternion.identity, biomeVisualContainer_GO.transform);
-                //newHex.GetComponent<MeshRenderer>().material = biomeVisualColors_List[hexMap[i, j]];
-            }
-        }
     }
 
     /////////////////////////////////////////////////////////////////
@@ -817,7 +1086,11 @@ public class HexSpawnController : MonoBehaviour
             //Spawn Cells By Y (Up and Down)
             for (int y = 0; y < allHexsCells_Arr.GetLength(1); y++)
             {
+
+
+
                 allHexsCells_Arr[x, y].GenerateHeight_Perlin(x, y, mapHex_RowCount, mapHex_ColumnCount); // 1024
+                //allHexsCells_Arr[x, y].GenerateHeight_Perlin(xScaled, yScaled, mapHex_RowCount, mapHex_ColumnCount); // 1024
             }
 
         }

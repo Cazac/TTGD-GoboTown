@@ -29386,9 +29386,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameraGenerated: {fileID: 963194227}
-  cameraRelativePosition: {x: 1.2, y: -1}
+  cameraRelativePosition: {x: 2.5, y: -2.5}
   isSlowSpawning: 0
-  isGeneratingMap: 0
+  isGeneratingMap: 1
+  isShowingBiomeVisuals: 0
   isShowingGenerationTime: 1
   scalingGround_GO: {fileID: 305887436}
   hexMapContainer_GO: {fileID: 1741760701}
@@ -29396,15 +29397,19 @@ MonoBehaviour:
   hexChunk_Prefab: {fileID: 4053091745430206964, guid: bde8425326c5d7246a94a92444287dca, type: 3}
   hexChunkModel_Prefab: {fileID: 4053091745430206964, guid: 7ce53fe3b7f230447937e6fd375f30f0, type: 3}
   hexGrass_Prefab: {fileID: 1216015022455063022, guid: de73aea7a5bf78147bb2fd6b1ee4f716, type: 3}
-  mapHexGeneration_BiomeStartCount: 20
-  mapHexGeneration_SideLength: 640
-  mapHex_RowCount: 30
-  mapHex_ColumnCount: 30
-  mapHex_ChunkSize: 30
+  mapGen_StartingBiomeNodesCount: 8
+  mapGen_SideLength: 32
+  mapGen_OceanSize: 4
+  mapGen_BeachSize: 2
+  mapHex_RowCount: 0
+  mapHex_ColumnCount: 0
+  mapHex_ChunkSize: 16
   mapHeightMin: 0
   mapHeightMax: 4
   mapHeightStep: 0.02
   mapHex_Seed: 135135
+  allBiomes_Arr: []
+  biomeInfo_Ocean: {fileID: 11400000, guid: d91671e667a5d4e46bc5a62a262e4e87, type: 2}
   biomeInfo_Plains: {fileID: 11400000, guid: 73d2c06cb54cb52479b5ecab3339a837, type: 2}
   biomeInfo_Forest: {fileID: 11400000, guid: 6d3eb734273c9a442b016657ed75c447, type: 2}
   mySaveFile:
@@ -29417,6 +29422,10 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 79f9b79a1984cb2428b3ecc6d2318d10, type: 2}
   - {fileID: 2100000, guid: 38cf3a5d0625b3244a67d3572bfeaa6c, type: 2}
   - {fileID: 2100000, guid: 5053489b98a0b824296c1c1f5132fa26, type: 2}
+  oldOffsetX: 0
+  offsetX: 0
+  offsetY: 0
+  perlinZoomScale: 25
 --- !u!4 &1629504205
 Transform:
   m_ObjectHideFlags: 0

@@ -9,7 +9,7 @@ public class HexCell_Data
     public int hexCell_BiomeID;
     public int hexCell_MatID;
     public string hexCell_Color;
-    public int hexCell_heightStep;
+    public int hexCell_heightSteps;
 
     public List<HexDecoration_Data> hexCellDecorations_List;
     //public List<HexObject_Data> hexCellObjects_List;
