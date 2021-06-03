@@ -29401,8 +29401,8 @@ MonoBehaviour:
   mapGen_SideLength: 32
   mapGen_OceanSize: 4
   mapGen_BeachSize: 2
-  mapHex_RowCount: 0
-  mapHex_ColumnCount: 0
+  mapHex_RowCount: 32
+  mapHex_ColumnCount: 32
   mapHex_ChunkSize: 16
   mapHeightMin: 0
   mapHeightMax: 4
@@ -29422,7 +29422,6 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 79f9b79a1984cb2428b3ecc6d2318d10, type: 2}
   - {fileID: 2100000, guid: 38cf3a5d0625b3244a67d3572bfeaa6c, type: 2}
   - {fileID: 2100000, guid: 5053489b98a0b824296c1c1f5132fa26, type: 2}
-  oldOffsetX: 0
   offsetX: 0
   offsetY: 0
   perlinZoomScale: 25

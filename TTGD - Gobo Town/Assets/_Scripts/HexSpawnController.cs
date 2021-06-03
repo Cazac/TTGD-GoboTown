@@ -64,35 +64,33 @@ public class HexSpawnController : MonoBehaviour
     public int mapHeightMin = 0;
     public int mapHeightMax = 5;
     public float mapHeightStep = 0.025f;
+    public static readonly float hexCell_HeightPerStep = 0.04f;
 
     [Header("Hex Map Settings (RNG)")]
     public int mapHex_Seed = 135135;
+
+    ////////////////////////////////
 
     [Header("Biome Info Sets")]
     public BiomeInfo_SO[] allBiomes_Arr;
     public BiomeInfo_SO biomeInfo_Ocean;
     public BiomeInfo_SO biomeInfo_Plains;
     public BiomeInfo_SO biomeInfo_Forest;
-
-    public static Material[,] mergedBiomeMats_Arr;
-
-    [Header("Randomization States To Be Used")]
-    private Random.State mapGeneration_SeededStated; //= Random.state;
-
-    [HideInInspector]
-    public SaveFile mySaveFile;
-
     private readonly int biomeMaterialCap = 10;
 
 
 
+    [Header("Randomization States To Be Used")]
+    private Random.State mapGeneration_SeededStated; //= Random.state;
+
+
+    [Header("Biome Visuals")]
     public GameObject biomeVisualQuad_Prefab;
     public GameObject biomeVisualContainer_GO;
+    public List<Material> biomeVisualColoredMaterials_List;
 
-    public List<Material> biomeVisualColors_List;
 
-
- 
+    ////////////////////////////////
 
 
     //Generation List Sets
@@ -101,13 +99,19 @@ public class HexSpawnController : MonoBehaviour
     public int[,] mapHex_MatIDSets;
     public string[,] mapHex_ColorSets;
 
-    public float oldOffsetX = 0;
+    [Header("Perline Noise Movement")]
+    private float oldOffsetX = 0;
+    private float oldOffsetY = 0;
     public float offsetX = 0;
     public float offsetY = 0;
 
     public float perlinZoomScale = 30;
+    public static Material[,] mergedBiomeMats_Arr;
 
-    public static readonly float hexCell_HeightPerStep = 0.04f;
+    [HideInInspector]
+    public SaveFile mySaveFile;
+
+
 
     /////////////////////////////////////////////////////////////////
 
@@ -143,6 +147,14 @@ public class HexSpawnController : MonoBehaviour
             oldOffsetX = offsetX;
             HexGen_PerlinHeight();
         }
+
+        if (oldOffsetY != offsetY)
+        {
+            oldOffsetY = offsetY;
+            HexGen_PerlinHeight();
+        }
+
+        
 
 
         ////////////////////////////////
@@ -240,6 +252,8 @@ public class HexSpawnController : MonoBehaviour
         //HexGeneration_PostGeneration_InterBiomes();
         HexGenBiome_PostGeneration_Ocean();
 
+
+        HexMap_SetupMatsArray();
 
         HexGen_PerlinHeight();
         HexGen_MatsAndColors();
@@ -413,6 +427,12 @@ public class HexSpawnController : MonoBehaviour
                 //Set The MatID / Color Sets
                 mapHex_MatIDSets[x, y] = biomeCellInfo.matID;
                 mapHex_ColorSets[x, y] = ColorUtility.ToHtmlStringRGB(biomeCellInfo.gradient.Evaluate(Random.Range(0, 1f)));
+
+                Debug.Log("Test Code: " + biomeCellInfo.matID);
+
+
+
+                //allHexsCells_Arr[x, y].UpdateMaterial(mapHex_BiomeSets[x, y], biomeCellInfo.matID, biomeCellInfo.material);
             }
         }
     }
@@ -914,7 +934,7 @@ public class HexSpawnController : MonoBehaviour
         {
             for (int x = 0; x < texture.width; x++)
             {
-                Color color = biomeVisualColors_List[mapHex_BiomeSets[x, y]].color;
+                Color color = biomeVisualColoredMaterials_List[mapHex_BiomeSets[x, y]].color;
                 texture.SetPixel(x, y, color);
             }
         }
@@ -1049,7 +1069,7 @@ public class HexSpawnController : MonoBehaviour
 
 
                 //Force 0
-                int biomeID = Random.Range(0, 0);
+                int biomeID = Random.Range(0, 2);
                 BiomeCellInfo biomeCellInfo;
 
                 if (biomeID == 0)
@@ -1254,15 +1274,12 @@ public class HexSpawnController : MonoBehaviour
         List<BiomeInfo_SO> biomeInfoSets_List = new List<BiomeInfo_SO>();
 
         //Add All of the Biomes Here
-        biomeInfoSets_List.Add(biomeInfo_Forest);
+        biomeInfoSets_List.Add(biomeInfo_Ocean);
         biomeInfoSets_List.Add(biomeInfo_Plains);
-
+        biomeInfoSets_List.Add(biomeInfo_Forest);
 
         //Create Array Size Using Biome Count / Random Cap
         mergedBiomeMats_Arr = new Material[biomeInfoSets_List.Count, biomeMaterialCap];
-
-
-
 
         for (int i = 0; i < biomeInfoSets_List.Count; i++)
         {
@@ -1280,22 +1297,14 @@ public class HexSpawnController : MonoBehaviour
         }
     }
 
-    private Tuple<bool, string> ErrorChecker()
-    {
-        Tuple<bool, string> returningError_Tuple = new Tuple<bool, string>(true, "");
-
-
-        return returningError_Tuple;
-    }
-
     private GameObject GetChunkFromCellLocation(int x, int y)
     {
         return allHexChunks_Arr[(int)Mathf.Floor(x / mapHex_ChunkSize), (int)Mathf.Floor(y / mapHex_ChunkSize)].gameObject;
     }
 
-    public static Material GetChunkMaterial(int i, int j)
+    public static Material GetSearchableMaterial(int biomeID, int matID)
     {
-        return mergedBiomeMats_Arr[i, j];
+        return mergedBiomeMats_Arr[biomeID, matID];
     }
 
     /////////////////////////////////////////////////////////////////

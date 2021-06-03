@@ -131,6 +131,16 @@ public class HexCell : MonoBehaviour
         hexObject_MeshRenderer.material = hexCellMaterial;
     }
 
+    public void UpdateMaterialNEW(int matID_Biome, int matID_Mat)
+    {
+        //Set Mat IDs
+        hexCell_BiomeID = matID_Biome;
+        hexCell_MatID = matID_Mat;
+
+        //Set Renderer Color
+        hexObject_MeshRenderer.material = HexSpawnController.GetSearchableMaterial(hexCell_BiomeID, hexCell_MatID);
+    }
+
     public void UpdateCellColor(Color newColor)
     {
         //Get Mesh and Create Array
@@ -477,13 +487,12 @@ public class HexCell : MonoBehaviour
         //Update Height Set
         UpdateHeight(hexCell_Data.hexCell_heightSteps);
 
+        //Update Material
+        UpdateMaterialNEW(hexCell_Data.hexCell_BiomeID, hexCell_Data.hexCell_MatID);
+
         //Create a color from the data and set it
         ColorUtility.TryParseHtmlString("#" + hexCell_Data.hexCell_Color, out Color convertedColor);
         UpdateCellColor(convertedColor);
-
-
-        //UpdateMaterial(hexCell_Data.hexCell_BiomeID, hexCell_Data.hexCell_Color);
-
     }
 
     /////////////////////////////////////////////////////////////////
