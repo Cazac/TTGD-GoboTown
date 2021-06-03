@@ -4,6 +4,14 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
+///////////////
+/// <summary>
+///     
+/// BiomeInfo_GUI is used as a "Editor" for the BiomeInfo_SO inspector view to change the whole classes view style in inspector while formated..
+/// 
+/// </summary>
+///////////////
+
 [CustomEditor(typeof(BiomeInfo_SO))]
 public class BiomeInfo_GUI : Editor
 {

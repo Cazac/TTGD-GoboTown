@@ -88,11 +88,7 @@ public class HexCell : MonoBehaviour
 
     public void SetLabel(int x, int z)
     {
-        hexCoords = HexCoords.GenerateCoords(x, z);
-        string hexID = (x.ToString() + "/" + z.ToString());
-
-        hexLabel_Text.text = hexID;
-        gameObject.name = hexID;
+    
     }
 
     /////////////////////////////////////////////////////////////////
@@ -481,11 +477,16 @@ public class HexCell : MonoBehaviour
 
     public void CreateCellFromData(HexCell_Data hexCell_Data)
     {
+        //Create Hex Labels
+        string hexID = (hexCell_Data.hexCoords.X.ToString() + "/" + hexCell_Data.hexCoords.Y.ToString());
+        hexLabel_Text.text = hexID;
+        gameObject.name = hexID;
+
         //Create Mesh
         GenerateHexMesh_Hard();
 
         //Update Height Set
-        UpdateHeight(hexCell_Data.hexCell_heightSteps);
+        UpdateHeight(hexCell_Data.hexCoords.Hsteps);
 
         //Update Material
         UpdateMaterialNEW(hexCell_Data.hexCell_BiomeID, hexCell_Data.hexCell_MatID);

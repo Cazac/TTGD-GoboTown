@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 441532202}
   - component: {fileID: 441532201}
   m_Layer: 5
-  m_Name: World Canvas
+  m_Name: World Canvas (Outline)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -193,7 +193,7 @@ SpriteRenderer:
   m_Size: {x: 6, y: 6}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1352570693117306201
@@ -291,9 +291,9 @@ MonoBehaviour:
   m_fontSize: 0.03
   m_fontSizeBase: 0.03
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 0.02
+  m_fontSizeMax: 0.04
   m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -380,7 +380,7 @@ MonoBehaviour:
   hexCoords:
     x: 0
     y: 0
-    z: 0
+    h: 0
     l: 0
   hexLabel_Text: {fileID: 7824275518674841405}
   hexObject_GO: {fileID: 8424185281365918579}
@@ -388,8 +388,10 @@ MonoBehaviour:
   hexObject_MeshRenderer: {fileID: 592918786933934213}
   hexObject_MeshCollider: {fileID: 4730414325526871315}
   IDCanvas: {fileID: 7694061454429027641}
-  colorActive: {r: 0, g: 0, b: 0, a: 1}
-  hexCellMatID: 0
+  hexCellColor_Main: {r: 0, g: 0, b: 0, a: 0}
+  hexCell_BiomeID: 0
+  hexCell_MatID: 0
+  hexCell_TotalHeight: 0
 --- !u!1 &7694061454429027641
 GameObject:
   m_ObjectHideFlags: 0
@@ -403,7 +405,7 @@ GameObject:
   - component: {fileID: 2475095143370016670}
   - component: {fileID: 6239494429393200036}
   m_Layer: 5
-  m_Name: World Canvas
+  m_Name: World Canvas (Hex ID)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -427,7 +429,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0.1001}
-  m_SizeDelta: {x: 0.08, y: 0.08}
+  m_SizeDelta: {x: 0.09, y: 0.09}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &8611893358936583124
 Canvas:
@@ -531,7 +533,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8424185281365918579}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 0}
 --- !u!23 &592918786933934213
 MeshRenderer:
   m_ObjectHideFlags: 0

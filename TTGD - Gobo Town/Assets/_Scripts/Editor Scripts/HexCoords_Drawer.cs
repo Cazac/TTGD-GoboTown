@@ -1,43 +1,40 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+///////////////
+/// <summary>
+///     
+/// HexCoords_Drawer is used as a "PropertyDrawer" for the HexCoords property of X, Y, H, L fields shown in a single line format.
+/// 
+/// </summary>
+///////////////
+
 [CustomPropertyDrawer(typeof(HexCoords))]
 public class HexCoords_Drawer : PropertyDrawer
 {
-    public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
-    {
+    /////////////////////////////////////////////////////////////////
 
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        //Get Label / Position
+        label = EditorGUI.BeginProperty(position, label, property);
+        Rect contentPosition = EditorGUI.PrefixLabel(position, label);
+
+        //Create Info Strings From Preperties
         string hexCoordInfo_X = "X: " + property.FindPropertyRelative("x").intValue;
         string hexCoordInfo_Y = "Y: " + property.FindPropertyRelative("y").intValue;
-        string hexCoordInfo_Z = "Z: " + property.FindPropertyRelative("z").intValue;
+        string hexCoordInfo_Z = "H Step: " + property.FindPropertyRelative("h").intValue;
         string hexCoordInfo_L = "Level: " + property.FindPropertyRelative("l").intValue;
 
+        //Merge Strings Into Single Field
+        EditorGUI.LabelField(contentPosition, "(" + hexCoordInfo_X + ", " + hexCoordInfo_Y + ") " + hexCoordInfo_Z + " / " + hexCoordInfo_L + "", EditorStyles.boldLabel);
 
-        rect.xMin = 18;
-   
-
-
-        label.text = "Hex Coordinates: (" + hexCoordInfo_X + " - " + hexCoordInfo_Y + " - " + hexCoordInfo_Z + " - " + hexCoordInfo_L + ")";
-        EditorGUI.PrefixLabel(rect, label);
-
-  
-
-        /*
-        label.text = "Hex Coordinates:";
-        EditorGUI.PrefixLabel(rect, label);
-
-        label.text = "(" + hexCoordInfo_X + " - " + hexCoordInfo_Z + ")";
-
-        EditorGUI.LabelField(rect, label);
-
-
-        rect.xMin = 200;
-        rect.height = 18;
-
-    */
-        //rect.position = new Vector2(60, 40);
-        //GUI.Label(rect, "(" + hexCoordInfo_X + " - " + hexCoordInfo_Z +")");
+        //Finish
+        EditorGUI.EndProperty();
     }
+
+    /////////////////////////////////////////////////////////////////
 }

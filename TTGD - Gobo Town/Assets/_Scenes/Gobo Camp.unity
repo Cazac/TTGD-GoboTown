@@ -18124,14 +18124,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.17364816, y: 0, z: 0, w: 0.9848078}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 2.5, y: 0.75, z: -0.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1817433032}
   m_Father: {fileID: 1447996401}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 20, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!114 &963194229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29387,8 +29387,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraGenerated: {fileID: 963194227}
   cameraRelativePosition: {x: 2.5, y: -2.5}
-  isSlowSpawning: 0
-  isGeneratingMap: 1
   isShowingBiomeVisuals: 0
   isShowingGenerationTime: 1
   scalingGround_GO: {fileID: 305887436}
@@ -29420,8 +29418,8 @@ MonoBehaviour:
   perlinZoomScale: 25
   mySaveFile:
     mapHex_Seed: 135135
-  hexCountAllowedFromCamera: 2
-  currentCameraCell: {fileID: 0}
+  hexCountAllowedFromCamera: 6
+  lastCameraCell: {fileID: 0}
 --- !u!4 &1629504205
 Transform:
   m_ObjectHideFlags: 0
@@ -31997,7 +31995,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1817433032
 Transform:
   m_ObjectHideFlags: 0
@@ -32005,13 +32003,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1817433031}
-  m_LocalRotation: {x: -0.17364825, y: 0, z: 0, w: 0.9848078}
-  m_LocalPosition: {x: 0, y: -0.1, z: 1}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 2}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children: []
   m_Father: {fileID: 963194228}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: -20, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!136 &1817433033
 CapsuleCollider:
   m_ObjectHideFlags: 0

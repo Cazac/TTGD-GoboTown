@@ -1,4 +1,14 @@
+using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
+
+///////////////
+/// <summary>
+///     
+/// BiomeInfo_SO is used as a "ScriptableObject" the holds the info of the biome cells and can choose a random one for the player using "GetRandomBiomeCell()".
+/// 
+/// </summary>
+///////////////
 
 [CreateAssetMenu(fileName = "New BiomeInfo", menuName = "Scriptables/Biome Info")]
 public class BiomeInfo_SO : ScriptableObject
@@ -16,59 +26,28 @@ public class BiomeInfo_SO : ScriptableObject
 
     public BiomeCellInfo GetRandomBiomeCell()
     {
-        //Generate A Random Type Color Value
+        //Generate A Random Type Biome Cell Value
         float randomCellChance = Random.Range(0f, 1f);
         float cumulativeChance = 0f;
 
-
-
-
+        //For each avalible Biome Cell loop till the chance is met
         for (int i = 0; i < biomeCellsInfo_Arr.Length; i++)
         {
+            //Add To The cumultive chance
             cumulativeChance += biomeCellsInfo_Arr[i].totalChance / 100f;
 
-            //Debug.Log("Test Code: " + (i + 1).ToString() + "/" + biomeCellsInfo_Arr.Length + " Chance Roll: " + cumulativeChance + ">=" + randomCellChance);
-
+            //Check if Cumulative Chance passes the randomized value
             if (cumulativeChance >= randomCellChance)
             {
-                //Debug.Log("Test Code: Found! (" + i + ")");
+                //Chance has been accepted, Return the Biome Cell Type
                 return biomeCellsInfo_Arr[i];
             }
         }
 
-        //Debug.Log("Test Code: Bugged!");
-
-        return biomeCellsInfo_Arr[0];
+        //Oh no! A biome should have been found!
+        throw new NotImplementedException();
     }
+
 
     /////////////////////////////////////////////////////////////////
 }
-
-
-
-/*
- * 
- *     public Tuple<BiomeCellInfo, int> GetRandomBiomeCell()
-    {
-        //Generate A Random Type Color Value
-        float randomCellChance = Random.Range(0f, 1f);
-        float cumulativeChance = 0f;
-
-        for (int i = 0; i < biomeCellsInfo_Arr.Length; i++)
-        {
-            cumulativeChance += biomeCellsInfo_Arr[i].totalChance / 100f;
-
-            //Debug.Log("Test Code: " + (i + 1).ToString() + "/" + biomeCellsInfo_Arr.Length + " Chance Roll: " + cumulativeChance + ">=" + randomCellChance);
-
-            if (cumulativeChance >= randomCellChance)
-            {
-                //Debug.Log("Test Code: Found! (" + i + ")");
-                return new Tuple<BiomeCellInfo, int>(biomeCellsInfo_Arr[i], i);
-            }
-        }
-
-        //Debug.Log("Test Code: Bugged!");
-
-        return new Tuple<BiomeCellInfo, int>(biomeCellsInfo_Arr[0], 0);
-    }
-*/

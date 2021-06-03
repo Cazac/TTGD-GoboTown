@@ -23,8 +23,6 @@ public class HexSpawnController : MonoBehaviour
     public Vector2 cameraRelativePosition;
 
     [Header("Hex Map Options")]
-    public bool isSlowSpawning;
-    public bool isGeneratingMap;
     public bool isShowingBiomeVisuals;
     public bool isShowingGenerationTime;
 
@@ -123,27 +121,8 @@ public class HexSpawnController : MonoBehaviour
 
     private void Start()
     {
-        /*
-        //Check For Issues Before Spawning
-        Tuple<bool, string> results = ErrorChecker();
-        if (!results.Item1)
-        {
-            Debug.Log("Test Code: Error Check Failed (" + results.Item2 + ")");
-          
-        */
-
-
-
-        if (isGeneratingMap)
-        {
-            //Spawn The Visual Biome Set
-            HexGen_Spawn();
-        }
-        else
-        {
-            //Spawn All Of the Hex Map
-            HexMap_Spawn_OLD();
-        }
+        //Spawn The Visual Biome Set
+        HexGen_Spawn();
     }
 
     private void Update()
@@ -613,11 +592,10 @@ public class HexSpawnController : MonoBehaviour
                 //Store The Data Collected From Other Methodsit
                 dataHexCells_Arr[x, y] = new HexCell_Data
                 {
+                    hexCoords = new HexCoords(x, y, mapHex_HeightSets[x, y]),
                     hexCell_BiomeID = mapHex_BiomeSets[x, y],
-                    hexCell_heightSteps = mapHex_HeightSets[x, y],
                     hexCell_Color = mapHex_ColorSets[x, y],
-                    hexCell_MatID = mapHex_MatIDSets[x, y],
-                    hexCoords = new HexCoords(x, y)
+                    hexCell_MatID = mapHex_MatIDSets[x, y]
                 };
             }
         }
