@@ -21,18 +21,18 @@ public class HexChunk : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    public void CollectChunkData()
+    public void SetupChunk(int i, int j)
     {
-        //Collect All The Hex Cells from the Transform Children of the Object
-        hexCellsInChunk_Arr = gameObject.GetComponentsInChildren<HexCell>();
+        //Setup Chunk Name
+        gameObject.name = "Chunk: " + i + "/" + j;
     }
 
     /////////////////////////////////////////////////////////////////
 
     public void Chunk(GameObject hexChunkModel_Prefab, Material[,] mergedBiomeMats_Arr)
     {
-        //Collect Info on which scripts should be included in the chunk
-        CollectChunkData();
+        //Collect Info on which scripts should be included in the chunk using all Hex Cells from the Transform Children of the Object 
+        hexCellsInChunk_Arr = gameObject.GetComponentsInChildren<HexCell>();
 
         //Setup Lists
         List<List<CombineInstance>> combiningListOfLists_List = new List<List<CombineInstance>>();
@@ -165,14 +165,6 @@ public class HexChunk : MonoBehaviour
         }
 
         return result;
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-    public void SetupChunk(int i, int j)
-    {
-        //Setup Chunk Name
-        gameObject.name = "Chunk: " + i + "/" + j;
     }
 
     /////////////////////////////////////////////////////////////////

@@ -48,14 +48,9 @@ public class HexCell : MonoBehaviour
     [Header("Hex Color Options")]
     public Color hexCellColor_Main;
 
-    float currentHeight;
-
     public int hexCell_BiomeID;
     public int hexCell_MatID;
-    //public int hexCell_HeightPerStep;
     public float hexCell_TotalHeight;
-
-    private Color[] colors_Arr;
 
     /////////////////////////////////////////////////////////////////
 
@@ -86,18 +81,8 @@ public class HexCell : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    public void SetLabel(int x, int z)
-    {
-    
-    }
-
-    /////////////////////////////////////////////////////////////////
-
     public void ClickCell()
     {
-        //Update The color to a Clicked Version
-        //UpdateCellColor(colorClicked);
-
         //Turn On / Off Canvas Location
         if (IDCanvas.activeSelf == true)
         {
@@ -111,23 +96,39 @@ public class HexCell : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    public void GenerateCellColor(Gradient colorRangeGradient)
+    public void CreateCell_CreateFromData(HexCell_Data hexCell_Data)
     {
-        //Set Random Value From Gradeint
-        hexCellColor_Main = colorRangeGradient.Evaluate(Random.Range(0, 1f));
+        //Create Hex Labels
+        string hexID = (hexCell_Data.hexCoords.X.ToString() + "/" + hexCell_Data.hexCoords.Y.ToString());
+        hexLabel_Text.text = hexID;
+        gameObject.name = hexID;
+
+        //Create Mesh
+        GenerateHexMesh_HardStyle();
+
+        //Update Height Set
+        UpdateHeight(hexCell_Data.hexCoords.Hsteps);
+
+        //Update Material
+        UpdateMaterial(hexCell_Data.hexCell_BiomeID, hexCell_Data.hexCell_MatID);
+
+        //Create a color from the data and set it
+        ColorUtility.TryParseHtmlString("#" + hexCell_Data.hexCell_Color, out Color convertedColor);
+        UpdateCellColor(convertedColor);
     }
 
-    public void UpdateMaterial(int matID_Biome, int matID_Mat, Material hexCellMaterial)
-    {
-        //Set Mat IDs
-        hexCell_BiomeID = matID_Biome;
-        hexCell_MatID = matID_Mat;
+    /////////////////////////////////////////////////////////////////
 
-        //Set Renderer Color
-        hexObject_MeshRenderer.material = hexCellMaterial;
+    private void UpdateHeight(float heightSteps)
+    {
+        //Calculate Height and Set Current Value
+        hexCell_TotalHeight = HexSpawnController.hexCell_HeightPerStep * heightSteps;
+
+        //Set the Gameobject Value
+        gameObject.transform.position = new Vector3(gameObject.transform.position.x, hexCell_TotalHeight, gameObject.transform.position.z);
     }
 
-    public void UpdateMaterialNEW(int matID_Biome, int matID_Mat)
+    private void UpdateMaterial(int matID_Biome, int matID_Mat)
     {
         //Set Mat IDs
         hexCell_BiomeID = matID_Biome;
@@ -137,11 +138,11 @@ public class HexCell : MonoBehaviour
         hexObject_MeshRenderer.material = HexSpawnController.GetSearchable_BiomeMaterial(hexCell_BiomeID, hexCell_MatID);
     }
 
-    public void UpdateCellColor(Color newColor)
+    private void UpdateCellColor(Color newColor)
     {
         //Get Mesh and Create Array
         Mesh mesh = hexObject_MeshFilter.mesh;
-        colors_Arr = new Color[mesh.vertices.Length];
+        Color[] colors_Arr = new Color[mesh.vertices.Length];
 
         //Loop All Values TO Single Color
         for (int i = 0; i < colors_Arr.Length; i++)
@@ -159,71 +160,12 @@ public class HexCell : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    public void GenerateHeight_Random(int minHeight, int maxHeight, float heightStep)
-    {
-        //Randomzie Height
-        float height = Random.Range(minHeight, maxHeight);
-        height = height * heightStep;
-        SetCellHeight(height);
-    }
-
-    public void GenerateHeight_Perlin(int x, int y, int xSize, int ySize)
-    {
-        float heightStep = 0.04f;
-
-        float xScaled = (float)x / xSize * 2;
-        float yScaled = (float)y / ySize * 2;
-
-
-
-        float height = Mathf.PerlinNoise(xScaled, yScaled);
-
-        float neutralHeight = 0.5f;
-        float newHeight = 0f;
-
-        //Take Average
-        height = (neutralHeight + height) / 2;
-
-
-        //height = height * heightLevel;
-
-        int divCount = (int)(height / heightStep);
-
-        height = divCount * heightStep;
-
-        //Debug.Log("Test Code: " + height);
-        SetCellHeight(height);
-    }
-
-    public void GenerateHeight_Linked()
-    {
-
-    }
-
-    public void SetCellHeight(float height)
-    {
-        currentHeight = height;
-
-        gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y + height, gameObject.transform.position.z);
-    }
-
-    public void UpdateHeight(float heightSteps)
-    {
-        //Calculate Height and Set Current Value
-        hexCell_TotalHeight = HexSpawnController.hexCell_HeightPerStep * heightSteps;
-
-        //Set the Gameobject Value
-        gameObject.transform.position = new Vector3(gameObject.transform.position.x, hexCell_TotalHeight, gameObject.transform.position.z);
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-    public void GenerateHexMesh_Hard()
+    private void GenerateHexMesh_HardStyle()
     {
         //Create New Mesh
         List<Vector3> verts_List = new List<Vector3>();
         List<int> tris_List = new List<int>();
-   
+
         //Generate Verts / Tris
         GenerateMesh_Top(verts_List, tris_List);
         GenerateMesh_Side(verts_List, tris_List);
@@ -236,8 +178,6 @@ public class HexCell : MonoBehaviour
         GenerateMesh_Final(verts_List, tris_List, uvs_Arr);
     }
 
-    /////////////////////////////////////////////////////////////////
-
     private void GenerateMesh_Top(List<Vector3> vertices, List<int> triangles)
     {
         //Vector3 center = cell.transform.localPosition;
@@ -245,7 +185,7 @@ public class HexCell : MonoBehaviour
         {
             Vector3 center = new Vector3(0f, 0.1f, 0f);
 
-            GenerateTriangle(
+            GenerateMesh_CreateTriangle(
                 center,
                 center + hexMeshCorners[i],
                 center + hexMeshCorners[i + 1],
@@ -264,7 +204,7 @@ public class HexCell : MonoBehaviour
 
         for (int i = 0; i < 6; i++)
         {
-            GenerateTriangle(
+            GenerateMesh_CreateTriangle(
                 center + hexMeshCorners[i] + height,
                 center + hexMeshCorners[i + 1],
                 center + hexMeshCorners[i],
@@ -277,7 +217,7 @@ public class HexCell : MonoBehaviour
 
         for (int i = 0; i < 6; i++)
         {
-            GenerateTriangle(
+            GenerateMesh_CreateTriangle(
                 center + hexMeshCorners[i] + height,
                 center + hexMeshCorners[i + 1] + height,
                 center + hexMeshCorners[i + 1],
@@ -316,6 +256,17 @@ public class HexCell : MonoBehaviour
 
     }
 
+    private void GenerateMesh_CreateTriangle(Vector3 v1, Vector3 v2, Vector3 v3, List<Vector3> vertices, List<int> triangles)
+    {
+        int vertexIndex = vertices.Count;
+        vertices.Add(v1);
+        vertices.Add(v2);
+        vertices.Add(v3);
+        triangles.Add(vertexIndex);
+        triangles.Add(vertexIndex + 1);
+        triangles.Add(vertexIndex + 2);
+    }
+
     private void GenerateMesh_Final(List<Vector3> verts_List, List<int> tris_List, Vector2[] uvs_Arr)
     {
         //Create New Mesh
@@ -334,167 +285,6 @@ public class HexCell : MonoBehaviour
         hexObject_MeshFilter.mesh = hexMesh;
         hexObject_MeshCollider.sharedMesh = hexMesh;
     }
-
-    /////////////////////////////////////////////////////////////////
-
-    private void GenerateTriangle(Vector3 v1, Vector3 v2, Vector3 v3, List<Vector3> vertices, List<int> triangles)
-    {
-        int vertexIndex = vertices.Count;
-        vertices.Add(v1);
-        vertices.Add(v2);
-        vertices.Add(v3);
-        triangles.Add(vertexIndex);
-        triangles.Add(vertexIndex + 1);
-        triangles.Add(vertexIndex + 2);
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-    public void GenerateHexMesh_Soft_DEBUG()
-    {
-        Mesh hexMesh = new Mesh();
-        List<Vector3> vertices = new List<Vector3>();
-        List<int> triangles = new List<int>();
-
-        Vector3 center = new Vector3(1f, 0.1f, 0f);
-        GenerateAllTriangles_DEBUG(center, vertices, triangles);
-
-        hexMesh.vertices = vertices.ToArray();
-        hexMesh.triangles = triangles.ToArray();
-        hexMesh.RecalculateNormals();
-
-        hexObject_MeshFilter.mesh = hexMesh;
-        hexObject_MeshCollider.sharedMesh = hexMesh;
-    }
-
-    private void GenerateAllTriangles_DEBUG(Vector3 center, List<Vector3> vertices, List<int> triangles)
-    {
-
-        vertices.Add(center);
-        vertices.Add(center + hexMeshCorners[0]);
-        vertices.Add(center + hexMeshCorners[1]);
-        vertices.Add(center + hexMeshCorners[2]);
-        vertices.Add(center + hexMeshCorners[3]);
-        vertices.Add(center + hexMeshCorners[4]);
-        vertices.Add(center + hexMeshCorners[5]);
-
-        triangles.Add(0);
-        triangles.Add(1);
-        triangles.Add(2);
-
-        triangles.Add(0);
-        triangles.Add(2);
-        triangles.Add(3);
-
-        triangles.Add(0);
-        triangles.Add(3);
-        triangles.Add(4);
-
-        triangles.Add(0);
-        triangles.Add(4);
-        triangles.Add(5);
-
-        triangles.Add(0);
-        triangles.Add(5);
-        triangles.Add(6);
-
-        triangles.Add(0);
-        triangles.Add(6);
-        triangles.Add(1);
-
-
-
-        Vector3 height = new Vector3(0f, 0.1f, 0f);
-
-        vertices.Add(vertices[1] - height);
-        vertices.Add(vertices[2] - height);
-        vertices.Add(vertices[3] - height);
-        vertices.Add(vertices[4] - height);
-        vertices.Add(vertices[5] - height);
-        vertices.Add(vertices[6] - height);
-
-
-
-        triangles.Add(2);
-        triangles.Add(1);
-        triangles.Add(7);
-
-        triangles.Add(3);
-        triangles.Add(2);
-        triangles.Add(8);
-
-        triangles.Add(4);
-        triangles.Add(3);
-        triangles.Add(9);
-
-        triangles.Add(5);
-        triangles.Add(4);
-        triangles.Add(10);
-
-        triangles.Add(6);
-        triangles.Add(5);
-        triangles.Add(11);
-
-        triangles.Add(1);
-        triangles.Add(6);
-        triangles.Add(12);
-
-
-
-
-
-
-        //
-
-
-
-        triangles.Add(7);
-        triangles.Add(8);
-        triangles.Add(2);
-
-        triangles.Add(8);
-        triangles.Add(9);
-        triangles.Add(3);
-
-        triangles.Add(9);
-        triangles.Add(10);
-        triangles.Add(4);
-
-        triangles.Add(10);
-        triangles.Add(11);
-        triangles.Add(5);
-
-        triangles.Add(11);
-        triangles.Add(12);
-        triangles.Add(6);
-
-        triangles.Add(12);
-        triangles.Add(7);
-        triangles.Add(1);
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-    public void CreateCellFromData(HexCell_Data hexCell_Data)
-    {
-        //Create Hex Labels
-        string hexID = (hexCell_Data.hexCoords.X.ToString() + "/" + hexCell_Data.hexCoords.Y.ToString());
-        hexLabel_Text.text = hexID;
-        gameObject.name = hexID;
-
-        //Create Mesh
-        GenerateHexMesh_Hard();
-
-        //Update Height Set
-        UpdateHeight(hexCell_Data.hexCoords.Hsteps);
-
-        //Update Material
-        UpdateMaterialNEW(hexCell_Data.hexCell_BiomeID, hexCell_Data.hexCell_MatID);
-
-        //Create a color from the data and set it
-        ColorUtility.TryParseHtmlString("#" + hexCell_Data.hexCell_Color, out Color convertedColor);
-        UpdateCellColor(convertedColor);
-    }
-
+    
     /////////////////////////////////////////////////////////////////
 }

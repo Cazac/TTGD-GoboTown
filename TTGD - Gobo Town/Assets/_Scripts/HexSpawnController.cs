@@ -244,35 +244,6 @@ public class HexSpawnController : MonoBehaviour
         }
     }
 
-    private void HexMap_Spawn_OLD()
-    {
-        //Create New Arrays
-        //dataHexCells_Arr = new HexCell_Data[mapGen_SideLength, mapGen_SideLength];
-        //allHexsCells_Arr = new HexCell[mapGen_SideLength, mapGen_SideLength];
-        //allHexChunks_Arr = new HexChunk[(int)Mathf.Ceil(mapGen_SideLength / mapGen_ChunkSize), (int)Mathf.Ceil(mapGen_SideLength / mapGen_ChunkSize)];
-
-        //Generate Map
-        //HexGen_SetMapSeed();
-        //HexMap_GenerateAllHexCells();
-
-
-
-        //Spawn Map
-
-
-
-        //HexMap_SetupMatsArray();
-        //HexMap_SpawnGround();
-        //HexMap_RemoveOldMap();
-        HexMap_SpawnAllHexChunks();
-        HexMap_SpawnAllHexCells();
-        //HexMap_CenterCamera();
-        //HexMap_ColorCellsOnMap();
-        //HexMap_RandomizeHeight();
-        HexMap_Chunk();
-
-    }
-
     /////////////////////////////////////////////////////////////////
     
     private void HexGenHeight_Height()
@@ -391,8 +362,6 @@ public class HexSpawnController : MonoBehaviour
             }
         }
     }
-
-
 
     /////////////////////////////////////////////////////////////////
 
@@ -871,66 +840,6 @@ public class HexSpawnController : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-
-
-
-    private void HexMap_SpawnAllHexChunks()
-    {
-        //Spawn Chunks By I
-        for (int i = 0; i < allHexChunks_Arr.GetLength(0); i++)
-        {
-            //Spawn Chunks By J
-            for (int j = 0; j < allHexChunks_Arr.GetLength(1); j++)
-            {
-                //Spawn New Chunk Objects
-                GameObject newChunk = Instantiate(hexChunk_Prefab, new Vector3(0, 0, 0), Quaternion.identity, hexMapContainer_GO.transform);
-
-                //Setup Chunk Script
-                newChunk.GetComponent<HexChunk>().SetupChunk(i, j);
-
-                //Record Chunk Script For Later
-                allHexChunks_Arr[i, j] = newChunk.GetComponent<HexChunk>();
-            }
-        }
-    }
-
-    private void HexMap_SpawnAllHexCells()
-    {
-        //Spawn Cells By X (Left and Right)
-        for (int x = 0; x < mapGen_SideLength; x++)
-        {
-            //Spawn Cells By Y (Up and Down)
-            for (int y = 0; y < mapGen_SideLength; y++)
-            {
-                //Create Gameobject And Find Chunk
-                GameObject newHex;
-                GameObject cellChunk = GetSearchable_ChunkFromCellCoords(x, y);
-
-                //Regular Spawn Position VS Offset Spacing
-                if (y % 2 == 0)
-                {
-                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapHeightStep, x * spacing_I), Quaternion.identity, cellChunk.transform);
-                }
-                else
-                {
-                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapHeightStep, x * spacing_I + offcenter_I), Quaternion.identity, cellChunk.transform);
-                }
-
-                //Setup Cell
-                HexCell newHexCell = newHex.GetComponent<HexCell>();
-                newHexCell.GenerateHexMesh_Hard();
-                newHexCell.SetLabel(x, y);
-
-       
-
-                //Store it
-                allHexsCells_Arr[x, y] = newHexCell;
-            }
-        }
-    }
-
-    /////////////////////////////////////////////////////////////////
-
     private void HexMap_HideAllHexes()
     {
         //Spawn Cells By X (Left and Right)
@@ -1032,8 +941,7 @@ public class HexSpawnController : MonoBehaviour
 
                 //Setup Cell
                 HexCell newHexCell = newHex.GetComponent<HexCell>();
-                newHexCell.CreateCellFromData(dataHexCells_Arr[x, y]);
-                newHexCell.SetLabel(x, y);
+                newHexCell.CreateCell_CreateFromData(dataHexCells_Arr[x, y]);
 
                 //Store it
                 allHexsCells_Arr[x, y] = newHexCell;
@@ -1200,8 +1108,7 @@ public class HexSpawnController : MonoBehaviour
 
             //Setup Cell
             HexCell newHexCell = newHex.GetComponent<HexCell>();
-            newHexCell.CreateCellFromData(hexCellData);
-            newHexCell.SetLabel(hexCellData.hexCoords.X, hexCellData.hexCoords.Y);
+            newHexCell.CreateCell_CreateFromData(hexCellData);
 
             //Store it
             allHexsCells_Arr[hexCellData.hexCoords.X, hexCellData.hexCoords.Y] = newHexCell;
@@ -1337,8 +1244,6 @@ public class HexSpawnController : MonoBehaviour
 
     private GameObject GetSearchable_ChunkFromCellCoords(int x, int y)
     {
-        Debug.Log("Test Code: " + allHexChunks_Arr.GetLength(0));
-        Debug.Log("Test Code: " + (int)Mathf.Floor(x / mapGen_ChunkSize));
         return allHexChunks_Arr[(int)Mathf.Floor(x / mapGen_ChunkSize), (int)Mathf.Floor(y / mapGen_ChunkSize)].gameObject;
     }
 
