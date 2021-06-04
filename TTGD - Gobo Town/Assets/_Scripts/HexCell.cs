@@ -134,7 +134,7 @@ public class HexCell : MonoBehaviour
         hexCell_MatID = matID_Mat;
 
         //Set Renderer Color
-        hexObject_MeshRenderer.material = HexSpawnController.GetSearchableMaterial(hexCell_BiomeID, hexCell_MatID);
+        hexObject_MeshRenderer.material = HexSpawnController.GetSearchable_BiomeMaterial(hexCell_BiomeID, hexCell_MatID);
     }
 
     public void UpdateCellColor(Color newColor)

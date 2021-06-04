@@ -18124,14 +18124,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0.2164396, y: 0, z: 0, w: 0.97629607}
   m_LocalPosition: {x: 2.5, y: 0.75, z: -0.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1817433032}
   m_Father: {fileID: 1447996401}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 25, y: 0, z: 0}
 --- !u!114 &963194229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29386,7 +29386,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameraGenerated: {fileID: 963194227}
-  cameraRelativePosition: {x: 2.5, y: -2.5}
+  cameraRelativePosition: {x: 2.5, y: -2}
+  isShowingAllHexs: 1
   isShowingBiomeVisuals: 0
   isShowingGenerationTime: 1
   scalingGround_GO: {fileID: 305887436}
@@ -29395,31 +29396,30 @@ MonoBehaviour:
   hexChunk_Prefab: {fileID: 4053091745430206964, guid: bde8425326c5d7246a94a92444287dca, type: 3}
   hexChunkModel_Prefab: {fileID: 4053091745430206964, guid: 7ce53fe3b7f230447937e6fd375f30f0, type: 3}
   hexGrass_Prefab: {fileID: 1216015022455063022, guid: de73aea7a5bf78147bb2fd6b1ee4f716, type: 3}
-  mapGen_StartingBiomeNodesCount: 8
+  mapHex_Seed: 135135
+  mapGen_StartingBiomeNodesCount: 2
   mapGen_SideLength: 32
-  mapGen_OceanSize: 4
-  mapGen_BeachSize: 2
-  mapHex_RowCount: 32
-  mapHex_ColumnCount: 32
-  mapHex_ChunkSize: 16
+  mapGen_ChunkSize: 16
   mapHeightMin: 0
   mapHeightMax: 4
   mapHeightStep: 0.02
-  mapHex_Seed: 135135
-  allBiomes_Arr: []
-  biomeInfo_Ocean: {fileID: 11400000, guid: d91671e667a5d4e46bc5a62a262e4e87, type: 2}
-  biomeInfo_Plains: {fileID: 11400000, guid: 73d2c06cb54cb52479b5ecab3339a837, type: 2}
-  biomeInfo_Forest: {fileID: 11400000, guid: 6d3eb734273c9a442b016657ed75c447, type: 2}
+  mapGen_OceanSize: 4
+  mapGen_BeachSize: 2
+  allBiomes_Arr:
+  - {fileID: 11400000, guid: d91671e667a5d4e46bc5a62a262e4e87, type: 2}
+  - {fileID: 11400000, guid: 9e96fb4b38704cd4b968e8536a6481b0, type: 2}
+  - {fileID: 11400000, guid: 73d2c06cb54cb52479b5ecab3339a837, type: 2}
+  - {fileID: 11400000, guid: 6d3eb734273c9a442b016657ed75c447, type: 2}
   biomeVisualQuad_Prefab: {fileID: 8120447427596774857, guid: d3787cde6bc8bdb43a323cc1b62a3c5c, type: 3}
   biomeVisualContainer_GO: {fileID: 2114146878}
   biomeVisualColoredMaterials_List: []
+  perlinZoomScale: 25
   offsetX: 0
   offsetY: 0
-  perlinZoomScale: 25
-  mySaveFile:
-    mapHex_Seed: 135135
   hexCountAllowedFromCamera: 6
   lastCameraCell: {fileID: 0}
+  mySaveFile:
+    mapHex_Seed: 135135
 --- !u!4 &1629504205
 Transform:
   m_ObjectHideFlags: 0
@@ -31995,7 +31995,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1817433032
 Transform:
   m_ObjectHideFlags: 0
@@ -32003,13 +32003,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1817433031}
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 2}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children: []
   m_Father: {fileID: 963194228}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &1817433033
 CapsuleCollider:
   m_ObjectHideFlags: 0

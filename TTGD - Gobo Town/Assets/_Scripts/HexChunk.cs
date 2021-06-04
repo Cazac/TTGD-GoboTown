@@ -82,7 +82,7 @@ public class HexChunk : MonoBehaviour
             //Spawn a new Model for each Mat
             chunkedHexModels_List[i].mesh = new Mesh();
             chunkedHexModels_List[i].mesh.CombineMeshes(combiningListOfLists_List[i].ToArray(), true, true);
-            chunkedHexModels_List[i].transform.GetComponent<MeshRenderer>().material = HexSpawnController.GetSearchableMaterial(currentMatIDs_List[i].Item1, currentMatIDs_List[i].Item2);
+            chunkedHexModels_List[i].transform.GetComponent<MeshRenderer>().material = HexSpawnController.GetSearchable_BiomeMaterial(currentMatIDs_List[i].Item1, currentMatIDs_List[i].Item2);
         }
 
 
