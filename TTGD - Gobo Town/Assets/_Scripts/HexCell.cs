@@ -18,13 +18,13 @@ public class HexCell : MonoBehaviour
 
     public static Vector3[] hexMeshCorners = 
     {
-        new Vector3(0f, 0f, HexSpawnController.outerRadius),
-        new Vector3(HexSpawnController.innerRadius, 0f, 0.5f * HexSpawnController.outerRadius),
-        new Vector3(HexSpawnController.innerRadius, 0f, -0.5f * HexSpawnController.outerRadius),
-        new Vector3(0f, 0f, -HexSpawnController.outerRadius),
-        new Vector3(-HexSpawnController.innerRadius, 0f, -0.5f * HexSpawnController.outerRadius),
-        new Vector3(-HexSpawnController.innerRadius, 0f, 0.5f * HexSpawnController.outerRadius),
-        new Vector3(0f, 0f, HexSpawnController.outerRadius)
+        new Vector3(0f, 0f, MapSpawnController.outerRadius),
+        new Vector3(MapSpawnController.innerRadius, 0f, 0.5f * MapSpawnController.outerRadius),
+        new Vector3(MapSpawnController.innerRadius, 0f, -0.5f * MapSpawnController.outerRadius),
+        new Vector3(0f, 0f, -MapSpawnController.outerRadius),
+        new Vector3(-MapSpawnController.innerRadius, 0f, -0.5f * MapSpawnController.outerRadius),
+        new Vector3(-MapSpawnController.innerRadius, 0f, 0.5f * MapSpawnController.outerRadius),
+        new Vector3(0f, 0f, MapSpawnController.outerRadius)
     };
 
     ////////////////////////////////
@@ -99,7 +99,7 @@ public class HexCell : MonoBehaviour
     public void CreateCell_CreateFromData(HexCell_Data hexCell_Data)
     {
         //Create Hex Labels
-        string hexID = (hexCell_Data.hexCoords.X.ToString() + "/" + hexCell_Data.hexCoords.Y.ToString());
+        string hexID = (hexCell_Data.hexCoords.y.ToString() + "/" + hexCell_Data.hexCoords.x.ToString());
         hexLabel_Text.text = hexID;
         gameObject.name = hexID;
 
@@ -107,7 +107,10 @@ public class HexCell : MonoBehaviour
         GenerateHexMesh_HardStyle();
 
         //Update Height Set
-        UpdateHeight(hexCell_Data.hexCoords.Hsteps);
+        UpdateCoords(hexCell_Data);
+
+        //Update Height Set
+        UpdateHeight(hexCell_Data.hexCoords.hSteps);
 
         //Update Material
         UpdateMaterial(hexCell_Data.hexCell_BiomeID, hexCell_Data.hexCell_MatID);
@@ -117,12 +120,17 @@ public class HexCell : MonoBehaviour
         UpdateCellColor(convertedColor);
     }
 
+    private void UpdateCoords(HexCell_Data hexCell_Data)
+    {
+        hexCoords = new HexCoords(hexCell_Data.hexCoords.x, hexCell_Data.hexCoords.y, hexCell_Data.hexCoords.hSteps, hexCell_Data.hexCoords.l);
+    }
+
     /////////////////////////////////////////////////////////////////
 
     private void UpdateHeight(float heightSteps)
     {
         //Calculate Height and Set Current Value
-        hexCell_TotalHeight = HexSpawnController.hexCell_HeightPerStep * heightSteps;
+        hexCell_TotalHeight = MapSpawnController.hexCell_HeightPerStep * heightSteps;
 
         //Set the Gameobject Value
         gameObject.transform.position = new Vector3(gameObject.transform.position.x, hexCell_TotalHeight, gameObject.transform.position.z);
@@ -135,7 +143,7 @@ public class HexCell : MonoBehaviour
         hexCell_MatID = matID_Mat;
 
         //Set Renderer Color
-        hexObject_MeshRenderer.material = HexSpawnController.GetSearchable_BiomeMaterial(hexCell_BiomeID, hexCell_MatID);
+        hexObject_MeshRenderer.material = MapSpawnController.GetSearchable_BiomeMaterial(hexCell_BiomeID, hexCell_MatID);
     }
 
     private void UpdateCellColor(Color newColor)

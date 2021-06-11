@@ -26,7 +26,7 @@ public class HexCoords_Drawer : PropertyDrawer
         //Create Info Strings From Preperties
         string hexCoordInfo_X = "X: " + property.FindPropertyRelative("x").intValue;
         string hexCoordInfo_Y = "Y: " + property.FindPropertyRelative("y").intValue;
-        string hexCoordInfo_Z = "H Step: " + property.FindPropertyRelative("h").intValue;
+        string hexCoordInfo_Z = "H Step: " + property.FindPropertyRelative("hSteps").intValue;
         string hexCoordInfo_L = "Level: " + property.FindPropertyRelative("l").intValue;
 
         //Merge Strings Into Single Field

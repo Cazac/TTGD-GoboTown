@@ -9,6 +9,22 @@ public class HexChunk : MonoBehaviour
 {
     ////////////////////////////////
 
+    public enum ChunkState
+    {
+        Active,
+        Inactive,
+
+        Loading,
+        Chunking,
+
+        Unchunking,
+        Unloading,
+    }
+
+
+    public ChunkState currentState = ChunkState.Inactive;
+
+
     [Header("Hex Chunk Models")]
     public List<MeshFilter> chunkedHexModels_List;
 
@@ -21,11 +37,34 @@ public class HexChunk : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    public void SetupChunk(int i, int j)
+    public List<HexCell_Data> CreateChunk_DynamicLoader(int chunkCoordX, int chunkCoordY, int mapGen_ChunkSize, HexCell_Data[,] dataHexCells_Arr)
     {
         //Setup Chunk Name
-        gameObject.name = "Chunk: " + i + "/" + j;
+        gameObject.name = "Chunk: " + chunkCoordX + "/" + chunkCoordY;
+
+        //Set State
+        currentState = ChunkState.Active;
+
+        //Get Starting Corners
+        int leftCorner = chunkCoordX * mapGen_ChunkSize;
+        int bottomCorner = chunkCoordY * mapGen_ChunkSize;
+
+        //Create List Of All Hexs in The Chunk
+        List<HexCell_Data> wantedHexs_List = new List<HexCell_Data>();
+
+        //Get All of the Data Hexes Inside of the Chunk and Load them
+        for (int y = 0; y < mapGen_ChunkSize; y++)
+        {
+            for (int x = 0; x < mapGen_ChunkSize; x++)
+            {
+                //Add Hex
+                wantedHexs_List.Add(dataHexCells_Arr[x + leftCorner, y + bottomCorner]);
+            }
+        }
+
+        return wantedHexs_List;
     }
+
 
     /////////////////////////////////////////////////////////////////
 
@@ -82,7 +121,7 @@ public class HexChunk : MonoBehaviour
             //Spawn a new Model for each Mat
             chunkedHexModels_List[i].mesh = new Mesh();
             chunkedHexModels_List[i].mesh.CombineMeshes(combiningListOfLists_List[i].ToArray(), true, true);
-            chunkedHexModels_List[i].transform.GetComponent<MeshRenderer>().material = HexSpawnController.GetSearchable_BiomeMaterial(currentMatIDs_List[i].Item1, currentMatIDs_List[i].Item2);
+            chunkedHexModels_List[i].transform.GetComponent<MeshRenderer>().material = MapSpawnController.GetSearchable_BiomeMaterial(currentMatIDs_List[i].Item1, currentMatIDs_List[i].Item2);
         }
 
 
@@ -165,6 +204,23 @@ public class HexChunk : MonoBehaviour
         }
 
         return result;
+    }
+
+
+    /////////////////////////////////////////////////////////////////
+
+    public void Poolable_OnSpawn()
+    {
+        //Set Parent
+        gameObject.transform.SetParent(ChunkPoolingController.Instance.activeChunks_Container.transform);
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+    public void Poolable_OnDespawn()
+    {
+        //Set Parent
+        gameObject.transform.SetParent(ChunkPoolingController.Instance.inactiveChunks_Container.transform);
     }
 
     /////////////////////////////////////////////////////////////////
