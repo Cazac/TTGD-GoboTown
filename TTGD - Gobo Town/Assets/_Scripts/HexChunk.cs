@@ -121,7 +121,7 @@ public class HexChunk : MonoBehaviour
             //Spawn a new Model for each Mat
             chunkedHexModels_List[i].mesh = new Mesh();
             chunkedHexModels_List[i].mesh.CombineMeshes(combiningListOfLists_List[i].ToArray(), true, true);
-            chunkedHexModels_List[i].transform.GetComponent<MeshRenderer>().material = MapSpawnController.GetSearchable_BiomeMaterial(currentMatIDs_List[i].Item1, currentMatIDs_List[i].Item2);
+            chunkedHexModels_List[i].transform.GetComponent<MeshRenderer>().material = MapSpawnController.Instance.GetSearchable_BiomeMaterial(currentMatIDs_List[i].Item1, currentMatIDs_List[i].Item2);
         }
 
 
@@ -212,7 +212,7 @@ public class HexChunk : MonoBehaviour
     public void Poolable_OnSpawn()
     {
         //Set Parent
-        gameObject.transform.SetParent(ChunkPoolingController.Instance.activeChunks_Container.transform);
+        gameObject.transform.SetParent(HexPoolingController.Instance.activeChunks_Container.transform);
     }
 
     /////////////////////////////////////////////////////////////////
@@ -220,7 +220,7 @@ public class HexChunk : MonoBehaviour
     public void Poolable_OnDespawn()
     {
         //Set Parent
-        gameObject.transform.SetParent(ChunkPoolingController.Instance.inactiveChunks_Container.transform);
+        gameObject.transform.SetParent(HexPoolingController.Instance.inactiveChunks_Container.transform);
     }
 
     /////////////////////////////////////////////////////////////////

@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using System;
-using Random = UnityEngine.Random;
 
 public class HexCell : MonoBehaviour
 {
@@ -33,7 +31,7 @@ public class HexCell : MonoBehaviour
     public HexCell[] neighbors;
 
     [Header("Visable Hex Coords")]
-    public HexCoords hexCoords;
+    public HexCellCoords hexCoords;
 
     [Header("Debug Visual Labels")]
     public TextMeshProUGUI hexLabel_Text;
@@ -50,6 +48,7 @@ public class HexCell : MonoBehaviour
 
     public int hexCell_BiomeID;
     public int hexCell_MatID;
+    public int hexCell_heightSteps;
     public float hexCell_TotalHeight;
 
     /////////////////////////////////////////////////////////////////
@@ -110,7 +109,7 @@ public class HexCell : MonoBehaviour
         UpdateCoords(hexCell_Data);
 
         //Update Height Set
-        UpdateHeight(hexCell_Data.hexCoords.hSteps);
+        UpdateHeight(hexCell_Data.hexCell_heightSteps);
 
         //Update Material
         UpdateMaterial(hexCell_Data.hexCell_BiomeID, hexCell_Data.hexCell_MatID);
@@ -122,15 +121,18 @@ public class HexCell : MonoBehaviour
 
     private void UpdateCoords(HexCell_Data hexCell_Data)
     {
-        hexCoords = new HexCoords(hexCell_Data.hexCoords.x, hexCell_Data.hexCoords.y, hexCell_Data.hexCoords.hSteps, hexCell_Data.hexCoords.l);
+        hexCoords = new HexCellCoords(hexCell_Data.hexCoords.x, hexCell_Data.hexCoords.y, hexCell_Data.hexCoords.l);
     }
 
     /////////////////////////////////////////////////////////////////
 
-    private void UpdateHeight(float heightSteps)
+    private void UpdateHeight(int heightSteps)
     {
+        //Set Saved Height
+        hexCell_heightSteps = heightSteps;
+
         //Calculate Height and Set Current Value
-        hexCell_TotalHeight = MapSpawnController.hexCell_HeightPerStep * heightSteps;
+        hexCell_TotalHeight = MapSpawnController.Instance.mapGenOpts_SO.mapGen_HeightPerStep * hexCell_heightSteps;
 
         //Set the Gameobject Value
         gameObject.transform.position = new Vector3(gameObject.transform.position.x, hexCell_TotalHeight, gameObject.transform.position.z);
@@ -143,7 +145,7 @@ public class HexCell : MonoBehaviour
         hexCell_MatID = matID_Mat;
 
         //Set Renderer Color
-        hexObject_MeshRenderer.material = MapSpawnController.GetSearchable_BiomeMaterial(hexCell_BiomeID, hexCell_MatID);
+        hexObject_MeshRenderer.material = MapSpawnController.Instance.GetSearchable_BiomeMaterial(hexCell_BiomeID, hexCell_MatID);
     }
 
     private void UpdateCellColor(Color newColor)

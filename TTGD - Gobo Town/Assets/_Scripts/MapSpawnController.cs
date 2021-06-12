@@ -8,9 +8,14 @@ public class MapSpawnController : MonoBehaviour
 {
     ////////////////////////////////
 
+    [Header("Singleton Refference")]
+    public static MapSpawnController Instance;
+
+    ////////////////////////////////
+
     [Header("Chunk Storage")]
-    private Dictionary<ChunkCoords, HexChunk> hexChunks_Dict = new Dictionary<ChunkCoords, HexChunk>();
-    private List<ChunkCoords> currentlyLoaded_Chunks_List = new List<ChunkCoords>();
+    private Dictionary<HexChunkCoords, HexChunk> hexChunks_Dict = new Dictionary<HexChunkCoords, HexChunk>();
+    private List<HexChunkCoords> currentlyLoaded_Chunks_List = new List<HexChunkCoords>();
 
     [Header("Hex Scripts Storage")]
     private HexCell_Data[,] dataHexCells_Arr;
@@ -18,16 +23,23 @@ public class MapSpawnController : MonoBehaviour
 
     ////////////////////////////////
 
+    [Header("Hex Map Bool Options")]
+    public bool isShowingBiomeVisuals;
+
+    [Header("Hex Map Generation Options")]
+    public MapGenerationOptions_SO mapGenOpts_SO;
+
+    ////////////////////////////////
+
+    [Header("Dynamic Loading Hex Settings")]
+    public int chunkRenderDistance;
+
     [Header("Camera Options")]
     public Camera cameraGenerated;
     public Vector2 cameraRelativePosition;
 
-    [Header("Hex Map Options")]
-    //public bool isShowingAllHexs;
-    public bool isShowingBiomeVisuals;
-    public bool isShowingGenerationTime;
-    public bool isShowingToDos;
-
+    ////////////////////////////////
+    
     [Header("Hex Map Containers")]
     public GameObject scalingGround_GO;
     public GameObject hexMapContainer_GO;
@@ -42,68 +54,42 @@ public class MapSpawnController : MonoBehaviour
 
     ////////////////////////////////
 
-    [Header("Hex Uneditable Sizes")]
-    public const float outerRadius = 0.1f;
-    public const float innerRadius = outerRadius * 0.866025404f;
-    private const float spacing_I = innerRadius * 2f;
-    private const float spacing_J = outerRadius * 1.5f;
-    private const float offcenter_I = spacing_I / 2;
-
-    [Header("Hex Gen Settings - RNG")]
-    public int mapHex_Seed = 135135;
-
-    //"Randomization States To Be Used
-    private Random.State mapGeneration_SeededStated; //= Random.state;
-
-    [Header("Map Gen Settings - Size")]
-    public int mapGen_StartingBiomeNodesCount = 20;
-    public int mapGen_SideLength = 160;
-    public int mapGen_ChunkSize = 10;
-
-    [Header("Map Gen Settings - Height")]
-    public int mapHeightMin = 0;
-    public int mapHeightMax = 5;
-    public float mapHeightStep = 0.025f;
-    public static readonly float hexCell_HeightPerStep = 0.04f;
-
-    [Header("Map Gen Settings - Biomes")]
-    public int mapGen_OceanSize = 2;
-    public int mapGen_BeachSize = 2;
-
-    ////////////////////////////////
-
-    [Header("Biome Info Sets")]
-    public BiomeInfo_SO[] allBiomes_Arr;
-
     [Header("Biome Map Visuals")]
     public GameObject biomeVisualQuad_Prefab;
     public GameObject biomeVisualContainer_GO;
-    public List<Material> biomeVisualColoredMaterials_List;
 
     ////////////////////////////////
 
-    [Header("Perlin Noise Settings")]
-    public float perlinZoomScale = 30;
-    public float offsetX = 0;
-    public float offsetY = 0;
-
-
-    [Header("Dynamic Loading Hex Settings")]
-    public int chunkRenderDistance;
-    public HexCell lastCameraCell;
-    private HexCell_Data currentHexCell_UnderCamera;
+    [Header("Hex Uneditable Sizes")]
+    public const float outerRadius = 0.1f;
+    public const float innerRadius = outerRadius * 0.866025404f;
+    public const float spacing_I = innerRadius * 2f;
+    public const float spacing_J = outerRadius * 1.5f;
+    public const float offcenter_I = spacing_I / 2;
 
     ////////////////////////////////
 
     [HideInInspector]
-    public static Material[,] mergedBiomeMats_Arr;
+    public HexCell_Data currentHexCell_UnderCamera;
+
+    [HideInInspector]
+    public Material[,] mergedBiomeMats_Arr;
 
     [HideInInspector]
     public SaveFile mySaveFile;
 
+    ////////////////////////////////
 
+    //"Randomization States To Be Used
+    //private Random.State mapGeneration_SeededStated; //= Random.state;
 
     /////////////////////////////////////////////////////////////////
+
+    private void Awake()
+    {
+        //Setup Singleton Refference
+        Instance = this;
+    }
 
     private void Start()
     {
@@ -112,25 +98,6 @@ public class MapSpawnController : MonoBehaviour
 
         //Generate Then Spawn The Hex Map
         HexMap_Spawn();
-
-       
-
-
-        //HexGen_Spawn_OLD();
-
-        //If Hidden Map Style Then Refresh at Start
-        //if (!isShowingAllHexs)
-        {
-            //HexSpawn_HexsAroundCamera();
-            //HexSpawn_ChunksAroundCamera();
-        }
-        //else
-        {
-            //HexSpawn_SpawnAllHexChunks();
-            //HexSpawn_SpawnAllHexesFromData();
-
-            //HexMap_Chunk();
-        }
     }
 
     private void Update()
@@ -153,21 +120,20 @@ public class MapSpawnController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        //Check If Camera is in new location
         HexSpawn_ChunksAroundCamera();
     }
 
     /////////////////////////////////////////////////////////////////
 
-  
-
     private void HexMap_Spawn()
     {
+        //Use the Generator to create the Hexs Needed to Spawn
+        dataHexCells_Arr = MapGenerationController.HexMapGeneration(mapGenOpts_SO);
+        allHexsCells_Arr = new HexCell[mapGenOpts_SO.mapGen_SideLength, mapGenOpts_SO.mapGen_SideLength];
+
         //Start Counting Timer
         long startingTimeTicks = DateTime.UtcNow.Ticks;
-
-        //Use the Generator to create the Hexs Needed to Spawn
-        dataHexCells_Arr = MapGenerationController.HexMapGeneration(GenerateMapOptions());
-        allHexsCells_Arr = new HexCell[mapGen_SideLength, mapGen_SideLength];
 
         //Clear Out All Old Maps
         HexSpawn_RemoveOldMap();
@@ -192,20 +158,22 @@ public class MapSpawnController : MonoBehaviour
         HexSpawn_ChunksAroundCamera();
 
         //Show Generation Time
-        if (isShowingGenerationTime)
+        if (mapGenOpts_SO.isShowingGenerationTime)
         {
             //Finish Counting Timer
             long endingTimeTicks = DateTime.UtcNow.Ticks;
             float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
-            int mapHexGeneration_BiomeGrowthLoopCount = (int)Mathf.Log((float)mapGen_SideLength / mapGen_StartingBiomeNodesCount, 2);
-            Debug.Log("Test Code: Biome Generation x" + mapHexGeneration_BiomeGrowthLoopCount + " Completed in: " + finishTime + "s");
+            int mapHexGeneration_BiomeGrowthLoopCount = (int)Mathf.Log((float)mapGenOpts_SO.mapGen_SideLength / mapGenOpts_SO.mapGen_StartingBiomeNodesCount, 2);
+            //Debug.Log("Test Code: Map Spawn (Chunks/Hexs: " + Mathf.Pow(chunkRenderDistance, 2) + 1 + " x " + mapGen_SideLength + " = " + (Mathf.Pow(chunkRenderDistance, 2) + 1) * mapGen_SideLength + ")" + " Completed in: " + finishTime + "s");
+            Debug.Log("Map Spawn in: " + finishTime + "s" + " (Chunks/Hexs: " + (Mathf.Pow(chunkRenderDistance, 2) + 1) + " x " + mapGenOpts_SO.mapGen_SideLength + " = " + (Mathf.Pow(chunkRenderDistance, 2) + 1) * mapGenOpts_SO.mapGen_SideLength + ")");
             //Debug.Log("Test Code: Size " + mapHex_BiomeSets.GetLength(0) + "x" + mapHex_BiomeSets.GetLength(1));
         }
     }
 
-    private MapGenerationOptions GenerateMapOptions()
+    /*
+    private MapGenerationOptions_SO GenerateMapOptions()
     {
-        MapGenerationOptions mapOptions = new MapGenerationOptions
+        MapGenerationOptions_SO mapOptions = new MapGenerationOptions_SO
         {
             isShowingGenerationTime = isShowingGenerationTime,
             isShowingToDos = isShowingToDos,
@@ -231,6 +199,7 @@ public class MapSpawnController : MonoBehaviour
 
         return mapOptions;
     }
+    */
 
 
     /////////////////////////////////////////////////////////////////
@@ -244,8 +213,8 @@ public class MapSpawnController : MonoBehaviour
 
         //Setup Sizing
         float extraTrim = 0.15f;
-        float x = innerRadius * mapGen_SideLength * 1.75f;
-        float y = outerRadius * mapGen_SideLength * 1.75f;
+        float x = innerRadius * mapGenOpts_SO.mapGen_SideLength * 1.75f;
+        float y = outerRadius * mapGenOpts_SO.mapGen_SideLength * 1.75f;
 
         //Set Square Verts
         verts_List.Add(new Vector3(-extraTrim, 0f, -extraTrim));
@@ -290,7 +259,7 @@ public class MapSpawnController : MonoBehaviour
     {
         //Figure out the X Position by size of the generated map
         float extraTrim = 0.15f;
-        float x = innerRadius * mapGen_SideLength * 1.75f;
+        float x = innerRadius * mapGenOpts_SO.mapGen_SideLength * 1.75f;
         float left = -extraTrim;
         float right = x + extraTrim;
         float xPos = Mathf.Lerp(left, right, 0.5f);
@@ -312,7 +281,7 @@ public class MapSpawnController : MonoBehaviour
     public void HexVisuals_DisplayVisuals()
     {
         //Create a new texture using the biome ints as colors 
-        Texture2D texture = new Texture2D(mapGen_SideLength, mapGen_SideLength);
+        Texture2D texture = new Texture2D(mapGenOpts_SO.mapGen_SideLength, mapGenOpts_SO.mapGen_SideLength);
         GameObject newHex = Instantiate(biomeVisualQuad_Prefab, new Vector3(0, 2f, -2f), Quaternion.identity, biomeVisualContainer_GO.transform);
         newHex.GetComponent<Renderer>().material.mainTexture = texture;
 
@@ -338,10 +307,10 @@ public class MapSpawnController : MonoBehaviour
     private void HexMap_HideAllHexes()
     {
         //Spawn Cells By X (Left and Right)
-        for (int x = 0; x < mapGen_SideLength; x++)
+        for (int x = 0; x < mapGenOpts_SO.mapGen_SideLength; x++)
         {
             //Spawn Cells By Y (Up and Down)
-            for (int y = 0; y < mapGen_SideLength; y++)
+            for (int y = 0; y < mapGenOpts_SO.mapGen_SideLength; y++)
             {
                 allHexsCells_Arr[x, y].gameObject.SetActive(false);
             }
@@ -351,10 +320,10 @@ public class MapSpawnController : MonoBehaviour
     private void HexMap_ShowAllHexes()
     {
         //Spawn Cells By X (Left and Right)
-        for (int x = 0; x < mapGen_SideLength; x++)
+        for (int x = 0; x < mapGenOpts_SO.mapGen_SideLength; x++)
         {
             //Spawn Cells By Y (Up and Down)
-            for (int y = 0; y < mapGen_SideLength; y++)
+            for (int y = 0; y < mapGenOpts_SO.mapGen_SideLength; y++)
             {
                 allHexsCells_Arr[x, y].gameObject.SetActive(true);
             }
@@ -427,11 +396,11 @@ public class MapSpawnController : MonoBehaviour
                 //Regular Spawn Position VS Offset Spacing
                 if (y % 2 == 0)
                 {
-                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapHeightStep, x * spacing_I), Quaternion.identity, cellChunk.transform);
+                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapGenOpts_SO.mapGen_HeightPerStep, x * spacing_I), Quaternion.identity, cellChunk.transform);
                 }
                 else
                 {
-                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapHeightStep, x * spacing_I + offcenter_I), Quaternion.identity, cellChunk.transform);
+                    newHex = Instantiate(hexMesh_Prefab, new Vector3(y * spacing_J, mapGenOpts_SO.mapGen_HeightPerStep, x * spacing_I + offcenter_I), Quaternion.identity, cellChunk.transform);
                 }
 
                 //Setup Cell
@@ -479,14 +448,14 @@ public class MapSpawnController : MonoBehaviour
         int yPos = (int)Math.Round(cameraPos.x / spacing_J, 0);
 
         //Clamp Positions to the array size
-        xPos = Mathf.Clamp(xPos, 0, mapGen_SideLength - 1);
-        yPos = Mathf.Clamp(yPos, 0, mapGen_SideLength - 1);
+        xPos = Mathf.Clamp(xPos, 0, mapGenOpts_SO.mapGen_SideLength - 1);
+        yPos = Mathf.Clamp(yPos, 0, mapGenOpts_SO.mapGen_SideLength - 1);
 
         //Check If Current Cam Position is Null
         if (currentHexCell_UnderCamera == null)
         {
             //Attempt a "False" node of Y + Chunk Size, so the rest of the code will update on Frame 1 When Comparing the under camera node.
-            int yPos_Modded = Mathf.Clamp(yPos + mapGen_ChunkSize, 0, mapGen_SideLength - 1);
+            int yPos_Modded = Mathf.Clamp(yPos + mapGenOpts_SO.mapGen_ChunkSize, 0, mapGenOpts_SO.mapGen_SideLength - 1);
 
             //Get Cell Under Camera
             currentHexCell_UnderCamera = dataHexCells_Arr[xPos, yPos_Modded];
@@ -501,10 +470,10 @@ public class MapSpawnController : MonoBehaviour
 
 
         //Get New Chunk Array Positions
-        int oldChunkCoordX = (int)Mathf.Floor(currentHexCell_UnderCamera.hexCoords.x / mapGen_ChunkSize);
-        int oldChunkCoordY = (int)Mathf.Floor(currentHexCell_UnderCamera.hexCoords.y / mapGen_ChunkSize);
-        int chunkCoordX = (int)Mathf.Floor(dataHexCells_Arr[xPos, yPos].hexCoords.x / mapGen_ChunkSize);
-        int chunkCoordY = (int)Mathf.Floor(dataHexCells_Arr[xPos, yPos].hexCoords.y / mapGen_ChunkSize);
+        int oldChunkCoordX = (int)Mathf.Floor(currentHexCell_UnderCamera.hexCoords.x / mapGenOpts_SO.mapGen_ChunkSize);
+        int oldChunkCoordY = (int)Mathf.Floor(currentHexCell_UnderCamera.hexCoords.y / mapGenOpts_SO.mapGen_ChunkSize);
+        int chunkCoordX = (int)Mathf.Floor(dataHexCells_Arr[xPos, yPos].hexCoords.x / mapGenOpts_SO.mapGen_ChunkSize);
+        int chunkCoordY = (int)Mathf.Floor(dataHexCells_Arr[xPos, yPos].hexCoords.y / mapGenOpts_SO.mapGen_ChunkSize);
         
         //Update Cell Under Camera
         currentHexCell_UnderCamera = dataHexCells_Arr[xPos, yPos];
@@ -532,7 +501,7 @@ public class MapSpawnController : MonoBehaviour
         
 
         //Use this later for reloading only inactive chunks
-        if (hexChunks_Dict.ContainsKey(new ChunkCoords(chunkCoordX, chunkCoordY)))
+        if (hexChunks_Dict.ContainsKey(new HexChunkCoords(chunkCoordX, chunkCoordY)))
         {
             //Debug.Log("Test Code: Not Null");
             //return;
@@ -543,12 +512,12 @@ public class MapSpawnController : MonoBehaviour
 
 
         //Collect List Of Possible Chunks Around Camera Chunk
-        List<ChunkCoords> possibleChunkPositions_List = GetValidChunks_AroundCamera(chunkCoordX, chunkCoordY, chunkRenderDistance);
+        List<HexChunkCoords> possibleChunkPositions_List = GetValidChunks_AroundCamera(chunkCoordX, chunkCoordY, chunkRenderDistance);
 
         //Refresh Old and New Chunks For Reloading
         possibleChunkPositions_List = HexGen_RefreshChunks(possibleChunkPositions_List);
 
-        foreach (ChunkCoords currentCoords in possibleChunkPositions_List)
+        foreach (HexChunkCoords currentCoords in possibleChunkPositions_List)
         {
             //Spawn New Chunk Object
             GameObject newChunk = Instantiate(hexChunk_Prefab, new Vector3(0, 0, 0), Quaternion.identity, hexMapContainer_GO.transform);
@@ -558,17 +527,17 @@ public class MapSpawnController : MonoBehaviour
 
 
             //Setup Chunk Script
-            hexChunks_Dict[new ChunkCoords(currentCoords.x, currentCoords.y)] = newChunk.GetComponent<HexChunk>();
+            hexChunks_Dict[new HexChunkCoords(currentCoords.x, currentCoords.y)] = newChunk.GetComponent<HexChunk>();
 
 
          
 
 
             //Create List Of Hexs For the Chunk
-            List<HexCell_Data> wantedHexs_List = hexChunks_Dict[new ChunkCoords(currentCoords.x, currentCoords.y)].CreateChunk_DynamicLoader(currentCoords.x, currentCoords.y, mapGen_ChunkSize, dataHexCells_Arr);
+            List<HexCell_Data> wantedHexs_List = hexChunks_Dict[new HexChunkCoords(currentCoords.x, currentCoords.y)].CreateChunk_DynamicLoader(currentCoords.x, currentCoords.y, mapGenOpts_SO.mapGen_ChunkSize, dataHexCells_Arr);
 
             //Spawn The Hexs Inside the Chunk
-            HexSpawn_ListedHexs(wantedHexs_List, hexChunks_Dict[new ChunkCoords(currentCoords.x, currentCoords.y)].transform);
+            HexSpawn_ListedHexs(wantedHexs_List, hexChunks_Dict[new HexChunkCoords(currentCoords.x, currentCoords.y)].transform);
         }
 
 
@@ -600,18 +569,18 @@ public class MapSpawnController : MonoBehaviour
         //hexChunk.Chunk(hexChunkModel_Prefab, mergedBiomeMats_Arr);
     }
 
-    private List<ChunkCoords> HexGen_RefreshChunks(List<ChunkCoords> possibleChunkCoords_List)
+    private List<HexChunkCoords> HexGen_RefreshChunks(List<HexChunkCoords> possibleChunkCoords_List)
     {
         //Create the returning list
-        List<ChunkCoords> outputChunkCoords_List = new List<ChunkCoords>();
-        List<ChunkCoords> keeperChunkCoords_List = new List<ChunkCoords>();
-        List<ChunkCoords> removableChunkCoords_List = new List<ChunkCoords>();
+        List<HexChunkCoords> outputChunkCoords_List = new List<HexChunkCoords>();
+        List<HexChunkCoords> keeperChunkCoords_List = new List<HexChunkCoords>();
+        List<HexChunkCoords> removableChunkCoords_List = new List<HexChunkCoords>();
 
         //Remove Or Keep Chunks That have Avaliblity In the New Possible Set
         for (int i = 0; i < currentlyLoaded_Chunks_List.Count; i++)
         {
 
-            if (possibleChunkCoords_List.Contains(new ChunkCoords(currentlyLoaded_Chunks_List[i].x, currentlyLoaded_Chunks_List[i].y)))
+            if (possibleChunkCoords_List.Contains(new HexChunkCoords(currentlyLoaded_Chunks_List[i].x, currentlyLoaded_Chunks_List[i].y)))
             {
                 keeperChunkCoords_List.Add(currentlyLoaded_Chunks_List[i]);
             }
@@ -621,7 +590,7 @@ public class MapSpawnController : MonoBehaviour
             }
         }
 
-        foreach (ChunkCoords chunkCoords in removableChunkCoords_List)
+        foreach (HexChunkCoords chunkCoords in removableChunkCoords_List)
         {
             if (hexChunks_Dict[chunkCoords] != null)
             { 
@@ -660,11 +629,11 @@ public class MapSpawnController : MonoBehaviour
             //Regular Spawn Position VS Offset Spacing
             if (hexCellData.hexCoords.y % 2 == 0)
             {
-                newHex = Instantiate(hexMesh_Prefab, new Vector3(hexCellData.hexCoords.y * spacing_J, mapHeightStep, hexCellData.hexCoords.x * spacing_I), Quaternion.identity, chunkContainer);
+                newHex = Instantiate(hexMesh_Prefab, new Vector3(hexCellData.hexCoords.y * spacing_J, mapGenOpts_SO.mapGen_HeightPerStep, hexCellData.hexCoords.x * spacing_I), Quaternion.identity, chunkContainer);
             }
             else
             {
-                newHex = Instantiate(hexMesh_Prefab, new Vector3(hexCellData.hexCoords.y * spacing_J, mapHeightStep, hexCellData.hexCoords.x * spacing_I + offcenter_I), Quaternion.identity, chunkContainer);
+                newHex = Instantiate(hexMesh_Prefab, new Vector3(hexCellData.hexCoords.y * spacing_J, mapGenOpts_SO.mapGen_HeightPerStep, hexCellData.hexCoords.x * spacing_I + offcenter_I), Quaternion.identity, chunkContainer);
             }
 
             //Setup Cell
@@ -682,35 +651,35 @@ public class MapSpawnController : MonoBehaviour
     {
         //Search For the highest Biome Mat ID to create an array size
         int highestBiomeMatID = 0;
-        for (int i = 0; i < allBiomes_Arr.Length; i++)
+        for (int i = 0; i < mapGenOpts_SO.allBiomes_Arr.Length; i++)
         {
             //Loop Each Biome Cell Value
-            for (int j = 0; j < allBiomes_Arr[i].biomeCellsInfo_Arr.Length; j++)
+            for (int j = 0; j < mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr.Length; j++)
             {
                 //Check if newest Value is Higher
-                if (allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID > highestBiomeMatID)
+                if (mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID > highestBiomeMatID)
                 {
                     //Replace the value then keep searching
-                    highestBiomeMatID = allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID;
+                    highestBiomeMatID = mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID;
                 }
             }
         }
 
         //Create a new Array with Sizes Using Biome Count + highest Biome Mat ID found
-        mergedBiomeMats_Arr = new Material[allBiomes_Arr.Length, highestBiomeMatID + 1];
+        mergedBiomeMats_Arr = new Material[mapGenOpts_SO.allBiomes_Arr.Length, highestBiomeMatID + 1];
 
         //Search the Biome Sets For each New Material then add them to the new compressed / merged array
-        for (int i = 0; i < allBiomes_Arr.Length; i++)
+        for (int i = 0; i < mapGenOpts_SO.allBiomes_Arr.Length; i++)
         {
             //A Starting Value to 0 does not overwrite
             int lastFoundID = -1;
 
-            for (int j = 0; j < allBiomes_Arr[i].biomeCellsInfo_Arr.Length; j++)
+            for (int j = 0; j < mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr.Length; j++)
             {
-                if (lastFoundID != allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID)
+                if (lastFoundID != mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID)
                 {
-                    lastFoundID = allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID;
-                    mergedBiomeMats_Arr[i, lastFoundID] = allBiomes_Arr[i].biomeCellsInfo_Arr[j].material;
+                    lastFoundID = mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID;
+                    mergedBiomeMats_Arr[i, lastFoundID] = mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr[j].material;
                 }
             }
         }
@@ -791,14 +760,14 @@ public class MapSpawnController : MonoBehaviour
 
     private GameObject GetSearchable_ChunkFromCellCoords(int x, int y)
     {
-        ChunkCoords chunkCoords = new ChunkCoords((int)Mathf.Floor(x / mapGen_ChunkSize), (int)Mathf.Floor(y / mapGen_ChunkSize));
+        HexChunkCoords chunkCoords = new HexChunkCoords((int)Mathf.Floor(x / mapGenOpts_SO.mapGen_ChunkSize), (int)Mathf.Floor(y / mapGenOpts_SO.mapGen_ChunkSize));
         return hexChunks_Dict[chunkCoords].gameObject;
         
 
         //return allHexChunks_Arr[(int)Mathf.Floor(x / mapGen_ChunkSize), (int)Mathf.Floor(y / mapGen_ChunkSize)].gameObject;
     }
 
-    public static Material GetSearchable_BiomeMaterial(int biomeID, int matID)
+    public Material GetSearchable_BiomeMaterial(int biomeID, int matID)
     {
         return mergedBiomeMats_Arr[biomeID, matID];
     }
@@ -1283,18 +1252,18 @@ public class MapSpawnController : MonoBehaviour
 
 
 
-    private List<ChunkCoords> GetValidChunks_AroundCamera(int X, int Y, int rangeAddition)
+    private List<HexChunkCoords> GetValidChunks_AroundCamera(int X, int Y, int rangeAddition)
     {
         //Create a Returnable List of Values of corect Hexs
-        List<ChunkCoords> acceptedRangeValueSets_List = new List<ChunkCoords>();
+        List<HexChunkCoords> acceptedRangeValueSets_List = new List<HexChunkCoords>();
 
 
 
-        int rightCorner = Mathf.Clamp(X + rangeAddition + 1, 0, mapGen_SideLength - 0);
-        int leftCorner = Mathf.Clamp(X - rangeAddition, 0, mapGen_SideLength - 1);
+        int rightCorner = Mathf.Clamp(X + rangeAddition + 1, 0, mapGenOpts_SO.mapGen_SideLength - 0);
+        int leftCorner = Mathf.Clamp(X - rangeAddition, 0, mapGenOpts_SO.mapGen_SideLength - 1);
 
-        int topCorner = Mathf.Clamp(Y + rangeAddition + 1, 0, mapGen_SideLength - 0);
-        int bottomCorner = Mathf.Clamp(Y - rangeAddition, 0, mapGen_SideLength - 1);
+        int topCorner = Mathf.Clamp(Y + rangeAddition + 1, 0, mapGenOpts_SO.mapGen_SideLength - 0);
+        int bottomCorner = Mathf.Clamp(Y - rangeAddition, 0, mapGenOpts_SO.mapGen_SideLength - 1);
 
 
 
@@ -1308,7 +1277,7 @@ public class MapSpawnController : MonoBehaviour
                 if (CheckChunkRangeBounds(x, y))
                 {
                     //Add New Possible Chunk
-                    acceptedRangeValueSets_List.Add(new ChunkCoords(x, y));
+                    acceptedRangeValueSets_List.Add(new HexChunkCoords(x, y));
                 }
 
 
@@ -1338,7 +1307,7 @@ public class MapSpawnController : MonoBehaviour
         }
 
         //Add the Camera Position Itself 
-        acceptedRangeValueSets_List.Add(new ChunkCoords(X, Y));
+        acceptedRangeValueSets_List.Add(new HexChunkCoords(X, Y));
 
         ////////////////////////////////
 
@@ -1353,7 +1322,7 @@ public class MapSpawnController : MonoBehaviour
             if (CheckChunkRangeBounds(New_X, New_Y))
             {
                 //Add New Possible Chunk
-                acceptedRangeValueSets_List.Add(new ChunkCoords(New_X, New_Y));
+                acceptedRangeValueSets_List.Add(new HexChunkCoords(New_X, New_Y));
             }
         }
 
@@ -1368,7 +1337,7 @@ public class MapSpawnController : MonoBehaviour
             if (CheckChunkRangeBounds(New_X, New_Y))
             {
                 //Add New Possible Chunk
-                acceptedRangeValueSets_List.Add(new ChunkCoords(New_X, New_Y));
+                acceptedRangeValueSets_List.Add(new HexChunkCoords(New_X, New_Y));
             }
         }
 
@@ -1383,7 +1352,7 @@ public class MapSpawnController : MonoBehaviour
             if (CheckChunkRangeBounds(New_X, New_Y))
             {
                 //Add New Possible Chunk
-                acceptedRangeValueSets_List.Add(new ChunkCoords(New_X, New_Y));
+                acceptedRangeValueSets_List.Add(new HexChunkCoords(New_X, New_Y));
             }
         }
 
@@ -1398,7 +1367,7 @@ public class MapSpawnController : MonoBehaviour
             if (CheckChunkRangeBounds(New_X, New_Y))
             {
                 //Add New Possible Chunk
-                acceptedRangeValueSets_List.Add(new ChunkCoords(New_X, New_Y));
+                acceptedRangeValueSets_List.Add(new HexChunkCoords(New_X, New_Y));
             }
         }
 
@@ -1415,7 +1384,7 @@ public class MapSpawnController : MonoBehaviour
         bool validRangeY = false;
 
         //Generate a Max Chunk Value Allowed
-        int chunksAllowed = mapGen_SideLength / mapGen_ChunkSize;
+        int chunksAllowed = mapGenOpts_SO.mapGen_SideLength / mapGenOpts_SO.mapGen_ChunkSize;
 
         //Valid X Vaule
         if (X >= 0 && X <= chunksAllowed)

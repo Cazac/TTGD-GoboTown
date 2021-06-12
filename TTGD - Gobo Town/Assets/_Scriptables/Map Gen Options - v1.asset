@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1579799b532585b47a21a08895448734, type: 3}
+  m_Name: Map Gen Options - v1
+  m_EditorClassIdentifier: Assembly-CSharp::MapGenerationOptions_SO
+  isShowingGenerationTime: 1
+  isShowingToDos: 1
+  mapGen_Seed: 135135
+  mapGen_StartingBiomeNodesCount: 4
+  mapGen_SideLength: 64
+  mapGen_ChunkSize: 8
+  mapGen_HeightMin: 0
+  mapGen_HeightMax: 4
+  mapGen_HeightPerStep: 0.025
+  mapGen_OceanSize: 10
+  mapGen_BeachSize: 2
+  allBiomes_Arr:
+  - {fileID: 11400000, guid: d91671e667a5d4e46bc5a62a262e4e87, type: 2}
+  - {fileID: 11400000, guid: 9e96fb4b38704cd4b968e8536a6481b0, type: 2}
+  - {fileID: 11400000, guid: 73d2c06cb54cb52479b5ecab3339a837, type: 2}
+  - {fileID: 11400000, guid: 6d3eb734273c9a442b016657ed75c447, type: 2}
+  perlinZoomScale: 25
+  offsetX: 0
+  offsetY: 0

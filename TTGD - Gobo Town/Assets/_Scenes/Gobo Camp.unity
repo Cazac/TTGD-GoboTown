@@ -29432,43 +29432,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60bbd097e76312440bf0a090624b4e6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isShowingBiomeVisuals: 0
+  mapGenOpts_SO: {fileID: 11400000, guid: 02f81a9008c053d42969fbbe0b288556, type: 2}
+  chunkRenderDistance: 1
   cameraGenerated: {fileID: 963194227}
   cameraRelativePosition: {x: 5, y: -2}
-  isShowingAllHexs: 0
-  isShowingBiomeVisuals: 0
-  isShowingGenerationTime: 1
-  isShowingToDos: 0
   scalingGround_GO: {fileID: 305887436}
   hexMapContainer_GO: {fileID: 1741760701}
   hexMesh_Prefab: {fileID: 2444955979027595997, guid: 956b460145ee4274591057e081db0ac4, type: 3}
   hexChunk_Prefab: {fileID: 4053091745430206964, guid: bde8425326c5d7246a94a92444287dca, type: 3}
   hexChunkModel_Prefab: {fileID: 4053091745430206964, guid: 7ce53fe3b7f230447937e6fd375f30f0, type: 3}
   hexGrass_Prefab: {fileID: 1216015022455063022, guid: de73aea7a5bf78147bb2fd6b1ee4f716, type: 3}
-  mapHex_Seed: 135135
-  mapGen_StartingBiomeNodesCount: 2
-  mapGen_SideLength: 64
-  mapGen_ChunkSize: 8
-  mapHeightMin: 0
-  mapHeightMax: 4
-  mapHeightStep: 0.02
-  mapGen_OceanSize: 10
-  mapGen_BeachSize: 2
-  allBiomes_Arr:
-  - {fileID: 11400000, guid: d91671e667a5d4e46bc5a62a262e4e87, type: 2}
-  - {fileID: 11400000, guid: 9e96fb4b38704cd4b968e8536a6481b0, type: 2}
-  - {fileID: 11400000, guid: 73d2c06cb54cb52479b5ecab3339a837, type: 2}
-  - {fileID: 11400000, guid: 6d3eb734273c9a442b016657ed75c447, type: 2}
   biomeVisualQuad_Prefab: {fileID: 8120447427596774857, guid: d3787cde6bc8bdb43a323cc1b62a3c5c, type: 3}
   biomeVisualContainer_GO: {fileID: 2114146878}
-  biomeVisualColoredMaterials_List: []
-  perlinZoomScale: 25
-  offsetX: 0
-  offsetY: 0
-  hexCountAllowedFromCamera: 6
-  lastCameraCell: {fileID: 0}
+  currentHexCell_UnderCamera:
+    hexCell_BiomeID: 0
+    hexCell_MatID: 0
+    hexCell_Color: 
+    hexCell_heightSteps: 0
+    hexCoords:
+      x: 0
+      y: 0
+      l: 0
   mySaveFile:
     mapHex_Seed: 135135
-  chunkRenderDistance: 0
 --- !u!4 &1629504205
 Transform:
   m_ObjectHideFlags: 0

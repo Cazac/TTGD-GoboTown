@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ChunkPoolingController : MonoBehaviour
+public class HexPoolingController : MonoBehaviour
 {
     /////////////////////////////////////////////////////////////////
 
-    public static ChunkPoolingController Instance;
+    public static HexPoolingController Instance;
 
     /////////////////////////////////////////////////////////////////
 
@@ -21,17 +21,14 @@ public class ChunkPoolingController : MonoBehaviour
     public GameObject inactiveChunks_Container;
 
     [Header("Queues")]
-    public Queue<HexChunk> activepool_Queue;
-    public Queue<HexChunk> inactivepool_Queue;
+    public Queue<HexChunk> activepool_Queue = new Queue<HexChunk>();
+    public Queue<HexChunk> inactivepool_Queue = new Queue<HexChunk>();
 
     /////////////////////////////////////////////////////////////////
 
     private void Awake()
     {
         Instance = this;
-
-        activepool_Queue = new Queue<HexChunk>();
-        inactivepool_Queue = new Queue<HexChunk>();
     }
 
     private void Start()

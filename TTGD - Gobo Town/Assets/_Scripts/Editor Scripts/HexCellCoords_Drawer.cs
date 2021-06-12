@@ -12,8 +12,8 @@ using UnityEngine;
 /// </summary>
 ///////////////
 
-[CustomPropertyDrawer(typeof(HexCoords))]
-public class HexCoords_Drawer : PropertyDrawer
+[CustomPropertyDrawer(typeof(HexCellCoords))]
+public class HexCellCoords_Drawer : PropertyDrawer
 {
     /////////////////////////////////////////////////////////////////
 
@@ -26,11 +26,10 @@ public class HexCoords_Drawer : PropertyDrawer
         //Create Info Strings From Preperties
         string hexCoordInfo_X = "X: " + property.FindPropertyRelative("x").intValue;
         string hexCoordInfo_Y = "Y: " + property.FindPropertyRelative("y").intValue;
-        string hexCoordInfo_Z = "H Step: " + property.FindPropertyRelative("hSteps").intValue;
         string hexCoordInfo_L = "Level: " + property.FindPropertyRelative("l").intValue;
 
         //Merge Strings Into Single Field
-        EditorGUI.LabelField(contentPosition, "(" + hexCoordInfo_X + ", " + hexCoordInfo_Y + ") " + hexCoordInfo_Z + " / " + hexCoordInfo_L + "", EditorStyles.boldLabel);
+        EditorGUI.LabelField(contentPosition, "(" + hexCoordInfo_X + ", " + hexCoordInfo_Y + ", " + hexCoordInfo_L + ")", EditorStyles.boldLabel);
 
         //Finish
         EditorGUI.EndProperty();

@@ -4,12 +4,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class MapGenerationController
+public struct MapGenerationController
 {
     ////////////////////////////////
 
+   
+
     [Header("Hex Scripts To Be Returned")]
-    private static HexCell_Data[,] dataHexCells_Arr;
+    private static HexSector generatedHexSector;
+    //private static HexCell_Data[,] dataHexCellsInSector_Arr;
 
     ////////////////////////////////
 
@@ -22,11 +25,11 @@ public class MapGenerationController
     ////////////////////////////////
 
     [Header("Map Generation Options")]
-    private static MapGenerationOptions mapGenOptions;
+    private static MapGenerationOptions_SO mapGenOptions;
 
     /////////////////////////////////////////////////////////////////
 
-    public static HexCell_Data[,] HexMapGeneration(MapGenerationOptions incomingMapOptions)
+    public static HexCell_Data[,] HexMapGeneration(MapGenerationOptions_SO incomingMapOptions)
     {
         //Start Counting Timer
         long startingTimeTicks = DateTime.UtcNow.Ticks;
@@ -35,7 +38,7 @@ public class MapGenerationController
         mapGenOptions = incomingMapOptions;
 
         //Setup Array Values
-        dataHexCells_Arr = new HexCell_Data[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
+        //dataHexCellsInSector_Arr = new HexCell_Data[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
 
         //Create Generation Arrays By Size
         mapHex_HeightSets = new int[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
@@ -66,13 +69,87 @@ public class MapGenerationController
             long endingTimeTicks = DateTime.UtcNow.Ticks;
             float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
             int mapHexGeneration_BiomeGrowthLoopCount = (int)Mathf.Log((float)mapGenOptions.mapGen_SideLength / mapGenOptions.mapGen_StartingBiomeNodesCount, 2);
-            Debug.Log("Test Code: Biome Generation x" + mapHexGeneration_BiomeGrowthLoopCount + " Completed in: " + finishTime + "s");
-            Debug.Log("Test Code: Size " + mapHex_BiomeSets.GetLength(0) + "x" + mapHex_BiomeSets.GetLength(1));
+            Debug.Log("Map Gen in: " + finishTime + "s" + " (Size " + mapHex_BiomeSets.GetLength(0) + "x" + mapHex_BiomeSets.GetLength(1) + " - Biome Loops: x" + mapHexGeneration_BiomeGrowthLoopCount + ")");
         }
 
         //Return The Data Set
-        return dataHexCells_Arr;
+        return null;
     }
+
+
+
+
+
+
+
+
+    public static HexSector HexMapGeneration_Original(MapGenerationOptions_SO incomingMapOptions)
+    {
+        //Start Counting Timer
+        long startingTimeTicks = DateTime.UtcNow.Ticks;
+
+        //Set Map Gen Options
+        mapGenOptions = incomingMapOptions;
+
+        //Create a New Sector
+        generatedHexSector = new HexSector();
+
+        //Setup Array Values
+        generatedHexSector.dataHexCellsInSector_Arr = new HexCell_Data[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
+
+        //Create Generation Arrays By Size
+        mapHex_HeightSets = new int[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
+        mapHex_MatIDSets = new int[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
+        mapHex_ColorSets = new string[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
+
+        ////////////////////////////////
+
+        //Generate Map Seed For Random Values
+        HexGenUtility_SetMapSeed(mapGenOptions.mapGen_Seed);
+
+        //Generate Biome Sets
+        HexGenBiome();
+
+        //Generate Height Sets
+        HexGenHeight();
+
+        //Generate Mats and Colors For the Hex Cells
+        HexGenUtility_MatsAndColors();
+
+        //Merge Info Together Into Storable Data Hex Cells
+        HexGenUtility_MergeRawDataToHexDataCells();
+
+        //Show Generation Time
+        if (mapGenOptions.isShowingGenerationTime)
+        {
+            //Finish Counting Timer
+            long endingTimeTicks = DateTime.UtcNow.Ticks;
+            float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
+            int mapHexGeneration_BiomeGrowthLoopCount = (int)Mathf.Log((float)mapGenOptions.mapGen_SideLength / mapGenOptions.mapGen_StartingBiomeNodesCount, 2);
+            Debug.Log("Map Gen in: " + finishTime + "s" + " (Size " + mapHex_BiomeSets.GetLength(0) + "x" + mapHex_BiomeSets.GetLength(1) + " - Biome Loops: x" + mapHexGeneration_BiomeGrowthLoopCount + ")");
+        }
+
+        //Return The Sector
+        return generatedHexSector;
+    }
+
+
+
+
+
+
+
+
+    public static HexSector HexMapGeneration_NewSector(MapGenerationOptions_SO incomingMapOptions)
+    {
+        //Create a New Sector
+        generatedHexSector = new HexSector();
+
+        //Return The Sector
+        return generatedHexSector;
+    }
+
+
 
     /////////////////////////////////////////////////////////////////
 
@@ -717,16 +794,17 @@ public class MapGenerationController
     private static void HexGenUtility_MergeRawDataToHexDataCells()
     {
         //Spawn Cells By X (Left and Right)
-        for (int y = 0; y < dataHexCells_Arr.GetLength(1); y++)
+        for (int y = 0; y < generatedHexSector.dataHexCellsInSector_Arr.GetLength(1); y++)
         {
             //Spawn Cells By Y (Up and Down)
-            for (int x = 0; x < dataHexCells_Arr.GetLength(1); x++)
+            for (int x = 0; x < generatedHexSector.dataHexCellsInSector_Arr.GetLength(1); x++)
             {
                 //Store The Data Collected From Other Methodsit
-                dataHexCells_Arr[x, y] = new HexCell_Data
+                generatedHexSector.dataHexCellsInSector_Arr[x, y] = new HexCell_Data
                 {
                     //Flip Here, The For Loops Generate Backwards
-                    hexCoords = new HexCoords(x, y, mapHex_HeightSets[x, y], 0),
+                    hexCoords = new HexCellCoords(x, y, 0),
+                    hexCell_heightSteps = mapHex_HeightSets[x, y],
                     hexCell_BiomeID = mapHex_BiomeSets[x, y],
                     hexCell_Color = mapHex_ColorSets[x, y],
                     hexCell_MatID = mapHex_MatIDSets[x, y]

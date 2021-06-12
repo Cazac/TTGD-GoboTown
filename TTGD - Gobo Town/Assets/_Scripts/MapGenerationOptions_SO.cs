@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct MapGenerationOptions
+[CreateAssetMenu(fileName = "New Generation Options", menuName = "Scriptables/Generation Options")]
+public class MapGenerationOptions_SO : ScriptableObject
 {
     ////////////////////////////////
     
@@ -27,7 +28,6 @@ public struct MapGenerationOptions
     [Header("Map Gen Settings - Height")]
     public int mapGen_HeightMin;
     public int mapGen_HeightMax;
-    public float mapGen_HeightStep;
     public float mapGen_HeightPerStep;
 
     ////////////////////////////////
