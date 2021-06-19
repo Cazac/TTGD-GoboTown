@@ -20,7 +20,9 @@ public class MapGenerationOptions_SO : ScriptableObject
 
     [Header("Map Gen Settings - Size")]
     public int mapGen_StartingBiomeNodesCount;
-    public int mapGen_SideLength;
+    public int mapGen_SectorTotalSize;
+    //public int mapGen_SectorInnerSize;
+    //public int mapGen_SideLength;
     public int mapGen_ChunkSize;
 
     ////////////////////////////////

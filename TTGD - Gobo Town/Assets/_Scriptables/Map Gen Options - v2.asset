@@ -10,14 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1579799b532585b47a21a08895448734, type: 3}
-  m_Name: Map Gen Options - v1
+  m_Name: Map Gen Options - v2
   m_EditorClassIdentifier: Assembly-CSharp::MapGenerationOptions_SO
-  isShowingGenerationTime: 1
-  isShowingToDos: 1
+  isShowingGenerationTime: 0
+  isShowingToDos: 0
   mapGen_Seed: 135135
   mapGen_StartingBiomeNodesCount: 4
   mapGen_SectorTotalSize: 64
-  mapGen_SectorInnerSize: 0
   mapGen_ChunkSize: 8
   mapGen_HeightMin: 0
   mapGen_HeightMax: 4

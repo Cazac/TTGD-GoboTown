@@ -8,15 +8,12 @@ public struct MapGenerationController
 {
     ////////////////////////////////
 
-   
-
-    [Header("Hex Scripts To Be Returned")]
+    [Header("Hex Sector To Be Returned")]
     private static HexSector generatedHexSector;
-    //private static HexCell_Data[,] dataHexCellsInSector_Arr;
 
     ////////////////////////////////
 
-    [Header("Generation List Sets")]
+    [Header("Sector Generation Info Sets")]
     private static int[,] mapHex_BiomeSets;
     private static int[,] mapHex_HeightSets;
     private static int[,] mapHex_MatIDSets;
@@ -27,9 +24,12 @@ public struct MapGenerationController
     [Header("Map Generation Options")]
     private static MapGenerationOptions_SO mapGenOptions;
 
+        //"Randomization States To Be Used
+    //private Random.State mapGeneration_SeededStated; //= Random.state;
+
     /////////////////////////////////////////////////////////////////
 
-    public static HexCell_Data[,] HexMapGeneration(MapGenerationOptions_SO incomingMapOptions)
+    public static HexSector HexMapGenerate_InitialSector(MapGenerationOptions_SO incomingMapOptions, HexSectorCoords sectorCoords)
     {
         //Start Counting Timer
         long startingTimeTicks = DateTime.UtcNow.Ticks;
@@ -37,13 +37,20 @@ public struct MapGenerationController
         //Set Map Gen Options
         mapGenOptions = incomingMapOptions;
 
+        //Create a New Sector
+        generatedHexSector = new HexSector();
+        generatedHexSector.sectorCoords = sectorCoords;
+
         //Setup Array Values
-        //dataHexCellsInSector_Arr = new HexCell_Data[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
+        generatedHexSector.HexCellsData_Dict = new Dictionary<HexCellCoords, HexCell_Data>();
+        generatedHexSector.hexChunks_Dict = new Dictionary<HexChunkCoords, HexChunk>();
+        //          generatedHexSector.DataOnly_HexCells_Arr = new HexCell_Data[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
+        //          generatedHexSector.hexChunks_Arr = new HexChunk[mapGenOptions.mapGen_SectorTotalSize / mapGenOptions.mapGen_ChunkSize, mapGenOptions.mapGen_SectorTotalSize / mapGenOptions.mapGen_ChunkSize];
 
         //Create Generation Arrays By Size
-        mapHex_HeightSets = new int[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
-        mapHex_MatIDSets = new int[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
-        mapHex_ColorSets = new string[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
+        mapHex_HeightSets = new int[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
+        mapHex_MatIDSets = new int[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
+        mapHex_ColorSets = new string[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
 
         ////////////////////////////////
 
@@ -68,39 +75,33 @@ public struct MapGenerationController
             //Finish Counting Timer
             long endingTimeTicks = DateTime.UtcNow.Ticks;
             float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
-            int mapHexGeneration_BiomeGrowthLoopCount = (int)Mathf.Log((float)mapGenOptions.mapGen_SideLength / mapGenOptions.mapGen_StartingBiomeNodesCount, 2);
-            Debug.Log("Map Gen in: " + finishTime + "s" + " (Size " + mapHex_BiomeSets.GetLength(0) + "x" + mapHex_BiomeSets.GetLength(1) + " - Biome Loops: x" + mapHexGeneration_BiomeGrowthLoopCount + ")");
+            int mapHexGeneration_BiomeGrowthLoopCount = (int)Mathf.Log((float)mapGenOptions.mapGen_SectorTotalSize / mapGenOptions.mapGen_StartingBiomeNodesCount, 2);
+            Debug.Log("Sector Gen in: " + finishTime + "s" + " (Size " + mapHex_BiomeSets.GetLength(0) + "x" + mapHex_BiomeSets.GetLength(1) + " - Biome Loops: x" + mapHexGeneration_BiomeGrowthLoopCount + ")");
         }
 
-        //Return The Data Set
-        return null;
+        //Return The Sector
+        return generatedHexSector;
     }
 
-
-
-
-
-
-
-
-    public static HexSector HexMapGeneration_Original(MapGenerationOptions_SO incomingMapOptions)
+    public static HexSector HexMapGeneration_NewSector(MapGenerationOptions_SO incomingMapOptions, HexSectorCoords sectorCoords)
     {
-        //Start Counting Timer
-        long startingTimeTicks = DateTime.UtcNow.Ticks;
-
         //Set Map Gen Options
         mapGenOptions = incomingMapOptions;
 
         //Create a New Sector
         generatedHexSector = new HexSector();
+        generatedHexSector.sectorCoords = sectorCoords;
 
         //Setup Array Values
-        generatedHexSector.dataHexCellsInSector_Arr = new HexCell_Data[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
+        generatedHexSector.HexCellsData_Dict = new Dictionary<HexCellCoords, HexCell_Data>();
+        generatedHexSector.hexChunks_Dict = new Dictionary<HexChunkCoords, HexChunk>();
+        //          generatedHexSector.DataOnly_HexCells_Arr = new HexCell_Data[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
+        //          generatedHexSector.hexChunks_Arr = new HexChunk[mapGenOptions.mapGen_SectorTotalSize / mapGenOptions.mapGen_ChunkSize, mapGenOptions.mapGen_SectorTotalSize / mapGenOptions.mapGen_ChunkSize];
 
         //Create Generation Arrays By Size
-        mapHex_HeightSets = new int[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
-        mapHex_MatIDSets = new int[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
-        mapHex_ColorSets = new string[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
+        mapHex_HeightSets = new int[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
+        mapHex_MatIDSets = new int[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
+        mapHex_ColorSets = new string[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
 
         ////////////////////////////////
 
@@ -108,7 +109,7 @@ public struct MapGenerationController
         HexGenUtility_SetMapSeed(mapGenOptions.mapGen_Seed);
 
         //Generate Biome Sets
-        HexGenBiome();
+        HexGenBiome_DEBUG();
 
         //Generate Height Sets
         HexGenHeight();
@@ -119,47 +120,19 @@ public struct MapGenerationController
         //Merge Info Together Into Storable Data Hex Cells
         HexGenUtility_MergeRawDataToHexDataCells();
 
-        //Show Generation Time
-        if (mapGenOptions.isShowingGenerationTime)
-        {
-            //Finish Counting Timer
-            long endingTimeTicks = DateTime.UtcNow.Ticks;
-            float finishTime = ((endingTimeTicks - startingTimeTicks) / TimeSpan.TicksPerSecond);
-            int mapHexGeneration_BiomeGrowthLoopCount = (int)Mathf.Log((float)mapGenOptions.mapGen_SideLength / mapGenOptions.mapGen_StartingBiomeNodesCount, 2);
-            Debug.Log("Map Gen in: " + finishTime + "s" + " (Size " + mapHex_BiomeSets.GetLength(0) + "x" + mapHex_BiomeSets.GetLength(1) + " - Biome Loops: x" + mapHexGeneration_BiomeGrowthLoopCount + ")");
-        }
-
         //Return The Sector
         return generatedHexSector;
     }
-
-
-
-
-
-
-
-
-    public static HexSector HexMapGeneration_NewSector(MapGenerationOptions_SO incomingMapOptions)
-    {
-        //Create a New Sector
-        generatedHexSector = new HexSector();
-
-        //Return The Sector
-        return generatedHexSector;
-    }
-
-
 
     /////////////////////////////////////////////////////////////////
 
     private static void HexGenHeight()
     {
         //Spawn Cells By X (Left and Right)
-        for (int x = 0; x < mapHex_HeightSets.GetLength(0); x++)
+        for (int y = 0; y < mapGenOptions.mapGen_SectorTotalSize; y++)
         {
             //Spawn Cells By Y (Up and Down)
-            for (int y = 0; y < mapHex_HeightSets.GetLength(1); y++)
+            for (int x = 0; x < mapGenOptions.mapGen_SectorTotalSize ; x++)
             {
                 //Generate Biome Heights Depending on Biome Generated at this point in the Array
                 switch (mapHex_BiomeSets[x, y])
@@ -203,6 +176,7 @@ public struct MapGenerationController
 
     private static void HexGenHeight_Slope_Ocean(int x, int y)
     {
+        /*
         //Create a Height Steps value based off of closeset step to the "Real" Height
         int heightSteps = 0;
 
@@ -225,10 +199,10 @@ public struct MapGenerationController
                 //Corner 
                 heightSteps = highestOcean - (mapGenOptions.mapGen_OceanSize - min);
             }
-            else if (y >= (mapGenOptions.mapGen_SideLength - mapGenOptions.mapGen_OceanSize))
+            else if (y >= (mapGenOptions.mapGen_SectorLength - mapGenOptions.mapGen_OceanSize))
             {
                 //Get Closer Value
-                int min = Mathf.Min(x, y - (mapGenOptions.mapGen_SideLength - mapGenOptions.mapGen_OceanSize));
+                int min = Mathf.Min(x, y - (mapGenOptions.mapGen_SectorLength - mapGenOptions.mapGen_OceanSize));
 
                 // 0 - 4 Range
 
@@ -322,16 +296,17 @@ public struct MapGenerationController
 
         }
         */
+        /*
+
+
+       //heightSteps = ;
 
 
 
-        //heightSteps = ;
 
-
-
-
-        //Set Final Value To Array
-        mapHex_HeightSets[x, y] = heightSteps;
+       //Set Final Value To Array
+       mapHex_HeightSets[x, y] = heightSteps;
+       */
     }
 
     private static void HexGenHeight_Flat_Beach(int x, int y)
@@ -380,7 +355,7 @@ public struct MapGenerationController
         HexGenBiome_CreateInitialBiomes();
 
         //Use Log() to calucale how many loops are needed to get to the side length value
-        int mapHexGeneration_BiomeGrowthLoopCount = (int)Mathf.Log((float)mapGenOptions.mapGen_SideLength / mapGenOptions.mapGen_StartingBiomeNodesCount, 2);
+        int mapHexGeneration_BiomeGrowthLoopCount = (int)Mathf.Log((float)mapGenOptions.mapGen_SectorTotalSize / mapGenOptions.mapGen_StartingBiomeNodesCount, 2);
 
         //For The Amount of times needed to double the inital Array, zoom out then Fill Map
         for (int i = 0; i < mapHexGeneration_BiomeGrowthLoopCount; i++)
@@ -396,8 +371,8 @@ public struct MapGenerationController
         }
 
         //These Converge into lakes at the end 
-        HexGenBiome_PostGeneration_Ocean();
-        HexGenBiome_PostGeneration_Beaches();
+        //HexGenBiome_PostGeneration_Ocean();
+        //HexGenBiome_PostGeneration_Beaches();
         //HexGeneration_PostGeneration_Rivers();
         //HexGeneration_PostGeneration_Lakes();
         //HexGeneration_PostGeneration_InterBiomes();
@@ -409,16 +384,69 @@ public struct MapGenerationController
         }
     }
 
-    private static void HexGenBiome_CreateInitialBiomes()
+    private static void HexGenBiome_DEBUG()
     {
+        //Create Base Display List Setups
+        HexGenBiome_CreateInitialBiomes_DEBUG();
+
+        //Use Log() to calucale how many loops are needed to get to the side length value
+        int mapHexGeneration_BiomeGrowthLoopCount = (int)Mathf.Log((float)mapGenOptions.mapGen_SectorTotalSize / mapGenOptions.mapGen_StartingBiomeNodesCount, 2);
+
+        //For The Amount of times needed to double the inital Array, zoom out then Fill Map
+        for (int i = 0; i < mapHexGeneration_BiomeGrowthLoopCount; i++)
+        {
+            //Zoom Then Fill To Expand Map
+            HexGenBiome_ZoomOutBiome();
+            HexGenBiome_FillZeros();
+
+            if (mapGenOptions.isShowingToDos)
+            {
+                Debug.Log("Test Code: Needs Smoothing!");
+            }
+        }
+
+        //These Converge into lakes at the end 
+        //HexGenBiome_PostGeneration_Ocean();
+        //HexGenBiome_PostGeneration_Beaches();
+        //HexGeneration_PostGeneration_Rivers();
+        //HexGeneration_PostGeneration_Lakes();
+        //HexGeneration_PostGeneration_InterBiomes();
+
+
+        if (mapGenOptions.isShowingToDos)
+        {
+            Debug.Log("Test Code: Use a Biome Weight System! For Color AND Height smoothing!");
+        }
+    }
+
+    private static void HexGenBiome_CreateInitialBiomes_DEBUG()
+    {
+        //Create a New Biome Sets Array by Current Start Count
         mapHex_BiomeSets = new int[mapGenOptions.mapGen_StartingBiomeNodesCount, mapGenOptions.mapGen_StartingBiomeNodesCount];
 
-
-        for (int i = 0; i < mapGenOptions.mapGen_StartingBiomeNodesCount; i++)
+        //Nested Loop All Of the Starting Nodes With Random Values
+        for (int y = 0; y < mapGenOptions.mapGen_StartingBiomeNodesCount; y++)
         {
-            for (int j = 0; j < mapGenOptions.mapGen_StartingBiomeNodesCount; j++)
+            for (int x = 0; x < mapGenOptions.mapGen_StartingBiomeNodesCount; x++)
             {
-                mapHex_BiomeSets[i, j] = Random.Range(2, 4);
+                //Add A Random Biome Starting Node 
+                mapHex_BiomeSets[x, y] = Random.Range(3, 3);
+            }
+        }
+    }
+
+    private static void HexGenBiome_CreateInitialBiomes()
+    {
+        //Create a New Biome Sets Array by Current Start Count
+        mapHex_BiomeSets = new int[mapGenOptions.mapGen_StartingBiomeNodesCount, mapGenOptions.mapGen_StartingBiomeNodesCount];
+
+        //Nested Loop All Of the Starting Nodes With Random Values
+        for (int y = 0; y < mapGenOptions.mapGen_StartingBiomeNodesCount; y++)
+        {
+            for (int x = 0; x < mapGenOptions.mapGen_StartingBiomeNodesCount; x++)
+            {
+                //Add A Random Biome Starting Node 
+                mapHex_BiomeSets[x, y] = Random.Range(2, 2);
             }
         }
     }
@@ -430,69 +458,67 @@ public struct MapGenerationController
         int[,] newScaleMap_Arr = new int[currentSize_Row * 2, currentSize_Row * 2];
 
 
-
-        //FILL 2 VALUE SETS PER LOOP
-        for (int i = 0; i < currentSize_Row; i++)
+        for (int y = 0; y < currentSize_Row; y++)
         {
-            for (int j = 0; j < currentSize_Column; j++)
+            for (int x = 0; x < currentSize_Column; x++)
             {
+                //Find Positions Around Old Node
+                Vector2 newSet_TopLeft = new Vector2(x * 2, y * 2);
+                Vector2 newSet_TopRight = new Vector2((x * 2) + 1, y * 2);
+                Vector2 newSet_BottomLeft = new Vector2(x * 2, (y * 2) + 1);
+                Vector2 newSet_BottomRight = new Vector2((x * 2) + 1, (y * 2) + 1);
 
-                Vector2 newSet_TopLeft = new Vector2(i * 2, j * 2);
-                Vector2 newSet_TopRight = new Vector2((i * 2) + 1, j * 2);
-                Vector2 newSet_BottomLeft = new Vector2(i * 2, (j * 2) + 1);
-                Vector2 newSet_BottomRight = new Vector2((i * 2) + 1, (j * 2) + 1);
+                //Fill In The Old Value From The Biome ID Array
+                newScaleMap_Arr[(int)newSet_TopLeft.x, (int)newSet_TopLeft.y] = mapHex_BiomeSets[x, y];
 
-
-                newScaleMap_Arr[(int)newSet_TopLeft.x, (int)newSet_TopLeft.y] = mapHex_BiomeSets[i, j];
-
+                //Fill In the New Values With 0s too be overwritten Later
                 newScaleMap_Arr[(int)newSet_TopRight.x, (int)newSet_TopRight.y] = 0;
                 newScaleMap_Arr[(int)newSet_BottomLeft.x, (int)newSet_BottomLeft.y] = 0;
                 newScaleMap_Arr[(int)newSet_BottomRight.x, (int)newSet_BottomRight.y] = 0;
             }
         }
 
-
+        //Set The Old Array as the new Expanded Array
         mapHex_BiomeSets = newScaleMap_Arr;
     }
 
     private static void HexGenBiome_FillZeros()
     {
         //Foreach Each Set Of Hexs Fill All 0s
-        for (int i = 0; i < mapHex_BiomeSets.GetLength(0); i++)
+        for (int y = 0; y < mapHex_BiomeSets.GetLength(0); y++)
         {
-            for (int j = 0; j < mapHex_BiomeSets.GetLength(1); j++)
+            for (int x = 0; x < mapHex_BiomeSets.GetLength(1); x++)
             {
                 //Check if current value is 0
-                if (mapHex_BiomeSets[i, j] == 0)
+                if (mapHex_BiomeSets[x, y] == 0)
                 {
                     //Check Current Status of I / J to determine where the value comes from
-                    if (j % 2 == 0)
+                    if (y % 2 == 0)
                     {
                         //J is an Even Value
-                        HexGenBiome_FillZeros_JEven(i, j);
+                        HexGenBiome_FillZeros_JEven(x, y);
                     }
-                    else if (i % 2 == 0)
+                    else if (x % 2 == 0)
                     {
                         //I is an Even Value
-                        HexGenBiome_FillZeros_IEven(i, j);
+                        HexGenBiome_FillZeros_IEven(x, y);
                     }
-                    else if (j + 1 == mapHex_BiomeSets.GetLength(1))
+                    else if (y + 1 == mapHex_BiomeSets.GetLength(1))
                     {
                         //J is at Max Value
-                        HexGenBiome_FillZeros_JMaxed(i, j);
+                        HexGenBiome_FillZeros_JMaxed(x, y);
                     }
                     else
                     {
                         //Both Values are Odd / Use diagonals
-                        HexGenBiome_FillZeros_Diagonals(i, j);
+                        HexGenBiome_FillZeros_Diagonals(x, y);
                     }
                 }
             }
         }
-
     }
 
-    private static void HexGenBiome_FillZeros_JEven(int i, int j)
+    private static void HexGenBiome_FillZeros_JEven(int x, int y)
     {
         //Random FOr Left and Right
         int rand = Random.Range(0, 2);
@@ -501,35 +527,35 @@ public struct MapGenerationController
         {
             //Left
             case 0:
-                if (HexGenBiome_CheckValidHexSpace(i - 1, j))
+                if (HexGenBiome_CheckValidHexSpace(x - 1, y))
                 {
                     //True Left
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x - 1, y];
                 }
                 else
                 {
                     //Forced Right
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x + 1, y];
                 }
                 break;
 
             //Right
             case 1:
-                if (HexGenBiome_CheckValidHexSpace(i + 1, j))
+                if (HexGenBiome_CheckValidHexSpace(x + 1, y))
                 {
                     //True Right
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x + 1, y];
                 }
                 else
                 {
                     //Forced Left
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x - 1, y];
                 }
                 break;
         }
     }
 
-    private static void HexGenBiome_FillZeros_IEven(int i, int j)
+    private static void HexGenBiome_FillZeros_IEven(int x, int y)
     {
         //Random For Up and Down
         int rand = Random.Range(0, 2);
@@ -538,29 +564,29 @@ public struct MapGenerationController
         {
             //Down
             case 0:
-                if (HexGenBiome_CheckValidHexSpace(i, j - 1))
+                if (HexGenBiome_CheckValidHexSpace(x, y - 1))
                 {
                     //True Down
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i, j - 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x, y - 1];
                 }
                 else
                 {
                     //Forced Up
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i, j + 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x, y + 1];
                 }
                 break;
 
             //Up
             case 1:
-                if (HexGenBiome_CheckValidHexSpace(i, j + 1))
+                if (HexGenBiome_CheckValidHexSpace(x, y + 1))
                 {
                     //True Up
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i, j + 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x, y + 1];
                 }
                 else
                 {
                     //Forced Down
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i, j - 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x, y - 1];
                 }
                 break;
 
@@ -568,53 +594,53 @@ public struct MapGenerationController
         }
     }
 
-    private static void HexGenBiome_FillZeros_JMaxed(int i, int j)
+    private static void HexGenBiome_FillZeros_JMaxed(int x, int y)
     {
-        if (i == 0)
+        if (x == 0)
         {
 
             //True Right / Down
-            mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j - 1];
+            mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x + 1, y - 1];
 
             return;
 
-            if (HexGenBiome_CheckValidHexSpace(i + 1, j - 1))
+            if (HexGenBiome_CheckValidHexSpace(x + 1, y - 1))
             {
 
             }
             else
             {
                 //Forced Left / Up
-                mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j + 1];
+                mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x - 1, y + 1];
             }
         }
-        else if (i + 1 == mapHex_BiomeSets.GetLength(0))
+        else if (x + 1 == mapHex_BiomeSets.GetLength(0))
         {
 
             //True Left / Down
-            mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j - 1];
+            mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x - 1, y - 1];
 
             return;
 
-            if (HexGenBiome_CheckValidHexSpace(i + 1, j - 1))
+            if (HexGenBiome_CheckValidHexSpace(x + 1, y - 1))
             {
                 //True Right / Up
-                mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j - 1];
+                mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x + 1, y - 1];
             }
             else
             {
                 //Forced Left / Up
-                mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j + 1];
+                mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x - 1, y + 1];
             }
         }
         else
         {
             //Get South
-            HexGenBiome_FillZeros_Diagonals(i, j);
+            HexGenBiome_FillZeros_Diagonals(x, y);
         }
     }
 
-    private static void HexGenBiome_FillZeros_Diagonals(int i, int j)
+    private static void HexGenBiome_FillZeros_Diagonals(int x, int y)
     {
         //Random For Diagonal Sets
         int rand = Random.Range(0, 4);
@@ -623,75 +649,75 @@ public struct MapGenerationController
         {
             //Left / Down
             case 0:
-                if (HexGenBiome_CheckValidHexSpace(i - 1, j - 1))
+                if (HexGenBiome_CheckValidHexSpace(x - 1, y - 1))
                 {
                     //True Left / Down
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j - 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x - 1, y - 1];
                 }
                 else
                 {
                     //Forced Right / Up
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j + 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x + 1, y + 1];
                 }
                 break;
 
             //Right / Up
             case 1:
-                if (HexGenBiome_CheckValidHexSpace(i + 1, j + 1))
+                if (HexGenBiome_CheckValidHexSpace(x + 1, y + 1))
                 {
                     //True Right / Up
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j + 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x + 1, y + 1];
                 }
                 else
                 {
                     //Forced Left / Down
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j - 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x - 1, y - 1];
                 }
                 break;
 
             //Left / Up
             case 2:
-                if (HexGenBiome_CheckValidHexSpace(i - 1, j + 1))
+                if (HexGenBiome_CheckValidHexSpace(x - 1, y + 1))
                 {
                     //True Up
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j + 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x - 1, y + 1];
                 }
                 else
                 {
                     //Forced Down
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j - 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x + 1, y - 1];
                 }
                 break;
 
             //Right / Down
             case 3:
-                if (HexGenBiome_CheckValidHexSpace(i + 1, j - 1))
+                if (HexGenBiome_CheckValidHexSpace(x + 1, y - 1))
                 {
                     //True Right / Down
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i + 1, j - 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x + 1, y - 1];
                 }
                 else
                 {
                     //Forced Left / Up
-                    mapHex_BiomeSets[i, j] = mapHex_BiomeSets[i - 1, j + 1];
+                    mapHex_BiomeSets[x, y] = mapHex_BiomeSets[x - 1, y + 1];
                 }
                 break;
         }
     }
 
-    private static bool HexGenBiome_CheckValidHexSpace(int i, int j)
+    private static bool HexGenBiome_CheckValidHexSpace(int x, int y)
     {
-        if (i < 0 || j < 0)
+        if (x < 0 || y < 0)
         {
             return false;
         }
 
-        if (mapHex_BiomeSets.GetLength(0) < i + 1)
+        if (mapHex_BiomeSets.GetLength(0) < x + 1)
         {
             return false;
         }
 
-        if (mapHex_BiomeSets.GetLength(1) < j + 1)
+        if (mapHex_BiomeSets.GetLength(1) < y + 1)
         {
             return false;
         }
@@ -701,28 +727,28 @@ public struct MapGenerationController
 
     private static void HexGenBiome_PostGeneration_Ocean()
     {
-        for (int i = 0; i < mapGenOptions.mapGen_SideLength; i++)
+        for (int y = 0; y < mapGenOptions.mapGen_SectorTotalSize; y++)
         {
-            for (int j = 0; j < mapGenOptions.mapGen_OceanSize; j++)
+            for (int x = 0; x < mapGenOptions.mapGen_OceanSize; x++)
             {
-                mapHex_BiomeSets[i, j] = 0;
-                mapHex_BiomeSets[j, i] = 0;
-                mapHex_BiomeSets[i, mapGenOptions.mapGen_SideLength - (j + 1)] = 0;
-                mapHex_BiomeSets[mapGenOptions.mapGen_SideLength - (j + 1), i] = 0;
+                mapHex_BiomeSets[x, y] = 0;
+                mapHex_BiomeSets[y, x] = 0;
+                mapHex_BiomeSets[mapGenOptions.mapGen_SectorTotalSize - (x + 1), y] = 0;
+                mapHex_BiomeSets[y, mapGenOptions.mapGen_SectorTotalSize - (x + 1)] = 0;
             }
         }
     }
 
     private static void HexGenBiome_PostGeneration_Beaches()
     {
-        for (int i = mapGenOptions.mapGen_OceanSize; i < mapGenOptions.mapGen_SideLength - mapGenOptions.mapGen_OceanSize; i++)
+        for (int y = mapGenOptions.mapGen_OceanSize; y < mapGenOptions.mapGen_SectorTotalSize - mapGenOptions.mapGen_OceanSize; y++)
         {
-            for (int j = mapGenOptions.mapGen_OceanSize; j < mapGenOptions.mapGen_OceanSize + mapGenOptions.mapGen_BeachSize; j++)
+            for (int x = mapGenOptions.mapGen_OceanSize; x < mapGenOptions.mapGen_OceanSize + mapGenOptions.mapGen_BeachSize; x++)
             {
-                mapHex_BiomeSets[i, j] = 1;
-                mapHex_BiomeSets[j, i] = 1;
-                mapHex_BiomeSets[i, mapGenOptions.mapGen_SideLength - (j + 1)] = 1;
-                mapHex_BiomeSets[mapGenOptions.mapGen_SideLength - (j + 1), i] = 1;
+                mapHex_BiomeSets[x, y] = 1;
+                mapHex_BiomeSets[y, x] = 1;
+                mapHex_BiomeSets[mapGenOptions.mapGen_SectorTotalSize - (x + 1), y] = 1;
+                mapHex_BiomeSets[y, mapGenOptions.mapGen_SectorTotalSize - (x + 1)] = 1;
             }
         }
     }
@@ -735,9 +761,9 @@ public struct MapGenerationController
 
         // one the nodes
 
-        // one the "Clusters"
+        // one the "Biome Clusters"
 
-        bool[,] hasBeenSearched_Arr = new bool[mapGenOptions.mapGen_SideLength, mapGenOptions.mapGen_SideLength];
+        //bool[,] hasBeenSearched_Arr = new bool[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
         //int[] = 
 
         //BiomeCluster[,] biomeCluster_List;
@@ -746,17 +772,17 @@ public struct MapGenerationController
 
 
 
-        int oceanSize = 10;
+        //int oceanSize = 10;
 
 
-        for (int i = 0; i < mapGenOptions.mapGen_SideLength; i++)
+        //for (int i = 0; i < mapGenOptions.mapGen_SectorTotalSize; i++)
         {
-            for (int j = 0; j < oceanSize; j++)
+            //for (int j = 0; j < oceanSize; j++)
             {
-                mapHex_BiomeSets[i, j] = 0;
-                mapHex_BiomeSets[j, i] = 0;
-                mapHex_BiomeSets[i, mapGenOptions.mapGen_SideLength - (j + 1)] = 0;
-                mapHex_BiomeSets[mapGenOptions.mapGen_SideLength - (j + 1), i] = 0;
+                //mapHex_BiomeSets[i, j] = 0;
+                //mapHex_BiomeSets[j, i] = 0;
+                //mapHex_BiomeSets[i, mapGenOptions.mapGen_SectorTotalSize - (j + 1)] = 0;
+                //mapHex_BiomeSets[mapGenOptions.mapGen_SectorTotalSize - (j + 1), i] = 0;
             }
         }
     }
@@ -770,16 +796,17 @@ public struct MapGenerationController
 
     private static void HexGenUtility_SetMapSeed(int mapHex_Seed)
     {
+        //Set The Random State With The Seed
         Random.InitState(mapHex_Seed);
     }
 
     private static void HexGenUtility_MatsAndColors()
     {
         //Spawn Cells By X (Left and Right)
-        for (int x = 0; x < mapHex_MatIDSets.GetLength(0); x++)
+        for (int y = 0; y < mapGenOptions.mapGen_SectorTotalSize; y++)
         {
             //Spawn Cells By Y (Up and Down)
-            for (int y = 0; y < mapHex_MatIDSets.GetLength(1); y++)
+            for (int x = 0; x < mapGenOptions.mapGen_SectorTotalSize; x++)
             {
                 //Get The Biome Info Cell based off of the biome in the given cell
                 BiomeCellInfo biomeCellInfo = mapGenOptions.allBiomes_Arr[mapHex_BiomeSets[x, y]].GetRandomBiomeCell();
@@ -794,21 +821,42 @@ public struct MapGenerationController
     private static void HexGenUtility_MergeRawDataToHexDataCells()
     {
         //Spawn Cells By X (Left and Right)
-        for (int y = 0; y < generatedHexSector.dataHexCellsInSector_Arr.GetLength(1); y++)
+        for (int x = 0; x < mapGenOptions.mapGen_SectorTotalSize; x++)
         {
             //Spawn Cells By Y (Up and Down)
-            for (int x = 0; x < generatedHexSector.dataHexCellsInSector_Arr.GetLength(1); x++)
+            for (int y = 0; y < mapGenOptions.mapGen_SectorTotalSize; y++)
             {
-                //Store The Data Collected From Other Methodsit
-                generatedHexSector.dataHexCellsInSector_Arr[x, y] = new HexCell_Data
+                //DEBUG RANDOM
+                if (x < 3 && y < 1)
                 {
-                    //Flip Here, The For Loops Generate Backwards
-                    hexCoords = new HexCellCoords(x, y, 0),
-                    hexCell_heightSteps = mapHex_HeightSets[x, y],
-                    hexCell_BiomeID = mapHex_BiomeSets[x, y],
-                    hexCell_Color = mapHex_ColorSets[x, y],
-                    hexCell_MatID = mapHex_MatIDSets[x, y]
-                };
+                    //Store The Data Collected From Other Methods
+                    HexCell_Data mergedCell = new HexCell_Data
+                    {
+                        hexCoords = new HexCellCoords(x + (generatedHexSector.sectorCoords.x * mapGenOptions.mapGen_SectorTotalSize), y + (generatedHexSector.sectorCoords.y * mapGenOptions.mapGen_SectorTotalSize), 0),
+                        hexCell_HeightSteps = mapHex_HeightSets[x, y],
+                        hexCell_BiomeID = 0,
+                        hexCell_Color = "#FFFFFF",
+                        hexCell_MatID = 0
+                    };
+
+                    //Add to Dictionary
+                    generatedHexSector.HexCellsData_Dict.Add(mergedCell.hexCoords, mergedCell);
+                }
+                else
+                {
+                    //Store The Data Collected From Other Methodsit
+                    HexCell_Data mergedCell = new HexCell_Data
+                    {
+                        hexCoords = new HexCellCoords(x + (generatedHexSector.sectorCoords.x * mapGenOptions.mapGen_SectorTotalSize), y + (generatedHexSector.sectorCoords.y * mapGenOptions.mapGen_SectorTotalSize), 0),
+                        hexCell_HeightSteps = mapHex_HeightSets[x, y],
+                        hexCell_BiomeID = mapHex_BiomeSets[x, y],
+                        hexCell_Color = mapHex_ColorSets[x, y],
+                        hexCell_MatID = mapHex_MatIDSets[x, y]
+                    };
+
+                    //Add to Dictionary
+                    generatedHexSector.HexCellsData_Dict.Add(mergedCell.hexCoords, mergedCell);
+                }
             }
         }
     }

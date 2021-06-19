@@ -91,7 +91,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5051034735622508595}
   m_Layer: 0
-  m_Name: White Stone Pawn
+  m_Name: Hex Decoration - White Stone Pawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9137558744462546871}
   - component: {fileID: 3293746326858795258}
   m_Layer: 0
-  m_Name: Hex Chunk Model
+  m_Name: Hex Chunk - Merging Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

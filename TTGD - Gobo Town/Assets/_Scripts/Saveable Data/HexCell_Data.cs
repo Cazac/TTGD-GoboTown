@@ -11,7 +11,7 @@ public class HexCell_Data
     public int hexCell_BiomeID;
     public int hexCell_MatID;
     public string hexCell_Color;
-    public int hexCell_heightSteps;
+    public int hexCell_HeightSteps;
 
     [Header("Locatable Coords")]
     public HexCellCoords hexCoords;

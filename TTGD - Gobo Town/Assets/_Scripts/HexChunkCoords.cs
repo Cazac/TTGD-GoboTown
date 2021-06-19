@@ -7,8 +7,8 @@ public struct HexChunkCoords
 {
     ////////////////////////////////
 
-    public readonly int x;
-    public readonly int y;
+    public int x;
+    public int y;
 
     /////////////////////////////////////////////////////////////////
 
@@ -25,7 +25,7 @@ public struct HexChunkCoords
         string hexCoordInfo_X = "X: " + x;
         string hexCoordInfo_Y = "Y: " + y;
 
-        return "Chunk Coords: (" + hexCoordInfo_X + ", " + hexCoordInfo_Y + ")";
+        return "CHUNK Coords: (" + hexCoordInfo_X + ", " + hexCoordInfo_Y + ")";
     }
 
     /////////////////////////////////////////////////////////////////

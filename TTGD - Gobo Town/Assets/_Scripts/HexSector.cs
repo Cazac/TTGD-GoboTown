@@ -2,11 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct HexSector
+public class HexSector
 {
+    ////////////////////////////////
+    
+    public HexSectorCoords sectorCoords;
 
-    public HexCell_Data[,] dataHexCellsInSector_Arr;
-
-
-
+    [Header("BLANKVAHR")]
+    public Dictionary<HexCellCoords, HexCell_Data> HexCellsData_Dict;
+    public Dictionary<HexChunkCoords, HexChunk> hexChunks_Dict;
+    //public HexCell_Data[,] DataOnly_HexCells_Arr;
+    //public HexChunk[,] hexChunks_Arr;
+   
+    ////////////////////////////////
 }
