@@ -14,6 +14,7 @@ public class MapGenerationOptions_SO : ScriptableObject
     ////////////////////////////////
     
     [Header("Hex Gen Settings - RNG")]
+    [Range(1000, 9999)]
     public int mapGen_Seed;
 
     ////////////////////////////////

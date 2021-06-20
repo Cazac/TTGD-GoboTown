@@ -29494,7 +29494,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isShowingBiomeVisuals: 0
-  mapGenOpts_SO: {fileID: 11400000, guid: abdb153f38e93c74b964f93beacfdf2e, type: 2}
+  mapGenOpts_SO: {fileID: 11400000, guid: 02f81a9008c053d42969fbbe0b288556, type: 2}
   chunkRenderDistance: 2
   cameraGenerated: {fileID: 963194227}
   cameraRelativePosition: {x: 5, y: -2}

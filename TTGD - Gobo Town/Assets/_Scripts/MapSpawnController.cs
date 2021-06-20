@@ -179,10 +179,10 @@ public class MapSpawnController : MonoBehaviour
         hexSectors_Dict.Add(new HexSectorCoords(0, 0), MapGenerationController.HexMapGenerate_InitialSector(mapGenOpts_SO, new HexSectorCoords(0, 0)));
 
         //Generate Other Defaults
-        HexMap_CreateNewSector(new HexSectorCoords(1, 0));
-        HexMap_CreateNewSector(new HexSectorCoords(-1, 0));
-        HexMap_CreateNewSector(new HexSectorCoords(0, 1));
-        HexMap_CreateNewSector(new HexSectorCoords(0, -1));
+        //HexMap_CreateNewSector(new HexSectorCoords(1, 0));
+        //HexMap_CreateNewSector(new HexSectorCoords(-1, 0));
+        //HexMap_CreateNewSector(new HexSectorCoords(0, 1));
+        //HexMap_CreateNewSector(new HexSectorCoords(0, -1));
         
         //Setup Chunks In Pooler
         HexPoolingController.Instance.SetupInitialPool_Chunk();

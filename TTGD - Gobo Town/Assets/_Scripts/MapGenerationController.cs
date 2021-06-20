@@ -44,8 +44,6 @@ public struct MapGenerationController
         //Setup Array Values
         generatedHexSector.HexCellsData_Dict = new Dictionary<HexCellCoords, HexCell_Data>();
         generatedHexSector.hexChunks_Dict = new Dictionary<HexChunkCoords, HexChunk>();
-        //          generatedHexSector.DataOnly_HexCells_Arr = new HexCell_Data[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
-        //          generatedHexSector.hexChunks_Arr = new HexChunk[mapGenOptions.mapGen_SectorTotalSize / mapGenOptions.mapGen_ChunkSize, mapGenOptions.mapGen_SectorTotalSize / mapGenOptions.mapGen_ChunkSize];
 
         //Create Generation Arrays By Size
         mapHex_HeightSets = new int[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
@@ -55,7 +53,7 @@ public struct MapGenerationController
         ////////////////////////////////
 
         //Generate Map Seed For Random Values
-        HexGenUtility_SetMapSeed(mapGenOptions.mapGen_Seed);
+        HexGenUtility_SetMapSeed();
 
         //Generate Biome Sets
         HexGenBiome();
@@ -95,8 +93,6 @@ public struct MapGenerationController
         //Setup Array Values
         generatedHexSector.HexCellsData_Dict = new Dictionary<HexCellCoords, HexCell_Data>();
         generatedHexSector.hexChunks_Dict = new Dictionary<HexChunkCoords, HexChunk>();
-        //          generatedHexSector.DataOnly_HexCells_Arr = new HexCell_Data[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
-        //          generatedHexSector.hexChunks_Arr = new HexChunk[mapGenOptions.mapGen_SectorTotalSize / mapGenOptions.mapGen_ChunkSize, mapGenOptions.mapGen_SectorTotalSize / mapGenOptions.mapGen_ChunkSize];
 
         //Create Generation Arrays By Size
         mapHex_HeightSets = new int[mapGenOptions.mapGen_SectorTotalSize, mapGenOptions.mapGen_SectorTotalSize];
@@ -106,7 +102,7 @@ public struct MapGenerationController
         ////////////////////////////////
 
         //Generate Map Seed For Random Values
-        HexGenUtility_SetMapSeed(mapGenOptions.mapGen_Seed);
+        HexGenUtility_SetMapSeed();
 
         //Generate Biome Sets
         HexGenBiome();
@@ -759,10 +755,54 @@ public struct MapGenerationController
 
     /////////////////////////////////////////////////////////////////
 
-    private static void HexGenUtility_SetMapSeed(int mapHex_Seed)
+    private static void HexGenUtility_SetMapSeed()
     {
+        //Create a Seed for the Sector Using the Map Seed +/- The Sector Coords
+        int mapSeed = mapGenOptions.mapGen_Seed;
+
+
+
+
+        int xyQuadrantValue = 0;
+        if (generatedHexSector.sectorCoords.x >= 0)
+        {
+            if (generatedHexSector.sectorCoords.y >= 0)
+            {
+                xyQuadrantValue = 0;
+            }
+            else
+            {
+                xyQuadrantValue = 1;
+            }
+        }
+        else
+        {
+            if (generatedHexSector.sectorCoords.y >= 0)
+            {
+                xyQuadrantValue = 2;
+            }
+            else
+            {
+                xyQuadrantValue = 3;
+            }
+        }
+
+
+        int xValue = Mathf.Abs(generatedHexSector.sectorCoords.x);
+        int yValue = Mathf.Abs(generatedHexSector.sectorCoords.y);
+
+
+        string sectorString = xyQuadrantValue.ToString() + xValue.ToString() + yValue.ToString();
+        int sectorValue = int.Parse(sectorString);
+        int finalSeed = sectorValue + (mapSeed * 100);
+
+
+
+        Debug.Log("Test Code: Final Seed " + finalSeed);
+
+
         //Set The Random State With The Seed
-        Random.InitState(mapHex_Seed);
+        Random.InitState(finalSeed);
     }
 
     private static void HexGenUtility_MatsAndColors()
