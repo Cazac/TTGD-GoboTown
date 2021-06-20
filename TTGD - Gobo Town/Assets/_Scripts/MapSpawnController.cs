@@ -185,7 +185,7 @@ public class MapSpawnController : MonoBehaviour
         HexMap_CreateNewSector(new HexSectorCoords(0, -1));
         
         //Setup Chunks In Pooler
-        HexPoolingController.Instance.SetupInitialPool();
+        HexPoolingController.Instance.SetupInitialPool_Chunk();
     }
 
     private void HexMap_CreateNewSector(HexSectorCoords sectorCoords)
@@ -296,11 +296,46 @@ public class MapSpawnController : MonoBehaviour
         //Check For New Sector Generatation
         GetCheckNewSectors_ByCellCoords(newCellCoords_UnderCamera);
 
+        /*
         //Get New Chunk Array Positions
-        int oldChunkCoordX = (int)Mathf.Floor(lastCellCoords_UnderCamera.x / mapGenOpts_SO.mapGen_ChunkSize);
-        int oldChunkCoordY = (int)Mathf.Floor(lastCellCoords_UnderCamera.y / mapGenOpts_SO.mapGen_ChunkSize);
-        int chunkCoordX = (int)Mathf.Floor(newCellCoords_UnderCamera.x / mapGenOpts_SO.mapGen_ChunkSize);
-        int chunkCoordY = (int)Mathf.Floor(newCellCoords_UnderCamera.y / mapGenOpts_SO.mapGen_ChunkSize);
+        int oldChunkCoordX = lastCellCoords_UnderCamera.x / mapGenOpts_SO.mapGen_ChunkSize;
+        int oldChunkCoordY = lastCellCoords_UnderCamera.y / mapGenOpts_SO.mapGen_ChunkSize;
+        int chunkCoordX = newCellCoords_UnderCamera.x / mapGenOpts_SO.mapGen_ChunkSize;
+        int chunkCoordY = newCellCoords_UnderCamera.y / mapGenOpts_SO.mapGen_ChunkSize;
+
+        if (lastCellCoords_UnderCamera.x - 1 < 0)
+        {
+            oldChunkCoordX -= 1;
+        }
+
+        if (lastCellCoords_UnderCamera.y - 1 < 0)
+        {
+            oldChunkCoordY -= 1;
+        }
+
+        if (newCellCoords_UnderCamera.x - 1 < 0)
+        {
+            chunkCoordX -= 1;
+        }
+
+
+        if (newCellCoords_UnderCamera.y - 1 < 0)
+        {
+            chunkCoordY -= 1;
+        }
+        */
+
+        //Debug.Log("Test Code: " + newCellCoords_UnderCamera.GetPrintableCoords());
+
+
+
+        //Get New Chunk Array Positions
+        int oldChunkCoordX = (int)Mathf.Floor((float)lastCellCoords_UnderCamera.x / mapGenOpts_SO.mapGen_ChunkSize);
+        int oldChunkCoordY = (int)Mathf.Floor((float)lastCellCoords_UnderCamera.y / mapGenOpts_SO.mapGen_ChunkSize);
+        int chunkCoordX = (int)Mathf.Floor((float)newCellCoords_UnderCamera.x / mapGenOpts_SO.mapGen_ChunkSize);
+        int chunkCoordY = (int)Mathf.Floor((float)newCellCoords_UnderCamera.y / mapGenOpts_SO.mapGen_ChunkSize);
+
+
 
         //Update Cell Under Camera
         lastCellCoords_UnderCamera = newCellCoords_UnderCamera;
@@ -330,7 +365,7 @@ public class MapSpawnController : MonoBehaviour
             newChunk.SetChunkActive(currentCoords, GetHexCellDataList_ByChunk(currentCoords));
 
             //CHUNK THIS CHUNK
-
+            newChunk.Chunk();
         }
 
     }
@@ -361,13 +396,10 @@ public class MapSpawnController : MonoBehaviour
         //Loop All Removing Chunks For Deactivation
         foreach (HexChunkCoords chunkCoords in removableChunkCoords_List)
         {
-            //Get The Chunk Script
+            //Get The Chunk Script And Deactivate it
             HexChunk hexChunk = GetHexChunk_ByChunk(chunkCoords);
-
-            //Deactivate The Chunk
-            hexChunk.currentState = HexChunk.ChunkState.Inactive;
-            currentlyLoaded_Chunks_List.Remove(chunkCoords);
             HexPoolingController.Instance.DeactivateObject(hexChunk);
+            currentlyLoaded_Chunks_List.Remove(chunkCoords);
         }
 
         //Filter The New Spawn Chunks as possibles minus the Keepers
@@ -569,8 +601,6 @@ public class MapSpawnController : MonoBehaviour
                 returningHexCellDatas_Arr[x, y] = hexSectors_Dict[sectorCoords].HexCellsData_Dict[new HexCellCoords(cellX, cellY, 0)];
             }
         }
-
-        Debug.Log("Test Code: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
         //Return The local Cells
         return returningHexCellDatas_Arr;

@@ -13,19 +13,19 @@ public class HexPoolingController : MonoBehaviour
     ////////////////////////////////
 
     [Header("Sets the startup amount of meshes to pre-load")]
-    public int intialPoolCount;
+    public int hexChunk_IntialPoolCount;
 
     [Header("Chunk Prefab")]
     public GameObject hexChunk_Prefab;
     public GameObject hexCell_Prefab;
 
     [Header("Containers")]
-    public GameObject activeChunks_Container;
-    public GameObject inactiveChunks_Container;
+    public GameObject hexChunk_ActiveContainer;
+    public GameObject hexChunk_InactiveContainer;
 
     [Header("Queues")]
-    public Queue<HexChunk> activepool_Queue = new Queue<HexChunk>();
-    public Queue<HexChunk> inactivepool_Queue = new Queue<HexChunk>();
+    public Queue<HexChunk> hexChunk_ActivePoolQueue = new Queue<HexChunk>();
+    public Queue<HexChunk> hexChunk_InactivePoolQueue = new Queue<HexChunk>();
 
     /////////////////////////////////////////////////////////////////
 
@@ -37,12 +37,12 @@ public class HexPoolingController : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    public void SetupInitialPool()
+    public void SetupInitialPool_Chunk()
     {
-        for (int i = 0; i < intialPoolCount; i++)
+        for (int i = 0; i < hexChunk_IntialPoolCount; i++)
         {
             //Create and Enqueue A New Object
-            inactivepool_Queue.Enqueue(CreateObject());
+            hexChunk_InactivePoolQueue.Enqueue(CreateObject());
         }
     }
 
@@ -51,7 +51,7 @@ public class HexPoolingController : MonoBehaviour
     private HexChunk CreateObject()
     {
         //Create The New Chunk
-        HexChunk newChunk = Instantiate(hexChunk_Prefab, inactiveChunks_Container.transform).GetComponent<HexChunk>();
+        HexChunk newChunk = Instantiate(hexChunk_Prefab, hexChunk_InactiveContainer.transform).GetComponent<HexChunk>();
 
         //Spawn The Hexs
         List<HexCell> hexsSpawned = new List<HexCell>();
@@ -78,16 +78,16 @@ public class HexPoolingController : MonoBehaviour
     public HexChunk ActivateObject()
     {
         //Spawn A New Gameobject if The Inactive Queue is Empty
-        if (inactivepool_Queue.Count == 0)
+        if (hexChunk_InactivePoolQueue.Count == 0)
         {
-            inactivepool_Queue.Enqueue(CreateObject());
+            hexChunk_InactivePoolQueue.Enqueue(CreateObject());
         }
 
         //Get / Dequeue Next Script From Inactive Queue
-        HexChunk poolableObject = inactivepool_Queue.Dequeue();
+        HexChunk poolableObject = hexChunk_InactivePoolQueue.Dequeue();
 
         //Set / Enqueue Next Script To Active Queue
-        activepool_Queue.Enqueue(poolableObject);
+        hexChunk_ActivePoolQueue.Enqueue(poolableObject);
 
         //Setup On Spawn Method
         poolableObject.Poolable_OnSpawn();
@@ -98,11 +98,21 @@ public class HexPoolingController : MonoBehaviour
 
     public void DeactivateObject(HexChunk poolableObject)
     {
+        //Deactivate The Chunk State
+        poolableObject.currentState = HexChunk.ChunkState.Inactive;
+
+        //Clear Out The Old Combine Model Meshes
+        for (int i = 0; i < poolableObject.hexCellMergedMeshes_List.Count; i++)
+        {
+            //Destory The Merged Mesh
+            Destroy(poolableObject.hexCellMergedMeshes_List[i].gameObject);
+        }
+
         //Build a new queue without the specified elements
-        activepool_Queue = new Queue<HexChunk>(activepool_Queue.Where(x => !((x.chunkCoords.x == poolableObject.chunkCoords.x) && (x.chunkCoords.y == poolableObject.chunkCoords.y))));
+        hexChunk_ActivePoolQueue = new Queue<HexChunk>(hexChunk_ActivePoolQueue.Where(x => !((x.chunkCoords.x == poolableObject.chunkCoords.x) && (x.chunkCoords.y == poolableObject.chunkCoords.y))));
 
         //Set / Enqueue Next Script To Active Queue
-        inactivepool_Queue.Enqueue(poolableObject);
+        hexChunk_InactivePoolQueue.Enqueue(poolableObject);
 
         //Setup On Spawn Method
         poolableObject.Poolable_OnDespawn();
@@ -110,11 +120,11 @@ public class HexPoolingController : MonoBehaviour
 
     public void DeactivateObjects_All()
     {
-        int counter = activepool_Queue.Count;
+        int counter = hexChunk_ActivePoolQueue.Count;
         for (int i = 0; i < counter; i++)
         {
-            HexChunk poolableObject = activepool_Queue.Dequeue();
-            inactivepool_Queue.Enqueue(poolableObject);
+            HexChunk poolableObject = hexChunk_ActivePoolQueue.Dequeue();
+            hexChunk_InactivePoolQueue.Enqueue(poolableObject);
             poolableObject.Poolable_OnDespawn();
         }
     }

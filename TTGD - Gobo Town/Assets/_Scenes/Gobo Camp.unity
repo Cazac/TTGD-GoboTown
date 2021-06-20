@@ -6089,11 +6089,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ba2b5f1df07cbd4cbd2f027ebb21327, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  intialPoolCount: 5
+  hexChunk_IntialPoolCount: 10
   hexChunk_Prefab: {fileID: 4053091745430206964, guid: bde8425326c5d7246a94a92444287dca, type: 3}
   hexCell_Prefab: {fileID: 2444955979027595997, guid: 956b460145ee4274591057e081db0ac4, type: 3}
-  activeChunks_Container: {fileID: 95607054}
-  inactiveChunks_Container: {fileID: 948740852}
+  hexChunk_ActiveContainer: {fileID: 95607054}
+  hexChunk_InactiveContainer: {fileID: 948740852}
 --- !u!4 &281704594
 Transform:
   m_ObjectHideFlags: 0
@@ -29495,7 +29495,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isShowingBiomeVisuals: 0
   mapGenOpts_SO: {fileID: 11400000, guid: abdb153f38e93c74b964f93beacfdf2e, type: 2}
-  chunkRenderDistance: 0
+  chunkRenderDistance: 2
   cameraGenerated: {fileID: 963194227}
   cameraRelativePosition: {x: 5, y: -2}
   setupGround_GO: {fileID: 987773081}

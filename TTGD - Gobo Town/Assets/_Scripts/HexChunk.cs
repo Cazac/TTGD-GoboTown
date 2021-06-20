@@ -29,7 +29,7 @@ public class HexChunk : MonoBehaviour
 
     [Header("Hex Cells / Combined Meshes In Chunk")]
     public HexCell[] hexCellsInChunk_Arr;
-    private List<MeshFilter> hexCellMergedMeshes_List;
+    public List<MeshFilter> hexCellMergedMeshes_List;
 
     [Header("Hex Chunk Materials")]
     private List<Material> hexChunkMaterials_List;
@@ -65,18 +65,13 @@ public class HexChunk : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    public void Chunk(GameObject hexChunkModel_Prefab, Material[,] mergedBiomeMats_Arr)
+    public void Chunk()
     {
-        //Collect Info on which scripts should be included in the chunk using all Hex Cells from the Transform Children of the Object 
-        //hexCellsInChunk_Arr = gameObject.GetComponentsInChildren<HexCell>();
-
         //Setup Lists
         List<List<CombineInstance>> combiningListOfLists_List = new List<List<CombineInstance>>();
         hexCellMergedMeshes_List = new List<MeshFilter>();
         currentMatIDs_List = new List<Tuple<int, int>>();
         hexChunkMaterials_List = new List<Material>();
-
-
 
         //Loop All Hex Cells To Merge Meshes
         foreach (HexCell hexCell in hexCellsInChunk_Arr)
@@ -107,8 +102,8 @@ public class HexChunk : MonoBehaviour
         //Create All Of the Mesh Filter Gameobjects
         for (int i = 0; i < combiningListOfLists_List.Count; i++)
         {
-            //Spawn a new Model for each Mat and Record it
-            hexCellMergedMeshes_List.Add(Instantiate(hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, gameObject.transform).GetComponent<MeshFilter>());
+            //Spawn a new Merged Chunk Model for each Mat and Record it
+            hexCellMergedMeshes_List.Add(Instantiate(MapSpawnController.Instance.hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, gameObject.transform).GetComponent<MeshFilter>());
         }
 
 
@@ -124,7 +119,7 @@ public class HexChunk : MonoBehaviour
 
 
         //Setup The General Info
-        hexCellMergedMeshes_List[0].gameObject.name = "Chunk Model";
+        hexCellMergedMeshes_List[0].gameObject.name = "Chunk Merged Model";
         hexCellMergedMeshes_List[0].gameObject.transform.SetAsFirstSibling();
     }
 
@@ -208,13 +203,13 @@ public class HexChunk : MonoBehaviour
     public void Poolable_OnSpawn()
     {
         //Set Parent
-        gameObject.transform.SetParent(HexPoolingController.Instance.activeChunks_Container.transform);
+        gameObject.transform.SetParent(HexPoolingController.Instance.hexChunk_ActiveContainer.transform);
     }
 
     public void Poolable_OnDespawn()
     {
         //Set Parent
-        gameObject.transform.SetParent(HexPoolingController.Instance.inactiveChunks_Container.transform);
+        gameObject.transform.SetParent(HexPoolingController.Instance.hexChunk_InactiveContainer.transform);
     }
 
     /////////////////////////////////////////////////////////////////
