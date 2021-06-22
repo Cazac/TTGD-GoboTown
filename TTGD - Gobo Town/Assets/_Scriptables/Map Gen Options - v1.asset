@@ -17,7 +17,7 @@ MonoBehaviour:
   mapGen_Seed: 1350
   mapGen_StartingBiomeNodesCount: 4
   mapGen_SectorTotalSize: 64
-  mapGen_SectorOuterChunkSize: 1
+  mapGen_EmptiedChunkBorderSize: 1
   mapGen_ChunkSize: 8
   mapGen_HeightMin: 0
   mapGen_HeightMax: 4

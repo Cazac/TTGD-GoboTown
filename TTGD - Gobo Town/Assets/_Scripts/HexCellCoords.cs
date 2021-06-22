@@ -20,6 +20,13 @@ public struct HexCellCoords
         l = incomingL;
     }
 
+    public HexCellCoords(int incomingX, int incomingY)
+    {
+        x = incomingX;
+        y = incomingY;
+        l = 0;
+    }
+
     /////////////////////////////////////////////////////////////////
 
     public string GetPrintableCoords()

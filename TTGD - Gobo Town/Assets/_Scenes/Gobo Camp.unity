@@ -6500,7 +6500,7 @@ GameObject:
   - component: {fileID: 305887439}
   - component: {fileID: 305887438}
   m_Layer: 0
-  m_Name: Hex Map Ground
+  m_Name: Hex Map Ground Container
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29495,11 +29495,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isShowingBiomeVisuals: 0
   mapGenOpts_SO: {fileID: 11400000, guid: 02f81a9008c053d42969fbbe0b288556, type: 2}
-  chunkRenderDistance: 2
+  chunkRenderDistance: 1
   cameraGenerated: {fileID: 963194227}
   cameraRelativePosition: {x: 5, y: -2}
   setupGround_GO: {fileID: 987773081}
-  scalingGround_GO: {fileID: 305887436}
+  sectorGroundContainer_GO: {fileID: 0}
   hexMapContainer_GO: {fileID: 1741760701}
   hexMesh_Prefab: {fileID: 2444955979027595997, guid: 956b460145ee4274591057e081db0ac4, type: 3}
   hexChunk_Prefab: {fileID: 4053091745430206964, guid: bde8425326c5d7246a94a92444287dca, type: 3}
@@ -29507,10 +29507,13 @@ MonoBehaviour:
   hexGrass_Prefab: {fileID: 1216015022455063022, guid: de73aea7a5bf78147bb2fd6b1ee4f716, type: 3}
   biomeVisualQuad_Prefab: {fileID: 8120447427596774857, guid: d3787cde6bc8bdb43a323cc1b62a3c5c, type: 3}
   biomeVisualContainer_GO: {fileID: 2114146878}
-  lastCellCoords_UnderCamera:
+  coordsUnderCamera_Cell:
     x: 0
     y: 0
     l: 0
+  coordsUnderCamera_Chunk:
+    x: 0
+    y: 0
   mySaveFile:
     mapHex_Seed: 135135
 --- !u!4 &1629504205

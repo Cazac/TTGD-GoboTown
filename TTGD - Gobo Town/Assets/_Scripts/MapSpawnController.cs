@@ -16,8 +16,6 @@ public class MapSpawnController : MonoBehaviour
     [Header("Sector Storage")]
     private Dictionary<HexSectorCoords, HexSector> hexSectors_Dict = new Dictionary<HexSectorCoords, HexSector>();
 
-    //public HexSector debugHexSector;
-
     [Header("Currently Active Chunks")]
     private List<HexChunkCoords> currentlyLoaded_Chunks_List = new List<HexChunkCoords>();
 
@@ -42,7 +40,7 @@ public class MapSpawnController : MonoBehaviour
     
     [Header("Hex Map Containers")]
     public GameObject setupGround_GO;
-    public GameObject scalingGround_GO;
+    public GameObject sectorGroundContainer_GO;
     public GameObject hexMapContainer_GO;
 
     [Header("Hex Map Prefabs")]
@@ -70,8 +68,12 @@ public class MapSpawnController : MonoBehaviour
 
     ////////////////////////////////
 
+    [Header("Current Camera Position")]
+    public HexCellCoords coordsUnderCamera_Cell = new HexCellCoords(0, 0);
+    public HexChunkCoords coordsUnderCamera_Chunk = new HexChunkCoords(0, 0);
+    public HexSectorCoords coordsUnderCamera_Sector = new HexSectorCoords(0, 0);
 
-    public HexCellCoords lastCellCoords_UnderCamera = new HexCellCoords(0, 0, 0);
+    ////////////////////////////////
 
     [HideInInspector]
     public Material[,] mergedBiomeMats_Arr;
@@ -96,10 +98,10 @@ public class MapSpawnController : MonoBehaviour
     private void Start()
     {
         //Generate an Initial Sector and Preform Setup 
-        HexMap_Initialize();
+        HexSetup_Initialize();
 
         //Spawn The Hex Map
-        HexMap_Spawn();
+        HexMap_SpawnMap();
     }
 
     private void Update()
@@ -115,19 +117,32 @@ public class MapSpawnController : MonoBehaviour
 
         //Not Used Yet
         UpdateCheck_SavingLoading();
-
-        //Debug.Log("Test Code: Sector Count: " + hexSectors_Dict.Count);
     }
 
     private void FixedUpdate()
     {
         //Check If Camera is in new location
-        HexSpawn_CameraChunks();
+        UpdateCheck_SpawnCameraChunks();
     }
 
     /////////////////////////////////////////////////////////////////
 
-    private void MapSetup_BiomeMatsArray()
+    private void HexSetup_Initialize()
+    {
+        //Initialize The Setup Values
+        HexSetup_BiomeMatsArray();
+
+        //Clean Dictionary Before Use
+        hexSectors_Dict.Clear();
+
+        //Use the Generator to create the Hexs Needed to Spawn
+        hexSectors_Dict.Add(new HexSectorCoords(0, 0), MapGenerationController.HexMapGenerate_InitialSector(mapGenOpts_SO, new HexSectorCoords(0, 0)));
+
+        //Setup Chunks In Pooler
+        HexPoolingController.Instance.SetupInitialPool_Chunk();
+    }
+
+    private void HexSetup_BiomeMatsArray()
     {
         //Search For the highest Biome Mat ID to create an array size
         int highestBiomeMatID = 0;
@@ -167,43 +182,13 @@ public class MapSpawnController : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    private void HexMap_Initialize()
-    {
-        //Initialize The Setup Values
-        MapSetup_BiomeMatsArray();
-
-        //Clean Dictionary Before Use
-        hexSectors_Dict.Clear();
-
-        //Use the Generator to create the Hexs Needed to Spawn
-        hexSectors_Dict.Add(new HexSectorCoords(0, 0), MapGenerationController.HexMapGenerate_InitialSector(mapGenOpts_SO, new HexSectorCoords(0, 0)));
-
-        //Generate Other Defaults
-        //HexMap_CreateNewSector(new HexSectorCoords(1, 0));
-        //HexMap_CreateNewSector(new HexSectorCoords(-1, 0));
-        //HexMap_CreateNewSector(new HexSectorCoords(0, 1));
-        //HexMap_CreateNewSector(new HexSectorCoords(0, -1));
-        
-        //Setup Chunks In Pooler
-        HexPoolingController.Instance.SetupInitialPool_Chunk();
-    }
-
-    private void HexMap_CreateNewSector(HexSectorCoords sectorCoords)
-    {
-        //Use the Generator to create the Hexs Needed to Spawn
-        hexSectors_Dict.Add(sectorCoords, MapGenerationController.HexMapGeneration_NewSector(mapGenOpts_SO, sectorCoords));
-    }
-
-    private void HexMap_Spawn()
+    private void HexMap_SpawnMap()
     {
         //Start Counting Timer
         long startingTimeTicks = DateTime.UtcNow.Ticks;
 
-        //Clear Out All Old Maps
-        HexSpawn_RemoveOldMap();
-
         //Spawn Ground Visuals
-        HexSpawn_SpawnInitialSectorGround();
+        HexSpawn_SpawnSectorGround();
 
         //Check if Camera Focus is Biome Map or Hex Map For Visuals
         if (isShowingBiomeVisuals)
@@ -218,7 +203,7 @@ public class MapSpawnController : MonoBehaviour
         else
         {
             //Center Camera on Hex Map
-            HexVisuals_CenterCamera();
+            HexVisuals_CenterMapCamera();
         }
 
         //Show Generation Time
@@ -232,9 +217,15 @@ public class MapSpawnController : MonoBehaviour
         }
     }
 
+    private void HexMap_CreateNewSector(HexSectorCoords sectorCoords)
+    {
+        //Use the Generator to create the Hexs Needed to Spawn
+        hexSectors_Dict.Add(sectorCoords, MapGenerationController.HexMapGeneration_NewSector(mapGenOpts_SO, sectorCoords));
+    }
+
     /////////////////////////////////////////////////////////////////
 
-    private void HexSpawn_SpawnInitialSectorGround()
+    private void HexSpawn_SpawnSectorGround()
     {
         //Turn Off Old Map From Setup
         setupGround_GO.SetActive(false);
@@ -273,104 +264,10 @@ public class MapSpawnController : MonoBehaviour
         newMesh.Optimize();
 
         //Set Mesh To Gameobject
-        scalingGround_GO.GetComponent<MeshFilter>().mesh = newMesh;
+        sectorGroundContainer_GO.GetComponent<MeshFilter>().mesh = newMesh;
     }
 
-    private void HexSpawn_RemoveOldMap()
-    {
-        //Destory All Old Hex Chunks / Cells
-        foreach (Transform child in hexMapContainer_GO.transform)
-        {
-            //Destroy Top-Level Child
-            Destroy(child.gameObject);
-        }
-    }
-
-    private void HexSpawn_CameraChunks()
-    {
-        ////////////////////////////////
-
-        //Fetch Hex Cell Under Camera 
-        HexCellCoords newCellCoords_UnderCamera = GetHexCellCoords_UnderCamera();
-
-        //Check For New Sector Generatation
-        GetCheckNewSectors_ByCellCoords(newCellCoords_UnderCamera);
-
-        /*
-        //Get New Chunk Array Positions
-        int oldChunkCoordX = lastCellCoords_UnderCamera.x / mapGenOpts_SO.mapGen_ChunkSize;
-        int oldChunkCoordY = lastCellCoords_UnderCamera.y / mapGenOpts_SO.mapGen_ChunkSize;
-        int chunkCoordX = newCellCoords_UnderCamera.x / mapGenOpts_SO.mapGen_ChunkSize;
-        int chunkCoordY = newCellCoords_UnderCamera.y / mapGenOpts_SO.mapGen_ChunkSize;
-
-        if (lastCellCoords_UnderCamera.x - 1 < 0)
-        {
-            oldChunkCoordX -= 1;
-        }
-
-        if (lastCellCoords_UnderCamera.y - 1 < 0)
-        {
-            oldChunkCoordY -= 1;
-        }
-
-        if (newCellCoords_UnderCamera.x - 1 < 0)
-        {
-            chunkCoordX -= 1;
-        }
-
-
-        if (newCellCoords_UnderCamera.y - 1 < 0)
-        {
-            chunkCoordY -= 1;
-        }
-        */
-
-        //Debug.Log("Test Code: " + newCellCoords_UnderCamera.GetPrintableCoords());
-
-
-
-        //Get New Chunk Array Positions
-        int oldChunkCoordX = (int)Mathf.Floor((float)lastCellCoords_UnderCamera.x / mapGenOpts_SO.mapGen_ChunkSize);
-        int oldChunkCoordY = (int)Mathf.Floor((float)lastCellCoords_UnderCamera.y / mapGenOpts_SO.mapGen_ChunkSize);
-        int chunkCoordX = (int)Mathf.Floor((float)newCellCoords_UnderCamera.x / mapGenOpts_SO.mapGen_ChunkSize);
-        int chunkCoordY = (int)Mathf.Floor((float)newCellCoords_UnderCamera.y / mapGenOpts_SO.mapGen_ChunkSize);
-
-
-
-        //Update Cell Under Camera
-        lastCellCoords_UnderCamera = newCellCoords_UnderCamera;
-
-        //Check that the current chunk is different then last frame
-        if ((chunkCoordX == oldChunkCoordX) && (chunkCoordY == oldChunkCoordY))
-        {
-            //Chunk is still the same, Leave it be.
-            return;
-        }
-
-        ////////////////////////////////
-
-        //Collect List Of Possible Chunks Around Camera Chunk Then Refresh Old and New Chunks For Reloading
-        List<HexChunkCoords> chunksCoordsToBeLoaded_List = GetHexChunks_AroundCamera(chunkCoordX, chunkCoordY, chunkRenderDistance);
-        chunksCoordsToBeLoaded_List = HexSpawn_RefreshActiveChunkList(chunksCoordsToBeLoaded_List);
-
-        //Load All Chunks That are listed to be loaded
-        foreach (HexChunkCoords currentCoords in chunksCoordsToBeLoaded_List)
-        {
-            //Activate A New Chunk Then Set The Chunk As Active
-            HexChunk newChunk = HexPoolingController.Instance.ActivateObject();
-            newChunk.chunkCoords = currentCoords;
-
-            //Setup The Hexs In The Array That Were Spawned By The Pooler
-            SetHexChunk(newChunk);
-            newChunk.SetChunkActive(currentCoords, GetHexCellDataList_ByChunk(currentCoords));
-
-            //CHUNK THIS CHUNK
-            newChunk.Chunk();
-        }
-
-    }
-
-    private List<HexChunkCoords> HexSpawn_RefreshActiveChunkList(List<HexChunkCoords> possibleChunkCoords_List)
+    private List<HexChunkCoords> HexSpawn_UpdateCurrentChunkList(List<HexChunkCoords> possibleChunkCoords_List)
     {
         //Create the returning list
         List<HexChunkCoords> outputChunkCoords_List = new List<HexChunkCoords>();
@@ -417,7 +314,7 @@ public class MapSpawnController : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    private void HexVisuals_CenterCamera()
+    private void HexVisuals_CenterMapCamera()
     {
         //Figure out the X Position by size of the generated map
         float extraTrim = 0.15f;
@@ -460,7 +357,7 @@ public class MapSpawnController : MonoBehaviour
             {
                 //Get Sector Data Cell
                 //HexCell_Data dataCell = GetHexCellData_ByCell(x, y);
-                HexCell_Data dataCell = GetHexCellDataLocal_ByCell(new HexCellCoords(x + sectorOffsetX, y + sectorOffsetY, 0));
+                HexCell_Data dataCell = GetHexCellDataLocal_ByCell(new HexCellCoords(x + sectorOffsetX, y + sectorOffsetY));
 
                 ColorUtility.TryParseHtmlString("#" + dataCell.hexCell_Color, out Color convertedColor);
                 texture.SetPixel(x, y, convertedColor);
@@ -476,6 +373,45 @@ public class MapSpawnController : MonoBehaviour
     }
 
     /////////////////////////////////////////////////////////////////
+
+    private void UpdateCheck_SpawnCameraChunks()
+    {
+        ////////////////////////////////
+
+        //Record The Old Chunk
+        HexChunkCoords oldHexChunkCoords = coordsUnderCamera_Chunk;
+
+        //Update Camera Coords Under Camera
+        bool isCameraInNewChunk = HexUtility_UpdateCoordsUnderTheCamera();
+
+        //Check that the current chunk is different then last frame
+        if (!isCameraInNewChunk)
+        {
+            //Chunk is still the same, Leave it be.
+            return;
+        }
+
+        ////////////////////////////////
+
+        //Collect List Of Possible Chunks Around Camera Chunk Then Refresh Old and New Chunks For Reloading
+        List<HexChunkCoords> chunksCoordsToBeLoaded_List = GetHexChunks_AroundCamera(coordsUnderCamera_Chunk.x, coordsUnderCamera_Chunk.y, chunkRenderDistance);
+        chunksCoordsToBeLoaded_List = HexSpawn_UpdateCurrentChunkList(chunksCoordsToBeLoaded_List);
+
+        //Load All Chunks That are listed to be loaded
+        foreach (HexChunkCoords currentCoords in chunksCoordsToBeLoaded_List)
+        {
+            //Activate A New Chunk Then Set The Chunk As Active
+            HexChunk newChunk = HexPoolingController.Instance.ActivateObject();
+            newChunk.chunkCoords = currentCoords;
+
+            //Setup The Hexs In The Array That Were Spawned By The Pooler
+            SetHexChunk(newChunk);
+            newChunk.SetChunkActive(currentCoords, GetHexCellDataList_ByChunk(currentCoords));
+
+            //CHUNK THIS CHUNK
+            newChunk.Chunk();
+        }
+    }
 
     private void UpdateCheck_RegenerateMap()
     {
@@ -496,10 +432,10 @@ public class MapSpawnController : MonoBehaviour
                 mapGenOpts_SO.mapGen_Seed = Random.Range(100000, 999999);
 
                 //Generate an Initial Sector and Preform Setup 
-                HexMap_Initialize();
+                HexSetup_Initialize();
 
                 //Spawn The Hex Map
-                HexMap_Spawn();
+                HexMap_SpawnMap();
             }
         }
     }
@@ -561,44 +497,55 @@ public class MapSpawnController : MonoBehaviour
         //Check For New Sector Generatation
         HexSectorCoords sectorCoords = GetCheckNewSectors_ByCellCoords(cellCoords);
 
-        //Get Sector Size Offsets To Access Them In The Array
-        //int sectorOffsetX = sectorCoords.x * mapGenOpts_SO.mapGen_SectorTotalSize;
-        //int sectorOffsetY = sectorCoords.y * mapGenOpts_SO.mapGen_SectorTotalSize;
-
         //Return The locally Positioned Cell In the Array of the Sector Then Return The Full Cell
-        return hexSectors_Dict[sectorCoords].HexCellsData_Dict[cellCoords]; // [cellCoords.x - sectorOffsetX, cellCoords.y - sectorOffsetY];
+        return hexSectors_Dict[sectorCoords].HexCellsData_Dict[cellCoords];
     }
 
     private HexCell_Data[,] GetHexCellDataList_ByChunk(HexChunkCoords chunkCoords)
     {
         //Check For New Sector Generatation
-        HexSectorCoords sectorCoords = GetCheckNewSectors_ByCellChunk(chunkCoords);
+        HexSectorCoords sectorCoords = GetCheckNewSectors_ByChunkCoords(chunkCoords);
 
         //Generate A New Array Of Values To Be Returned
         HexCell_Data[,] returningHexCellDatas_Arr = new HexCell_Data[mapGenOpts_SO.mapGen_ChunkSize, mapGenOpts_SO.mapGen_ChunkSize];
-
-        //Get Sector Size Offsets To Access Them In The Array
-        //int sectorOffsetX = sectorCoords.x * mapGenOpts_SO.mapGen_ChunkSize;
-        //int sectorOffsetY = sectorCoords.y * mapGenOpts_SO.mapGen_ChunkSize;
-
-        //Get Sector Size Offsets To Access Them In The Array
-        //int chunkOffsetX = chunkCoords.x * mapGenOpts_SO.mapGen_ChunkSize;
-        //int chunkOffsetY = chunkCoords.y * mapGenOpts_SO.mapGen_ChunkSize;
 
         //Loop all Hexs In Chunk
         for (int y = 0; y < mapGenOpts_SO.mapGen_ChunkSize; y++)
         {
             for (int x = 0; x < mapGenOpts_SO.mapGen_ChunkSize; x++)
             {
+                //Get Cell Coords
                 int cellX = x + (chunkCoords.x * mapGenOpts_SO.mapGen_ChunkSize);
                 int cellY = y + (chunkCoords.y * mapGenOpts_SO.mapGen_ChunkSize);
 
-                //Debug.Log("Test Code: Cell X " + cellX);
-                //Debug.Log("Test Code: Cell Y " + cellY);
-      
+                //Add Returning Data Cell From Sector Data Cell Array
+                returningHexCellDatas_Arr[x, y] = hexSectors_Dict[sectorCoords].HexCellsData_Dict[new HexCellCoords(cellX, cellY)];
+            }
+        }
+
+        //Return The local Cells
+        return returningHexCellDatas_Arr;
+    }
+
+    private HexCellCoords[,] GetHexCellCoordsList_ByChunk(HexChunkCoords chunkCoords)
+    {
+        //Check For New Sector Generatation
+        HexSectorCoords sectorCoords = GetSectorsCoords_ByChunkCoords(chunkCoords);
+
+        //Generate A New Array Of Values To Be Returned
+        HexCellCoords[,] returningHexCellDatas_Arr = new HexCellCoords[mapGenOpts_SO.mapGen_ChunkSize, mapGenOpts_SO.mapGen_ChunkSize];
+
+        //Loop all Hexs In Chunk
+        for (int y = 0; y < mapGenOpts_SO.mapGen_ChunkSize; y++)
+        {
+            for (int x = 0; x < mapGenOpts_SO.mapGen_ChunkSize; x++)
+            {
+                int cellCoordX = x + (chunkCoords.x * mapGenOpts_SO.mapGen_ChunkSize);
+                int cellCoordY = y + (chunkCoords.y * mapGenOpts_SO.mapGen_ChunkSize);
+                HexCellCoords cellCoords = new HexCellCoords(cellCoordX, cellCoordY);
 
                 //Add Returning Data Cell From Sector Data Cell Array
-                returningHexCellDatas_Arr[x, y] = hexSectors_Dict[sectorCoords].HexCellsData_Dict[new HexCellCoords(cellX, cellY, 0)];
+                returningHexCellDatas_Arr[x, y] = cellCoords;
             }
         }
 
@@ -611,19 +558,7 @@ public class MapSpawnController : MonoBehaviour
     private void SetHexChunk(HexChunk incomingChunk)
     {
         //Check For New Sector Generatation
-        HexSectorCoords sectorCoords = GetCheckNewSectors_ByCellChunk(incomingChunk.chunkCoords);
-
-        //Get Sector Size Offsets To Access Them In The Array
-        //int sectorOffsetX = sectorCoords.x * mapGenOpts_SO.mapGen_ChunkSize;
-        //int sectorOffsetY = sectorCoords.y * mapGenOpts_SO.mapGen_ChunkSize;
-
-        //Get Sector Size Offsets To Access Them In The Array
-        //int chunkOffsetX = chunkCoords.x * mapGenOpts_SO.mapGen_ChunkSize;
-        //int chunkOffsetY = chunkCoords.y * mapGenOpts_SO.mapGen_ChunkSize;
-
-        //Debug.Log("Test Code: " + hexSectors_Dict[sectorCoords].hexChunks_Arr.GetLength(0));
-        //Debug.Log("Test Code: Sect X " + sectorOffsetX);
-        //Debug.Log("Test Code: Sect Y " + sectorOffsetY);
+        HexSectorCoords sectorCoords = GetCheckNewSectors_ByChunkCoords(incomingChunk.chunkCoords);
 
         if (hexSectors_Dict[sectorCoords].hexChunks_Dict.ContainsKey(incomingChunk.chunkCoords))
         {
@@ -636,22 +571,40 @@ public class MapSpawnController : MonoBehaviour
             //Set The Chunk As A New Chunk
             hexSectors_Dict[sectorCoords].hexChunks_Dict.Add(incomingChunk.chunkCoords, incomingChunk);
         }
-
-
-        // [incomingChunk.chunkCoords.x, incomingChunk.chunkCoords.y - sectorOffsetY] = incomingChunk;
     }
 
     private HexChunk GetHexChunk_ByChunk(HexChunkCoords chunkCoords)
     {
         //Check For New Sector Generatation
-        HexSectorCoords sectorCoords = GetCheckNewSectors_ByCellChunk(chunkCoords);
-
-        //Get Sector Size Offsets To Access Them In The Array
-        //int sectorOffsetX = sectorCoords.x * mapGenOpts_SO.mapGen_ChunkSize;
-        //int sectorOffsetY = sectorCoords.y * mapGenOpts_SO.mapGen_ChunkSize;
+        HexSectorCoords sectorCoords = GetCheckNewSectors_ByChunkCoords(chunkCoords);
 
         //Return The local Cell
-        return hexSectors_Dict[sectorCoords].hexChunks_Dict[chunkCoords]; // [chunkCoords.x - sectorOffsetX, chunkCoords.y - sectorOffsetY];
+        return hexSectors_Dict[sectorCoords].hexChunks_Dict[chunkCoords];
+    }
+
+    private HexChunk GetHexChunk_ByCell(HexCellCoords cellCoords)
+    {
+        //Check For New Sector Generatation
+        HexSectorCoords sectorCoords = GetCheckNewSectors_ByCellCoords(cellCoords);
+
+        //Get The Chunk Coords
+        int chunkCoordX = (int)Mathf.Floor((float)cellCoords.x / mapGenOpts_SO.mapGen_ChunkSize);
+        int chunkCoordY = (int)Mathf.Floor((float)cellCoords.y / mapGenOpts_SO.mapGen_ChunkSize);
+        HexChunkCoords chunkCoords = new HexChunkCoords(chunkCoordX, chunkCoordY);
+
+        //Return The local Cell
+        return hexSectors_Dict[sectorCoords].hexChunks_Dict[chunkCoords];
+    }
+
+    private HexChunkCoords GetHexChunkCoords_ByCell(HexCellCoords cellCoords)
+    {
+        //Check For New Sector Generatation
+        HexSectorCoords sectorCoords = GetCheckNewSectors_ByCellCoords(cellCoords);
+
+        //Get The Chunk Coords
+        int chunkCoordX = (int)Mathf.Floor((float)cellCoords.x / mapGenOpts_SO.mapGen_ChunkSize);
+        int chunkCoordY = (int)Mathf.Floor((float)cellCoords.y / mapGenOpts_SO.mapGen_ChunkSize);
+        return new HexChunkCoords(chunkCoordX, chunkCoordY);
     }
 
     private List<HexChunkCoords> GetHexChunks_AroundCamera(int X, int Y, int rangeAddition)
@@ -689,7 +642,7 @@ public class MapSpawnController : MonoBehaviour
         //Get Sector Coords Using Hex Cell Scale
         int cellCoordX = (int)Math.Round(cameraPos.x / spacing_J, 0); 
         int cellCoordY = (int)Math.Round(cameraPos.z / spacing_I, 0);
-        HexCellCoords cellCoords = new HexCellCoords(cellCoordX, cellCoordY, 0);
+        HexCellCoords cellCoords = new HexCellCoords(cellCoordX, cellCoordY);
 
         return cellCoords;
     }
@@ -717,11 +670,14 @@ public class MapSpawnController : MonoBehaviour
             HexMap_CreateNewSector(sectorCoords);
         }
 
+        //Check For "Emptied" Chunks that are null
+        HexGen_CheckEmptiedChunks(sectorCoords);
+
         //Return The coords For Other Methods To Use
         return sectorCoords;
     }
 
-    private HexSectorCoords GetCheckNewSectors_ByCellChunk(HexChunkCoords chunkCoords)
+    private HexSectorCoords GetCheckNewSectors_ByChunkCoords(HexChunkCoords chunkCoords)
     {
         //Get Sector Coords Using Hex Chunk Scale
         int sectorCoordX = (int)Mathf.Floor((float)chunkCoords.x / mapGenOpts_SO.mapGen_ChunkSize);
@@ -735,14 +691,254 @@ public class MapSpawnController : MonoBehaviour
             HexMap_CreateNewSector(sectorCoords);
         }
 
+        //Check For "Emptied" Chunks that are null
+        HexGen_CheckEmptiedChunks(sectorCoords);
+
         //Return The coords For Other Methods To Use
         return sectorCoords;
     }
 
+    private HexSectorCoords GetSectorsCoords_ByChunkCoords(HexChunkCoords chunkCoords)
+    {
+        //Get Sector Coords Using Hex Chunk Scale
+        int sectorCoordX = (int)Mathf.Floor((float)chunkCoords.x / mapGenOpts_SO.mapGen_ChunkSize);
+        int sectorCoordY = (int)Mathf.Floor((float)chunkCoords.y / mapGenOpts_SO.mapGen_ChunkSize);
+        HexSectorCoords sectorCoords = new HexSectorCoords(sectorCoordX, sectorCoordY);
 
+        //Return The coords For Other Methods To Use
+        return sectorCoords;
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+    private void HexGen_CheckEmptiedChunks(HexSectorCoords sectorCoords)
+    {
+        //Check All 4 Quads For Nulls
+        int xPos = sectorCoords.x * mapGenOpts_SO.mapGen_SectorTotalSize;
+        int yPos = sectorCoords.y * mapGenOpts_SO.mapGen_SectorTotalSize;
+        int offsetFar = mapGenOpts_SO.mapGen_SectorTotalSize - 1;
+        int offsetCenter = mapGenOpts_SO.mapGen_SectorTotalSize / 2;
+
+        //Get The Emptied Side Checking Chunks
+        HexCellCoords checkHex_CenterUp = new HexCellCoords(xPos + offsetCenter, yPos + offsetFar);
+        HexCellCoords checkHex_centerRight = new HexCellCoords(xPos + offsetFar, yPos + offsetCenter);
+        HexCellCoords checkHex_centerDown = new HexCellCoords(xPos + offsetCenter, yPos);
+        HexCellCoords checkHex_centerLeft = new HexCellCoords(xPos, yPos + offsetCenter);
+
+
+
+        //Check Top Coords
+        if (hexSectors_Dict[sectorCoords].HexCellsData_Dict[checkHex_CenterUp] == null)
+        {
+            //Fixed Y Value To Be Used at the Top Corner
+            int chunkPosFixedY = yPos + offsetFar;
+
+            //Fill The Top Chunks
+            HexGen_FillEmptiedChunks_Top(sectorCoords, xPos, chunkPosFixedY);
+        }
+
+
+        return;
+
+
+
+
+
+        //Right
+        if (hexSectors_Dict[sectorCoords].HexCellsData_Dict[checkHex_centerRight] == null)
+        {
+            Debug.Log("Test Code: Setting Values Right");
+
+            //Gen Sector In that Region, Set all Hexs to Valid White
+            int x = xPos + offsetFar;
+
+            for (int y = 0; y < mapGenOpts_SO.mapGen_SectorTotalSize; y++)
+            {
+                //Store The Data Collected From Other Methodsit
+                HexCell_Data mergedCell = new HexCell_Data
+                {
+                    hexCoords = new HexCellCoords(x, y + yPos),
+                    hexCell_HeightSteps = 5,
+                    hexCell_BiomeID = 0,
+                    hexCell_Color = "#ffffff",
+                    hexCell_MatID = 0
+                };
+
+
+                hexSectors_Dict[sectorCoords].HexCellsData_Dict[mergedCell.hexCoords] = mergedCell;
+            }
+        }
+
+        //Bottom
+        if (hexSectors_Dict[sectorCoords].HexCellsData_Dict[checkHex_centerDown] == null)
+        {
+
+            //Gen Sector In that Region, Set all Hexs to Valid White
+            int y = yPos;
+
+            for (int x = 0; x < mapGenOpts_SO.mapGen_SectorTotalSize; x++)
+            {
+                //Store The Data Collected From Other Methodsit
+                HexCell_Data mergedCell = new HexCell_Data
+                {
+                    hexCoords = new HexCellCoords(x + xPos, y),
+                    hexCell_HeightSteps = 5,
+                    hexCell_BiomeID = 0,
+                    hexCell_Color = "#ffffff",
+                    hexCell_MatID = 0
+                };
+
+
+                hexSectors_Dict[sectorCoords].HexCellsData_Dict[mergedCell.hexCoords] = mergedCell;
+            }
+        }
+
+        //Left
+        if (hexSectors_Dict[sectorCoords].HexCellsData_Dict[checkHex_centerLeft] == null)
+        {
+    
+            //Gen Sector In that Region, Set all Hexs to Valid White
+            int x = xPos;
+
+            for (int y = 0; y < mapGenOpts_SO.mapGen_SectorTotalSize; y++)
+            {
+                //Store The Data Collected From Other Methodsit
+                HexCell_Data mergedCell = new HexCell_Data
+                {
+                    hexCoords = new HexCellCoords(x, y + yPos),
+                    hexCell_HeightSteps = 5,
+                    hexCell_BiomeID = 0,
+                    hexCell_Color = "#ffffff",
+                    hexCell_MatID = 0
+                };
+
+
+                hexSectors_Dict[sectorCoords].HexCellsData_Dict[mergedCell.hexCoords] = mergedCell;
+            }
+        }
+    }
+
+    private void HexGen_FillEmptiedChunks_Top(HexSectorCoords sectorCoords, int chunkPosMovingX, int chunkPosFixedY)
+    {
+
+        Debug.Log("Test Code: Here");
+
+        //Get All Chunks Along The Top
+        int chunkCount = mapGenOpts_SO.mapGen_SectorTotalSize / mapGenOpts_SO.mapGen_ChunkSize;                         //chunkCount -= mapGenOpts_SO.mapGen_ChunkSize * 2;
+        List<HexChunkCoords> chunksCoordsToGenerate_List = new List<HexChunkCoords>();
+
+        for (int i = 0; i < chunkCount; i++)
+        {
+            chunksCoordsToGenerate_List.Add(GetHexChunkCoords_ByCell(new HexCellCoords(chunkPosMovingX + mapGenOpts_SO.mapGen_ChunkSize, chunkPosFixedY)));
+        }
+
+
+        foreach (HexChunkCoords chunkCoords in chunksCoordsToGenerate_List)
+        {
+            HexCellCoords[,] dataCellsToBeLoaded_Arr = GetHexCellCoordsList_ByChunk(chunkCoords);
+
+            Debug.Log("Test Code: " + chunkCoords.GetPrintableCoords());
+
+            continue;
+
+            for (int y = 0; y < dataCellsToBeLoaded_Arr.GetLength(0); y++)
+            {
+                for (int x = 0; x < dataCellsToBeLoaded_Arr.GetLength(1); x++)
+                {
+                    //Store The Data Collected From Other Methodsit
+                    HexCell_Data mergedCell = new HexCell_Data
+                    {
+                        hexCoords = new HexCellCoords(x + chunkPosMovingX, y + chunkPosFixedY),
+                        hexCell_HeightSteps = 5,
+                        hexCell_BiomeID = 0,
+                        hexCell_Color = "#ffffff",
+                        hexCell_MatID = 0
+                    };
+
+                    hexSectors_Dict[sectorCoords].HexCellsData_Dict[mergedCell.hexCoords] = mergedCell;
+                }
+            }
+        }
 
 
     
+
+       
+
+
+
+        //Gen Sector In that Region, Set all Hexs to Valid White
+       //int y = yPos + offsetFar;
+
+        //Debug.Log("Test Code: " + y);
+
+        for (int x = 0; x < mapGenOpts_SO.mapGen_SectorTotalSize; x++)
+        {
+           
+
+
+            //Debug.Log("Test Code: Top " + mergedCell.hexCoords.GetPrintableCoords());
+
+            //hexSectors_Dict[sectorCoords].HexCellsData_Dict[mergedCell.hexCoords] = mergedCell;
+        }
+
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+    private bool HexUtility_UpdateCoordsUnderTheCamera()
+    {
+        //Fetch Hex Cell / Chunk / Sector Under Camera 
+        HexCellCoords newCellCoords_UnderCamera = GetHexCellCoords_UnderCamera();
+
+        ////////////////////////////////
+
+        //Check If Cell Is Changed
+        if ((coordsUnderCamera_Cell.x == newCellCoords_UnderCamera.x) && (coordsUnderCamera_Cell.y == newCellCoords_UnderCamera.y))
+        {
+            //Cell has not changed therefore -> Chunk Has Not Changed
+            return false;
+        }
+
+        //Get The Old Chunk Coords
+        int oldChunkCoordX = (int)Mathf.Floor((float)coordsUnderCamera_Cell.x / mapGenOpts_SO.mapGen_ChunkSize);
+        int oldChunkCoordY = (int)Mathf.Floor((float)coordsUnderCamera_Cell.y / mapGenOpts_SO.mapGen_ChunkSize);
+        HexChunkCoords oldChunkCoords = new HexChunkCoords(oldChunkCoordX, oldChunkCoordY);
+
+        //Get The Old Chunk Coords
+        int newChunkCoordX = (int)Mathf.Floor((float)newCellCoords_UnderCamera.x / mapGenOpts_SO.mapGen_ChunkSize);
+        int newChunkCoordY = (int)Mathf.Floor((float)newCellCoords_UnderCamera.y / mapGenOpts_SO.mapGen_ChunkSize);
+        HexChunkCoords newChunkCoords = new HexChunkCoords(newChunkCoordX, newChunkCoordY);
+
+        //Update Cell Under Camera
+        coordsUnderCamera_Cell = newCellCoords_UnderCamera;
+
+        ////////////////////////////////
+
+        //Check that the current chunk is different then last frame
+        if ((oldChunkCoords.x == newChunkCoords.y) && (oldChunkCoords.x == newChunkCoords.y))
+        {
+            //Chunk has not changed therefore -> Chunk Has Not Changed
+            return false;
+        }
+
+        //Update Chunk Under Camera and Sector
+        coordsUnderCamera_Chunk = newChunkCoords;
+        coordsUnderCamera_Sector = GetCheckNewSectors_ByChunkCoords(newChunkCoords);
+
+        ////////////////////////////////
+
+        //Chunk Has Changed
+        return true;
+    }
+
+
 
 
 
