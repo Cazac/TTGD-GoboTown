@@ -6,13 +6,15 @@ public class HexSector
 {
     ////////////////////////////////
     
+    [Header("Sector Coords")]
     public HexSectorCoords sectorCoords;
 
     [Header("BLANKVAHR")]
     public Dictionary<HexCellCoords, HexCell_Data> HexCellsData_Dict;
     public Dictionary<HexChunkCoords, HexChunk> hexChunks_Dict;
-    //public HexCell_Data[,] DataOnly_HexCells_Arr;
-    //public HexChunk[,] hexChunks_Arr;
+
+    [Header("BLANKVAR")]
+    public bool hasGeneratedNeighbours;
    
     ////////////////////////////////
 }

@@ -16,13 +16,13 @@ public class HexCell : MonoBehaviour
 
     public static Vector3[] hexMeshCorners = 
     {
-        new Vector3(0f, 0f, MapSpawnController.outerRadius),
-        new Vector3(MapSpawnController.innerRadius, 0f, 0.5f * MapSpawnController.outerRadius),
-        new Vector3(MapSpawnController.innerRadius, 0f, -0.5f * MapSpawnController.outerRadius),
-        new Vector3(0f, 0f, -MapSpawnController.outerRadius),
-        new Vector3(-MapSpawnController.innerRadius, 0f, -0.5f * MapSpawnController.outerRadius),
-        new Vector3(-MapSpawnController.innerRadius, 0f, 0.5f * MapSpawnController.outerRadius),
-        new Vector3(0f, 0f, MapSpawnController.outerRadius)
+        new Vector3(0f, 0f, MapGenerationOptions_SO.outerRadius),
+        new Vector3(MapGenerationOptions_SO.innerRadius, 0f, 0.5f * MapGenerationOptions_SO.outerRadius),
+        new Vector3(MapGenerationOptions_SO.innerRadius, 0f, -0.5f * MapGenerationOptions_SO.outerRadius),
+        new Vector3(0f, 0f, -MapGenerationOptions_SO.outerRadius),
+        new Vector3(-MapGenerationOptions_SO.innerRadius, 0f, -0.5f * MapGenerationOptions_SO.outerRadius),
+        new Vector3(-MapGenerationOptions_SO.innerRadius, 0f, 0.5f * MapGenerationOptions_SO.outerRadius),
+        new Vector3(0f, 0f, MapGenerationOptions_SO.outerRadius)
     };
 
     ////////////////////////////////
@@ -113,8 +113,8 @@ public class HexCell : MonoBehaviour
         //Regular Spawn Position VS Offset Spacing
         if (hexCoords.x % 2 == 0)
         {
-            float posX = hexCoords.x * MapSpawnController.spacing_J;
-            float posY = hexCoords.y * MapSpawnController.spacing_I;
+            float posX = hexCoords.x * MapGenerationOptions_SO.spacing_J;
+            float posY = hexCoords.y * MapGenerationOptions_SO.spacing_I;
             float posH = MapSpawnController.Instance.mapGenOpts_SO.mapGen_HeightPerStep * hexCell_heightSteps;
 
             //Set World Position Of the Cell
@@ -122,8 +122,8 @@ public class HexCell : MonoBehaviour
         }
         else
         {
-            float posX = hexCoords.x * MapSpawnController.spacing_J;
-            float posY = hexCoords.y * MapSpawnController.spacing_I + MapSpawnController.offcenter_I;
+            float posX = hexCoords.x * MapGenerationOptions_SO.spacing_J;
+            float posY = hexCoords.y * MapGenerationOptions_SO.spacing_I + MapGenerationOptions_SO.offcenter_I;
             float posH = MapSpawnController.Instance.mapGenOpts_SO.mapGen_HeightPerStep * hexCell_heightSteps;
 
             //Set World Position Of the Cell

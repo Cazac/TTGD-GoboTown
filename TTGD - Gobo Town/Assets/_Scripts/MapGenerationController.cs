@@ -26,6 +26,7 @@ public struct MapGenerationController
 
     /////////////////////////////////////////////////////////////////
 
+        /*
     public static HexSector HexMapGenerate_InitialSector(MapGenerationOptions_SO incomingMapOptions, HexSectorCoords sectorCoords)
     {
         //Start Counting Timer
@@ -77,6 +78,7 @@ public struct MapGenerationController
         //Return The Sector
         return generatedHexSector;
     }
+    */
 
     public static HexSector HexMapGeneration_NewSector(MapGenerationOptions_SO incomingMapOptions, HexSectorCoords sectorCoords)
     {
@@ -845,7 +847,20 @@ public struct MapGenerationController
                 }
                 else
                 {
+                    //Debug Cell
+                    HexCell_Data debugCell = new HexCell_Data
+                    {
+                        hexCoords = new HexCellCoords(x + (generatedHexSector.sectorCoords.x * mapGenOpts.mapGen_SectorTotalSize), y + (generatedHexSector.sectorCoords.y * mapGenOpts.mapGen_SectorTotalSize)),
+                        hexCell_HeightSteps = 5,
+                        hexCell_BiomeID = 0,
+                        hexCell_Color = "#ffffff",
+                        hexCell_MatID = 0
+                    };
+
                     //Add to Dictionary
+                    //generatedHexSector.HexCellsData_Dict.Add(mergedCell.hexCoords, debugCell);
+
+                    //Add to Dictionary As Null
                     generatedHexSector.HexCellsData_Dict.Add(mergedCell.hexCoords, null);
                 }
             }
@@ -873,6 +888,14 @@ public struct MapGenerationController
 
         //Neither X Nor Y Have Issues Return True
         return true;
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+
+    public static void HexGenEmpitedChunks_MergeHorrizontal()
+    {
+
     }
 
     /////////////////////////////////////////////////////////////////

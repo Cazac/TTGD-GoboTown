@@ -51,4 +51,13 @@ public class MapGenerationOptions_SO : ScriptableObject
     public float offsetY;
 
     ////////////////////////////////
+
+    [Header("Hex Uneditable Sizes")]
+    public const float outerRadius = 0.1f;
+    public const float innerRadius = outerRadius * 0.866025404f;
+    public const float spacing_I = innerRadius * 2f;
+    public const float spacing_J = outerRadius * 1.5f;
+    public const float offcenter_I = spacing_I / 2;
+
+    ////////////////////////////////
 }
