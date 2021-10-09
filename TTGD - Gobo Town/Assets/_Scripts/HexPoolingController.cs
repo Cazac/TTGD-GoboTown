@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +12,6 @@ public class HexPoolingController : MonoBehaviour
     public static HexPoolingController Instance;
 
     ////////////////////////////////
-
-    [Header("Sets the startup amount of meshes to pre-load")]
-    public int hexChunk_IntialPoolCount;
 
     [Header("Chunk Prefab")]
     public GameObject hexChunk_Prefab;
@@ -33,17 +31,6 @@ public class HexPoolingController : MonoBehaviour
     {
         //Setup Singleton Refference
         Instance = this;
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-    public void SetupInitialPool_Chunk()
-    {
-        for (int i = 0; i < hexChunk_IntialPoolCount; i++)
-        {
-            //Create and Enqueue A New Object
-            hexChunk_InactivePoolQueue.Enqueue(CreateObject());
-        }
     }
 
     /////////////////////////////////////////////////////////////////
@@ -116,17 +103,6 @@ public class HexPoolingController : MonoBehaviour
 
         //Setup On Spawn Method
         poolableObject.Poolable_OnDespawn();
-    }
-
-    public void DeactivateObjects_All()
-    {
-        int counter = hexChunk_ActivePoolQueue.Count;
-        for (int i = 0; i < counter; i++)
-        {
-            HexChunk poolableObject = hexChunk_ActivePoolQueue.Dequeue();
-            hexChunk_InactivePoolQueue.Enqueue(poolableObject);
-            poolableObject.Poolable_OnDespawn();
-        }
     }
 
     /////////////////////////////////////////////////////////////////

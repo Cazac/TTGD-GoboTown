@@ -443,5 +443,230 @@ public struct MapGenLayerBiome
         //Get Best Count of 8 corners to round the value ouit
     }
 
+
+
+
+
+
+
+    /////////////////////////////////////////////////////////////////
+
+
+
+    /*
+    private void HexMap_CreateChainedSectors(HexSectorCoords sectorCoords_Center)
+    {
+        //Get Coords Of Possible Chainable Sectors
+        HexSectorCoords checkSector_Top = new HexSectorCoords(sectorCoords_Center.x, sectorCoords_Center.y + 1);
+        HexSectorCoords checkSector_Bottom = new HexSectorCoords(sectorCoords_Center.x, sectorCoords_Center.y - 1);
+        HexSectorCoords checkSector_Right = new HexSectorCoords(sectorCoords_Center.x + 1, sectorCoords_Center.y);
+        HexSectorCoords checkSector_Left = new HexSectorCoords(sectorCoords_Center.x - 1, sectorCoords_Center.y);
+
+        Debug.Log("Test Code: Creating New Chained Sectors...");
+
+        //Left Right Go First as up down use that info
+
+
+        //Check If Sector Has Been Generated Before
+        if (!hexSectors_Dict.ContainsKey(checkSector_Right))
+        {
+            //Generate The Sector Then Chain and Fill The "Emptied" Coords Together
+            hexSectors_Dict.Add(checkSector_Right, MapGenerationController.HexMapGeneration_NewSector(mapGenOpts_SO, checkSector_Right));
+            HexGen_FillEmptiedChunks_Right(sectorCoords_Center, checkSector_Right);
+        }
+
+        //Check If Sector Has Been Generated Before
+        if (!hexSectors_Dict.ContainsKey(checkSector_Left))
+        {
+            //Generate The Sector Then Chain and Fill The "Emptied" Coords Together
+            hexSectors_Dict.Add(checkSector_Left, MapGenerationController.HexMapGeneration_NewSector(mapGenOpts_SO, checkSector_Left));
+            //HexGen_FillEmptiedChunks_Left(sectorCoords_Center, checkSector_Left);
+        }
+
+        //Check If Sector Has Been Generated Before - Top
+        if (!hexSectors_Dict.ContainsKey(checkSector_Top))
+        {
+            //Generate The Sector Then Chain and Fill The "Emptied" Coords Together
+            hexSectors_Dict.Add(checkSector_Top, MapGenerationController.HexMapGeneration_NewSector(mapGenOpts_SO, checkSector_Top));
+            //HexGen_FillEmptiedChunks_Top(sectorCoords_Center, checkSector_Top);
+        }
+
+        //Check If Sector Has Been Generated Before - Bottom
+        if (!hexSectors_Dict.ContainsKey(checkSector_Bottom))
+        {
+            //Generate The Sector Then Chain and Fill The "Emptied" Coords Together
+            hexSectors_Dict.Add(checkSector_Bottom, MapGenerationController.HexMapGeneration_NewSector(mapGenOpts_SO, checkSector_Bottom));
+            //HexGen_FillEmptiedChunks_Bottom(sectorCoords_Center, checkSector_Bottom);
+        }
+
+   
+    }
+    */
+
+    /////////////////////////////////////////////////////////////////
+
+
+    /*
+    private void HexGen_FillEmptiedChunks_Right(HexSectorCoords sectorCoords_Center, HexSectorCoords sectorCoords_Right)
+    {
+        Debug.Log("Test Code: Generating Chained Sector (Right)");
+
+        //Get Basic Calculated Info
+        int chunksPerSector = mapGenOpts_SO.mapGen_SectorTotalSize / mapGenOpts_SO.mapGen_ChunkSize;
+        int offset = chunksPerSector - 1;
+
+        //Set The Flag That Neighbours have been Chained
+        hexSectors_Dict[sectorCoords_Center].hasGeneratedNeighbours = true;
+
+
+        Debug.Log("Test Code: " + sectorCoords_Right.GetPrintableCoords());
+
+
+        HexCellCoords sectorCenter_TopRightCellCoords = GetHexCellCoords_TopRightOfSector(sectorCoords_Center);
+        //HexCellCoords sectorCenter_BottomRightCellCoord = GetHexCellCoords_BottomRightOfSector(sectorCoords_Center);
+
+        //HexCellCoords sectorRight_TopLeftCellCoord = GetHexCellCoords_TopRightOfSector(sectorCoords_Right);
+        HexCellCoords sectorRight_BottomLeftCellCoords = GetHexCellCoords_BottomLeftOfSector(sectorCoords_Right);
+
+
+
+        //Debug.Log("Test Code: Top Right: " + sectorCenter_TopRightCellCoords.GetPrintableCoords());
+        //Debug.Log("Test Code: Pre Bottom Left " + sectorRight_BottomLeftCellCoords.GetPrintableCoords());
+
+        //Bonus Size From THe Horizontal Style
+        int verticalOffset = (mapGenOpts_SO.mapGen_EmptiedChunkBorderSize + 1) * mapGenOpts_SO.mapGen_ChunkSize;
+        int horizontalOffset = mapGenOpts_SO.mapGen_EmptiedChunkBorderSize * mapGenOpts_SO.mapGen_ChunkSize;
+
+        //Add Offsets
+        sectorCenter_TopRightCellCoords = new HexCellCoords(sectorCenter_TopRightCellCoords.x - horizontalOffset, sectorCenter_TopRightCellCoords.y - verticalOffset);
+        sectorRight_BottomLeftCellCoords = new HexCellCoords(sectorRight_BottomLeftCellCoords.x + horizontalOffset, sectorRight_BottomLeftCellCoords.y + verticalOffset);
+
+
+        Debug.Log("Test Code: Top Right: " + sectorCenter_TopRightCellCoords.GetPrintableCoords());
+        Debug.Log("Test Code: Bottom Left " + sectorRight_BottomLeftCellCoords.GetPrintableCoords());
+
+
+        HexCellCoords[,] hexCellCoordsBetween = GetHexCellCoordsArr_FromXToY(sectorCenter_TopRightCellCoords, sectorRight_BottomLeftCellCoords);
+
+
+        Debug.Log("Test Code: " + hexCellCoordsBetween.GetLength(0));
+        Debug.Log("Test Code: " + hexCellCoordsBetween.GetLength(1));
+
+
+        for (int y = 0; y < hexCellCoordsBetween.GetLength(1); y++)
+        {
+            for (int x = 0; x < hexCellCoordsBetween.GetLength(0); x++)
+            {
+
+
+                //Store The Data Collected From Other Methodsit
+                HexCell_Data mergedCell = new HexCell_Data
+                {
+                    hexCoords = new HexCellCoords(hexCellCoordsBetween[x, y].x, hexCellCoordsBetween[x, y].y),
+                    hexCell_HeightSteps = 5,
+                    hexCell_BiomeID = 0,
+                    hexCell_Color = "#ffffff",
+                    hexCell_MatID = 0
+                };
+
+                Debug.Log("Test Code: Adding Cell " + mergedCell.hexCoords.GetPrintableCoords());
+
+                //Get Sector Coords Using Hex Cell Scale
+                int sectorCoordX = (int)Mathf.Floor((float)mergedCell.hexCoords.x / mapGenOpts_SO.mapGen_SectorTotalSize);
+                int sectorCoordY = (int)Mathf.Floor((float)mergedCell.hexCoords.y / mapGenOpts_SO.mapGen_SectorTotalSize);
+                HexSectorCoords sectorCoords = new HexSectorCoords(sectorCoordX, sectorCoordY);
+
+                hexSectors_Dict[sectorCoords_Center].HexCellsData_Dict[mergedCell.hexCoords] = mergedCell;
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        MapGenerationController.HexGenEmpitedChunks_MergeHorrizontal();
+
+
+
+
+        HexCellCoords[] influenceRowCenter_Arr = new HexCellCoords[mapGenOpts_SO.mapGen_SectorTotalSize];
+        HexCellCoords[] influenceRowTop_Arr = new HexCellCoords[mapGenOpts_SO.mapGen_SectorTotalSize];
+
+
+
+
+
+
+
+
+
+        /*
+        //Center
+        foreach (HexChunkCoords chunkCoords in chunksCoordsCenter_List)
+        {
+            HexCellCoords[,] dataCellsToBeLoaded_Arr = GetHexCellCoordsList_ByChunk(chunkCoords);
+
+
+            for (int y = 0; y < dataCellsToBeLoaded_Arr.GetLength(0); y++)
+            {
+                for (int x = 0; x < dataCellsToBeLoaded_Arr.GetLength(1); x++)
+                {
+                    //Store The Data Collected From Other Methodsit
+                    HexCell_Data mergedCell = new HexCell_Data
+                    {
+                        hexCoords = new HexCellCoords(dataCellsToBeLoaded_Arr[x, y].x, dataCellsToBeLoaded_Arr[x, y].y),
+                        hexCell_HeightSteps = 5,
+                        hexCell_BiomeID = 0,
+                        hexCell_Color = "#ffffff",
+                        hexCell_MatID = 0
+                    };
+
+                    hexSectors_Dict[sectorCoords_Center].HexCellsData_Dict[mergedCell.hexCoords] = mergedCell;
+                }
+            }
+        }
+
+
+        //Top
+        foreach (HexChunkCoords chunkCoords in chunksCoordsTop_List)
+        {
+            HexCellCoords[,] dataCellsToBeLoaded_Arr = GetHexCellCoordsList_ByChunk(chunkCoords);
+
+
+            for (int y = 0; y < dataCellsToBeLoaded_Arr.GetLength(0); y++)
+            {
+                for (int x = 0; x < dataCellsToBeLoaded_Arr.GetLength(1); x++)
+                {
+                    //Store The Data Collected From Other Methodsit
+                    HexCell_Data mergedCell = new HexCell_Data
+                    {
+                        hexCoords = new HexCellCoords(dataCellsToBeLoaded_Arr[x, y].x, dataCellsToBeLoaded_Arr[x, y].y),
+                        hexCell_HeightSteps = 5,
+                        hexCell_BiomeID = 0,
+                        hexCell_Color = "#ffffff",
+                        hexCell_MatID = 0
+                    };
+
+                    hexSectors_Dict[sectorCoords_Top].HexCellsData_Dict[mergedCell.hexCoords] = mergedCell;
+                }
+            }
+        }
+        
+
+
+
+
+
+    }
+      */
+
+
     /////////////////////////////////////////////////////////////////
 }
