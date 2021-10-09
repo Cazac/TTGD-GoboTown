@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public struct MapGenerationController
+public struct MapGeneration
 {
     ////////////////////////////////
 
@@ -151,55 +151,10 @@ public struct MapGenerationController
                     hexCell_MatID = mapHex_MatIDSets[x, y]
                 };
 
-                if (HexGenUtility_CheckChunkNullRange(x, y))
-                {
-                    //Add to Dictionary
-                    generatedHexSector.HexCellsData_Dict.Add(mergedCell.hexCoords, mergedCell);
-
-                }
-                else
-                {
-                    //Debug Cell
-                    HexCell_Data debugCell = new HexCell_Data
-                    {
-                        hexCoords = new HexCellCoords(x + (generatedHexSector.sectorCoords.x * mapGenOpts.mapGen_SectorTotalSize), y + (generatedHexSector.sectorCoords.y * mapGenOpts.mapGen_SectorTotalSize)),
-                        hexCell_HeightSteps = 5,
-                        hexCell_BiomeID = 0,
-                        hexCell_Color = "#ffffff",
-                        hexCell_MatID = 0
-                    };
-
-                    //Add to Dictionary
-                    //generatedHexSector.HexCellsData_Dict.Add(mergedCell.hexCoords, debugCell);
-
-                    //Add to Dictionary As Null
-                    generatedHexSector.HexCellsData_Dict.Add(mergedCell.hexCoords, null);
-                }
+                //Add to Dictionary
+                generatedHexSector.HexCellsData_Dict.Add(mergedCell.hexCoords, mergedCell);
             }
         }
-    }
-
-    private static bool HexGenUtility_CheckChunkNullRange(int x, int y)
-    {
-        //Get The Range of Cell to go out by
-        int additiveRange = mapGenOpts.mapGen_EmptiedChunkBorderSize * mapGenOpts.mapGen_ChunkSize;
-
-        //Check X Range
-        if (x < additiveRange || x > mapGenOpts.mapGen_SectorTotalSize - additiveRange - 1)
-        {
-            //X Value is Out of Range, Empty The Hex
-            return false;
-        }
-
-        //Check Y Range
-        if (y < additiveRange || y > mapGenOpts.mapGen_SectorTotalSize - additiveRange - 1)
-        {
-            //Y Value is Out of Range, Empty The Hex
-            return false;
-        }
-
-        //Neither X Nor Y Have Issues Return True
-        return true;
     }
 
     /////////////////////////////////////////////////////////////////

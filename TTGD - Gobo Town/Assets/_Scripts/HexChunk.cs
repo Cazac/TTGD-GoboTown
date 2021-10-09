@@ -113,7 +113,7 @@ public class HexChunk : MonoBehaviour
             //Spawn a new Model for each Mat
             hexCellMergedMeshes_List[i].mesh = new Mesh();
             hexCellMergedMeshes_List[i].mesh.CombineMeshes(combiningListOfLists_List[i].ToArray(), true, true);
-            hexCellMergedMeshes_List[i].transform.GetComponent<MeshRenderer>().material = MapSpawnController.Instance.GetBiomeMaterial(currentMatIDs_List[i].Item1, currentMatIDs_List[i].Item2);
+            hexCellMergedMeshes_List[i].transform.GetComponent<MeshRenderer>().material = MapSpawnController.Instance.HexUtility_GetBiomeMaterial(currentMatIDs_List[i].Item1, currentMatIDs_List[i].Item2);
         }
 
 

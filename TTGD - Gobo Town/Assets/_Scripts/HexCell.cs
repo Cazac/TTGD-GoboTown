@@ -161,7 +161,7 @@ public class HexCell : MonoBehaviour
         hexCell_MatID = matID_Mat;
 
         //Set Renderer Color
-        hexObject_MeshRenderer.material = MapSpawnController.Instance.GetBiomeMaterial(hexCell_BiomeID, hexCell_MatID);
+        hexObject_MeshRenderer.material = MapSpawnController.Instance.HexUtility_GetBiomeMaterial(hexCell_BiomeID, hexCell_MatID);
     }
 
     private void UpdateCellColor(Color newColor)
