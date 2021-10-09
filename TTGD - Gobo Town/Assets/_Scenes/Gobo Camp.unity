@@ -14588,7 +14588,7 @@ Transform:
   m_GameObject: {fileID: 778692612}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 5, y: 1, z: 5}
-  m_LocalScale: {x: 0.1, y: 0.10000003, z: 0.10000003}
+  m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
   m_Children:
   - {fileID: 1575415381}
   - {fileID: 1012424413}
@@ -19076,8 +19076,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1012424412}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 3, z: -2}
-  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 778692613}
   m_RootOrder: 1
@@ -29867,9 +29867,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60bbd097e76312440bf0a090624b4e6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapGenOpts_SO: {fileID: 11400000, guid: 60d13e8fd969bc34d8296917ae56711f, type: 2}
+  mapGenOpts_SO: {fileID: 11400000, guid: 7d6fa53ff3f179943a49734cc760092a, type: 2}
   chunkRenderDistance: 5
-  currentCamera: {fileID: 0}
   cameraRelativePosition: {x: 5, y: -2}
   setupGround_GO: {fileID: 987773081}
   sectorGroundContainer_GO: {fileID: 305887436}

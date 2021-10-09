@@ -64,6 +64,11 @@ public struct MapGenLayerHeight
                         HexGenHeight_Perlin_Plains(x, y);
                         break;
 
+                    //4 == Swamp
+                    case 4:
+                        HexGenHeight_Perlin_Plains(x, y);
+                        break;
+
                     //??? == ???
                     default:
                         break;
@@ -77,7 +82,7 @@ public struct MapGenLayerHeight
     private static void HexGenHeight_Flat_Ocean(int x, int y)
     {
         //Create a Height Steps value based off of closeset step to the "Real" Height
-        int heightSteps = 4;
+        int heightSteps = 6;
 
         //Set Final Value To Array
         mapHex_HeightSets[x, y] = heightSteps;
