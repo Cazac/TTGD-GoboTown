@@ -1,16 +1,10 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-///////////////
-/// <summary>
-///     
-/// BiomeInfo_Drawer is used as a "PropertyDrawer" for the BiomeCellInfo property field shown in a list view format.
-/// 
-/// </summary>
-///////////////
-
-[CustomPropertyDrawer(typeof(BiomeCellInfo))]
-public class BiomeInfo_Drawer : PropertyDrawer
+[CustomPropertyDrawer(typeof(BiomeChanceInfo))]
+public class BiomeChanceInfo_Drawer : PropertyDrawer
 {
     /////////////////////////////////////////////////////////////////
 
@@ -21,17 +15,11 @@ public class BiomeInfo_Drawer : PropertyDrawer
         Rect contentPosition = EditorGUI.PrefixLabel(position, label);
 
         //Create a 20% width minus the label tag space of 4
-        contentPosition.width *= 0.2f;
+        contentPosition.width *= 0.4f;
         contentPosition.width -= 4f;
         EditorGUI.indentLevel = 0;
         EditorGUIUtility.labelWidth = 15f;
-        EditorGUI.PropertyField(contentPosition, property.FindPropertyRelative("material"), new GUIContent("M"));
-
-        //Space the indentation by adding the current width + label tag space of 4
-        contentPosition.x += contentPosition.width + 4f;
-        contentPosition.width *= 1f;
-        EditorGUIUtility.labelWidth = 15f;
-        EditorGUI.PropertyField(contentPosition, property.FindPropertyRelative("gradient"), new GUIContent("G"));
+        EditorGUI.PropertyField(contentPosition, property.FindPropertyRelative("biomeInfo_SO"), new GUIContent("B"));
 
         //Space the indentation then set width
         contentPosition.x += contentPosition.width + 4f;
@@ -43,11 +31,6 @@ public class BiomeInfo_Drawer : PropertyDrawer
         contentPosition.x += contentPosition.width + 4f + 15f;
         contentPosition.width *= 0.75f;
         EditorGUI.LabelField(contentPosition, (int)property.FindPropertyRelative("totalChance").floatValue + "%", EditorStyles.boldLabel);
-
-        //Space the indentation then set width
-        contentPosition.x += contentPosition.width + 4f + 15f;
-        contentPosition.width *= 1;
-        EditorGUI.LabelField(contentPosition, "#" + property.FindPropertyRelative("matID").intValue.ToString(), EditorStyles.boldLabel);
 
         //Finish
         EditorGUI.EndProperty();

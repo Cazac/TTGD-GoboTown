@@ -114,7 +114,7 @@ public class MapSpawnController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        //Check If Camera is in new location
+        //Check If Camera is in new chunk location
         UpdateCheck_SpawnCameraChunks();
     }
 
@@ -130,7 +130,6 @@ public class MapSpawnController : MonoBehaviour
 
         //Use the Generator to create the Hexs Needed to Spawn
         HexMap_CreateBasicSector(new HexSectorCoords(0, 0));
-        //hexSectors_Dict.Add(new HexSectorCoords(0, 0), MapGenerationController.HexMapGenerate_InitialSector(mapGenOpts_SO, new HexSectorCoords(0, 0)));
 
         //Setup Chunks In Pooler
         HexPoolingController.Instance.SetupInitialPool_Chunk();
@@ -143,13 +142,13 @@ public class MapSpawnController : MonoBehaviour
         for (int i = 0; i < mapGenOpts_SO.allBiomes_Arr.Length; i++)
         {
             //Loop Each Biome Cell Value
-            for (int j = 0; j < mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr.Length; j++)
+            for (int j = 0; j < mapGenOpts_SO.allBiomes_Arr[i].biomeInfo_SO.biomeCellsInfo_Arr.Length; j++)
             {
                 //Check if newest Value is Higher
-                if (mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID > highestBiomeMatID)
+                if (mapGenOpts_SO.allBiomes_Arr[i].biomeInfo_SO.biomeCellsInfo_Arr[j].matID > highestBiomeMatID)
                 {
                     //Replace the value then keep searching
-                    highestBiomeMatID = mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID;
+                    highestBiomeMatID = mapGenOpts_SO.allBiomes_Arr[i].biomeInfo_SO.biomeCellsInfo_Arr[j].matID;
                 }
             }
         }
@@ -163,12 +162,12 @@ public class MapSpawnController : MonoBehaviour
             //A Starting Value to 0 does not overwrite
             int lastFoundID = -1;
 
-            for (int j = 0; j < mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr.Length; j++)
+            for (int j = 0; j < mapGenOpts_SO.allBiomes_Arr[i].biomeInfo_SO.biomeCellsInfo_Arr.Length; j++)
             {
-                if (lastFoundID != mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID)
+                if (lastFoundID != mapGenOpts_SO.allBiomes_Arr[i].biomeInfo_SO.biomeCellsInfo_Arr[j].matID)
                 {
-                    lastFoundID = mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr[j].matID;
-                    mergedBiomeMats_Arr[i, lastFoundID] = mapGenOpts_SO.allBiomes_Arr[i].biomeCellsInfo_Arr[j].material;
+                    lastFoundID = mapGenOpts_SO.allBiomes_Arr[i].biomeInfo_SO.biomeCellsInfo_Arr[j].matID;
+                    mergedBiomeMats_Arr[i, lastFoundID] = mapGenOpts_SO.allBiomes_Arr[i].biomeInfo_SO.biomeCellsInfo_Arr[j].material;
                 }
             }
         }
@@ -182,7 +181,7 @@ public class MapSpawnController : MonoBehaviour
         long startingTimeTicks = DateTime.UtcNow.Ticks;
 
         //Spawn Ground Visuals
-        HexSpawn_SpawnSectorGround();
+        HexSpawn_SpawnSectorGroundFloor();
 
         //Check if Camera Focus is Biome Map or Hex Map For Visuals
         if (isShowingBiomeVisuals)
@@ -217,9 +216,10 @@ public class MapSpawnController : MonoBehaviour
         hexSectors_Dict.Add(sectorCoords, MapGenerationController.HexMapGeneration_NewSector(mapGenOpts_SO, sectorCoords));
 
         //Generate The New Chained Sector Areas If Needed
-        HexMap_CreateChainedSectors(sectorCoords);
+        //HexMap_CreateChainedSectors(sectorCoords);
     }
 
+    /*
     private void HexMap_CreateChainedSectors(HexSectorCoords sectorCoords_Center)
     {
         //Get Coords Of Possible Chainable Sectors
@@ -267,9 +267,12 @@ public class MapSpawnController : MonoBehaviour
 
    
     }
+    */
 
     /////////////////////////////////////////////////////////////////
 
+
+    /*
     private void HexGen_FillEmptiedChunks_Right(HexSectorCoords sectorCoords_Center, HexSectorCoords sectorCoords_Right)
     {
         Debug.Log("Test Code: Generating Chained Sector (Right)");
@@ -421,13 +424,14 @@ public class MapSpawnController : MonoBehaviour
                 }
             }
         }
-        */
+        
 
 
 
 
 
     }
+      */
 
 
     private HexCellCoords[,] GetHexCellCoordsArr_FromXToY(HexCellCoords startingPoint, HexCellCoords endingPoint)
@@ -438,8 +442,8 @@ public class MapSpawnController : MonoBehaviour
         //Setup Retunable Array
         HexCellCoords[,] returningHexCoords_Arr = new HexCellCoords[xCount, yCount];
 
-        int offsetX = ;
-        int offsetY = ;
+        int offsetX = 0;
+        int offsetY = 0;
         
 
 
@@ -677,7 +681,7 @@ public class MapSpawnController : MonoBehaviour
 
     /////////////////////////////////////////////////////////////////
 
-    private void HexSpawn_SpawnSectorGround()
+    private void HexSpawn_SpawnSectorGroundFloor()
     {
         //Turn Off Old Map From Setup
         setupGround_GO.SetActive(false);
@@ -1124,7 +1128,7 @@ public class MapSpawnController : MonoBehaviour
 
         if (!hexSectors_Dict[sectorCoords].hasGeneratedNeighbours)
         {
-            HexMap_CreateChainedSectors(sectorCoords);
+            //HexMap_CreateChainedSectors(sectorCoords);
         }
 
         //Return The coords For Other Methods To Use

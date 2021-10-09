@@ -40,15 +40,15 @@ public class MapGenerationOptions_SO : ScriptableObject
 
     ////////////////////////////////
 
-    [Header("Biome Info Sets")]
-    public BiomeInfo_SO[] allBiomes_Arr;
-
-    ////////////////////////////////
-
     [Header("Perlin Noise Settings")]
     public float perlinZoomScale;
     public float offsetX;
     public float offsetY;
+
+    ////////////////////////////////
+
+    [Header("Biome Info Sets")]
+    public BiomeChanceInfo[] allBiomes_Arr;
 
     ////////////////////////////////
 

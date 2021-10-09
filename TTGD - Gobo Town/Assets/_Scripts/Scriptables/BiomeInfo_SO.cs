@@ -48,6 +48,5 @@ public class BiomeInfo_SO : ScriptableObject
         throw new NotImplementedException();
     }
 
-
     /////////////////////////////////////////////////////////////////
 }

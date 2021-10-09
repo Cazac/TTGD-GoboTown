@@ -43,7 +43,6 @@ public class BiomeInfo_GUI : Editor
         {
             //Refresh Chances
             RefreshChances(biomeInfoSet);
-
             RefreshMatIDs(biomeInfoSet);
         }
     }
