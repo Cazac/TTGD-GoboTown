@@ -7,9 +7,6 @@ public struct HexFetcherUtility
 {
     /////////////////////////////////////////////////////////////////
 
-
-
-
     public static HexCellCoords GetHexCellCoords_ByWorldPosition(Vector3 searchPosition)
     {
         //Get Camera Position
@@ -86,11 +83,6 @@ public struct HexFetcherUtility
         int chunkCoordY = (int)Mathf.Floor((float)cellCoords.y / mapGenOpts_SO.mapGen_ChunkSize);
         return new HexChunkCoords(chunkCoordX, chunkCoordY);
     }
-
-    /////////////////////////////////////////////////////////////////
-
-
-
 
     /////////////////////////////////////////////////////////////////
 
@@ -237,6 +229,25 @@ public struct HexFetcherUtility
 
         //Return The coords For Other Methods To Use
         return sectorCoords;
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+    public static void SetHexChunk(HexChunk incomingChunk, MapGenerationOptions_SO mapGenOpts_SO, Dictionary<HexSectorCoords, HexSector> hexSectors_Dict)
+    {
+        //Check For New Sector Generatation
+        HexSectorCoords sectorCoords = GetCheckNewSectors_ByChunkCoords(incomingChunk.chunkCoords, mapGenOpts_SO, hexSectors_Dict);
+
+        if (hexSectors_Dict[sectorCoords].hexChunks_Dict.ContainsKey(incomingChunk.chunkCoords))
+        {
+            //Set The Chunk As A Replacement Chunk
+            hexSectors_Dict[sectorCoords].hexChunks_Dict[incomingChunk.chunkCoords] = incomingChunk;
+        }
+        else
+        {
+            //Set The Chunk As A New Chunk
+            hexSectors_Dict[sectorCoords].hexChunks_Dict.Add(incomingChunk.chunkCoords, incomingChunk);
+        }
     }
 
     /////////////////////////////////////////////////////////////////

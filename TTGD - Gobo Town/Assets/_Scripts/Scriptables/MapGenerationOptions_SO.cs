@@ -12,7 +12,13 @@ public class MapGenerationOptions_SO : ScriptableObject
     public bool isShowingToDos;
 
     ////////////////////////////////
-    
+
+    [Header("Camera Control Type")]
+    public bool isCameraFirstPerson;
+    public bool isCameraThirdPerson;
+
+    ////////////////////////////////
+
     [Header("Hex Gen Settings - RNG")]
     [Range(1000, 9999)]
     public int mapGen_Seed;

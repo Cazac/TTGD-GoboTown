@@ -97,8 +97,6 @@ public class HexChunk : MonoBehaviour
             hexCell.hexObject_MeshFilter.gameObject.SetActive(false);
         }
 
-
-
         //Create All Of the Mesh Filter Gameobjects
         for (int i = 0; i < combiningListOfLists_List.Count; i++)
         {
@@ -106,21 +104,23 @@ public class HexChunk : MonoBehaviour
             hexCellMergedMeshes_List.Add(Instantiate(MapSpawnController.Instance.hexChunkModel_Prefab, new Vector3(0, 0, 0), Quaternion.identity, gameObject.transform).GetComponent<MeshFilter>());
         }
 
-
-
+        //Set Materials and Meshes for each grouping of materials
         for (int i = 0; i < hexCellMergedMeshes_List.Count; i++)
         {
             //Spawn a new Model for each Mat
             hexCellMergedMeshes_List[i].mesh = new Mesh();
             hexCellMergedMeshes_List[i].mesh.CombineMeshes(combiningListOfLists_List[i].ToArray(), true, true);
             hexCellMergedMeshes_List[i].transform.GetComponent<MeshRenderer>().material = MapSpawnController.Instance.HexUtility_GetBiomeMaterial(currentMatIDs_List[i].Item1, currentMatIDs_List[i].Item2);
+            hexCellMergedMeshes_List[i].transform.GetComponent<MeshCollider>().sharedMesh = hexCellMergedMeshes_List[i].mesh;
         }
 
-
-
-        //Setup The General Info
-        hexCellMergedMeshes_List[0].gameObject.name = "Chunk Merged Model";
-        hexCellMergedMeshes_List[0].gameObject.transform.SetAsFirstSibling();
+        //Create Names and set Priority
+        for (int i = 0; i < hexCellMergedMeshes_List.Count; i++)
+        {
+            //Setup The General Info
+            hexCellMergedMeshes_List[i].gameObject.name = "Chunk Merged Model (" + i + ")";
+            hexCellMergedMeshes_List[i].gameObject.transform.SetAsFirstSibling();
+        }
     }
 
     public void Unchunk()

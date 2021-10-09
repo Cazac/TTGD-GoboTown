@@ -25,7 +25,7 @@ public struct MapGenLayerHeight
         HexGenHeight();
 
         //Return Biome Map Array
-        return mapHex_BiomeSets;
+        return mapHex_HeightSets;
     }
 
     /////////////////////////////////////////////////////////////////
