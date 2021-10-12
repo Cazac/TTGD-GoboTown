@@ -206,7 +206,7 @@ public struct HexFetcherUtility
         if (!hexSectors_Dict.ContainsKey(sectorCoords))
         {
             //Generate The New Sector If Needed
-            MapSpawnController.Instance.HexMap_CreateBasicSector(sectorCoords);
+            MapSpawnController.Instance.HexGen_CreateBasicSector(sectorCoords);
         }
 
         //Return The coords For Other Methods To Use
@@ -224,7 +224,7 @@ public struct HexFetcherUtility
         if (!hexSectors_Dict.ContainsKey(sectorCoords))
         {
             //Generate The New Sector If Needed
-            MapSpawnController.Instance.HexMap_CreateBasicSector(sectorCoords);
+            MapSpawnController.Instance.HexGen_CreateBasicSector(sectorCoords);
         }
 
         //Return The coords For Other Methods To Use
