@@ -30187,8 +30187,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60bbd097e76312440bf0a090624b4e6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapGenOpts_SO: {fileID: 0}
-  chunkRenderDistance: 7
+  mapGenOpts_SO: {fileID: 11400000, guid: a1f61b827ddae6940a6aca735cbb8ec1, type: 2}
+  chunkRenderDistance: 4
   cameraRelativePosition: {x: 5, y: -2}
   setupGround_GO: {fileID: 987773081}
   sectorGroundContainer_GO: {fileID: 305887436}

@@ -54,8 +54,10 @@ public struct MapGeneration
         //Generate Height Sets
         mapHex_HeightSets = MapGenLayerHeight.GenerateSectorValues(mapGenOpts, sectorCoords, mapHex_BiomeSets);
 
-        //Generate Mats and Colors For the Hex Cells
-        HexGenUtility_MatsAndColors();
+        //Generate Colors and Materials Then Set them to the right arrays
+        Tuple<int[,], string[,]> colorMats_Tuple = MapGenLayerColors.GenerateSectorValues(mapGenOpts, sectorCoords, mapHex_BiomeSets);
+        mapHex_MatIDSets = colorMats_Tuple.Item1;
+        mapHex_ColorSets = colorMats_Tuple.Item2;
 
         //Merge Info Together Into Storable Data Hex Cells
         HexGenUtility_MergeRawDataToHexDataCells();
@@ -113,24 +115,6 @@ public struct MapGeneration
 
         //Set The Random State With The Seed
         Random.InitState(finalSeed);
-    }
-
-    private static void HexGenUtility_MatsAndColors()
-    {
-        //Spawn Cells By X (Left and Right)
-        for (int y = 0; y < mapGenOpts.mapGen_SectorTotalSize; y++)
-        {
-            //Spawn Cells By Y (Up and Down)
-            for (int x = 0; x < mapGenOpts.mapGen_SectorTotalSize; x++)
-            {
-                //Get The Biome Info Cell based off of the biome in the given cell
-                BiomeCellInfo biomeCellInfo = mapGenOpts.allBiomes_Arr[mapHex_BiomeSets[x, y]].biomeInfo_SO.GetRandomBiomeCell();
-
-                //Set The MatID / Color Sets
-                mapHex_MatIDSets[x, y] = biomeCellInfo.matID;
-                mapHex_ColorSets[x, y] = ColorUtility.ToHtmlStringRGB(biomeCellInfo.gradient.Evaluate(Random.Range(0, 1f)));
-            }
-        }
     }
 
     private static void HexGenUtility_MergeRawDataToHexDataCells()

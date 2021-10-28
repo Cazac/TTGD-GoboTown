@@ -48,10 +48,19 @@ public class MapGenerationOptions_SO : ScriptableObject
 
     ////////////////////////////////
 
-    [Header("Perlin Noise Settings")]
-    public float perlinZoomScale;
-    public float offsetX;
-    public float offsetY;
+    [Header("Height Noise Settings")]
+    public float perlinZoomScale_Height;
+    public float perlinOffsetX_Height;
+    public float perlinOffsetY_Height;
+
+    ////////////////////////////////
+
+    [Header("Color Noise Settings")]
+    public float perlinZoomScale_Color;
+    public float perlinOffsetX_Color;
+    public float perlinOffsetY_Color;
+    public float colorRandomizationRange;
+    public bool isColorStyleChaos;
 
     ////////////////////////////////
 

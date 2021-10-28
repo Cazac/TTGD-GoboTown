@@ -251,12 +251,12 @@ public struct MapGenLayerHeight
         float xPositional = x + ((float)sectorCoords.x * mapGenOpts.mapGen_SectorTotalSize);
         float yPositional = y + ((float)sectorCoords.y * mapGenOpts.mapGen_SectorTotalSize);
 
-        float xScaled = xPositional / mapGenOpts.perlinZoomScale;
-        float yScaled = yPositional / mapGenOpts.perlinZoomScale;
+        float xScaled = xPositional / mapGenOpts.perlinZoomScale_Height;
+        float yScaled = yPositional / mapGenOpts.perlinZoomScale_Height;
 
 
 
-        float height = Mathf.PerlinNoise(xScaled + mapGenOpts.offsetX, yScaled + mapGenOpts.offsetY);
+        float height = Mathf.PerlinNoise(xScaled + mapGenOpts.perlinOffsetX_Height, yScaled + mapGenOpts.perlinOffsetY_Height);
 
 
 

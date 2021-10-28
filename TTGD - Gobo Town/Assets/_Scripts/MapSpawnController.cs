@@ -116,10 +116,10 @@ public class MapSpawnController : MonoBehaviour
         HexSetup_SpawnSectorGroundFloor();
 
         //Check If Camera is in new chunk location
-        //FixedUpdateCheck_FindCameraChunks();
+        FixedUpdateCheck_FindCameraChunks();
 
         //Load all Chunks for the first frame
-        //HexSpawnQueue_LoadAllChunks();
+        HexSpawnQueue_LoadAllChunks();
     }
 
     private void Update()
@@ -402,9 +402,7 @@ public class MapSpawnController : MonoBehaviour
         }
 
         //Check for double Spawn if cap is too high
-        int loopsPerFrame = Mathf.CeilToInt(hexChunks_AwaitingSpawnQueue.Count / 40f);
-
-        Debug.Log("loops Per Frame: " + loopsPerFrame);
+        int loopsPerFrame = Mathf.CeilToInt(hexChunks_AwaitingSpawnQueue.Count / 30f);
 
         //Loop For The amount needed this frame
         for (int i = 0; i < loopsPerFrame; i++)
