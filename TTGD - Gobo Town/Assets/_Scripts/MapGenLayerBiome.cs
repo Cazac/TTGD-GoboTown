@@ -15,7 +15,7 @@ public struct MapGenLayerBiome
 
     /////////////////////////////////////////////////////////////////
 
-    public static int[,] GenerateSectorValues(MapGenerationOptions_SO incomingMapOptions)
+    public static int[,] GenerateSectorValues(MapGenerationOptions_SO incomingMapOptions, HexSectorCoords sectorCoords)
     {
         //Set Options
         mapGenOpts = incomingMapOptions;

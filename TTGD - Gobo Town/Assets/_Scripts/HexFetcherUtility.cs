@@ -23,7 +23,7 @@ public struct HexFetcherUtility
 
     /////////////////////////////////////////////////////////////////
 
-    public static List<HexChunkCoords> GetHexChunks_AroundCamera(int X, int Y, int rangeAddition)
+    public static List<HexChunkCoords> GetHexChunks_AroundCameraSquare(int X, int Y, int rangeAddition)
     {
         //Create a Returnable List of Values of corect Hexs
         List<HexChunkCoords> chunksCoordsAroundCamera_List = new List<HexChunkCoords>();
@@ -47,6 +47,48 @@ public struct HexFetcherUtility
         //Return The New List
         return chunksCoordsAroundCamera_List;
     }
+
+    public static List<HexChunkCoords> GetHexChunks_AroundCameraCircle(int X, int Y, int rangeAddition)
+    {
+        //Create a Returnable List of Values of corect Hexs
+        List<HexChunkCoords> chunksCoordsAroundCamera_List = new List<HexChunkCoords>();
+
+        //Get Corners
+        int rightCorner = X + rangeAddition + 1;
+        int leftCorner = X - rangeAddition;
+        int topCorner = Y + rangeAddition + 1;
+        int bottomCorner = Y - rangeAddition;
+
+        //Loop The Square From All 4 Corners
+        for (int y = bottomCorner; y < topCorner; y++)
+        {
+            for (int x = leftCorner; x < rightCorner; x++)
+            {
+                //Added Extra Condition For Cricles
+                if (inside_circle(X, Y, x, y, rangeAddition + 1))
+                {
+                    //Add New Possible Chunk
+                    chunksCoordsAroundCamera_List.Add(new HexChunkCoords(x, y));
+                }
+            }
+        }
+
+        //Return The New List
+        return chunksCoordsAroundCamera_List;
+    }
+
+
+
+
+    private static bool inside_circle(int centerX, int centerY, int searchingX, int searchingY, float radius)
+    {
+        float dx = centerX - searchingX;
+        float dy = centerY - searchingY;
+        float distance = Mathf.Sqrt(dx * dx + dy * dy);
+        return distance <= radius;
+    }
+
+
 
     /////////////////////////////////////////////////////////////////
 

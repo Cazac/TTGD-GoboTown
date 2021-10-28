@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -53,8 +54,8 @@ public class MapSpawnController : MonoBehaviour
     [Header("Biome Map Visuals")]
     public GameObject biomeVisualQuad_Prefab;
     public GameObject biomeVisualContainer_GO;
-
-    ////////////////////////////////
+    
+    //////////////////////////////// 
 
     [Header("Current Camera Position")]
     public HexCellCoords coordsUnderCamera_Cell = new HexCellCoords(0, 0);
@@ -75,6 +76,9 @@ public class MapSpawnController : MonoBehaviour
     public float slowTimerCap = 0f;
 
 
+
+
+    public GameObject MYGAMEOBJECT;
 
     public List<HexChunkCoords> chunksAroundCamera_List;
 
@@ -110,6 +114,12 @@ public class MapSpawnController : MonoBehaviour
 
         //Spawn Simple Plate Around Orgin Sector
         HexSetup_SpawnSectorGroundFloor();
+
+        //Check If Camera is in new chunk location
+        //FixedUpdateCheck_FindCameraChunks();
+
+        //Load all Chunks for the first frame
+        //HexSpawnQueue_LoadAllChunks();
     }
 
     private void Update()
@@ -125,44 +135,29 @@ public class MapSpawnController : MonoBehaviour
 
         //Not Used Yet
         UpdateCheck_SavingLoading();
-
-        //Check For Next Chunk Spawn
-        if (hexChunks_AwaitingSpawnQueue.Count != 0)
-        {
-
-            HexChunkCoords temp = hexChunks_AwaitingSpawnQueue.Peek();
-            HexSpawnQueue_LoadNextChunk();
-            Debug.Log("Chunks Queued: " + hexChunks_AwaitingSpawnQueue.Count);
-        }
     }
 
     private void FixedUpdate()
     {
         //Check If Camera is in new chunk location
-        FixedUpdateCheck_SpawnCameraChunks();
+        FixedUpdateCheck_FindCameraChunks();
 
-        if (slowTimer > slowTimerCap)
-        {
-            /*
-            //Check For Next Chunk Spawn
-            if (hexChunks_AwaitingSpawnQueue.Count != 0)
-            {
+        //Load the next Chunk in queue
+        HexSpawnQueue_LoadNextChunk();
 
-                HexChunkCoords temp = hexChunks_AwaitingSpawnQueue.Peek();
-                HexSpawnQueue_LoadNextChunk();
-                Debug.Log("Chunks Queued: " + hexChunks_AwaitingSpawnQueue.Count);
-            }
-            */
 
-            slowTimer = 0;
-        }
+     
+   
+        //OLD SAVING MESH CODE
 
-        slowTimer += Time.deltaTime;
+        //Mesh myMesh = MYGAMEOBJECT.transform.GetChild(0).GetChild(0).gameObject.GetComponent<MeshFilter>().sharedMesh;
+        //AssetDatabase.CreateAsset(myMesh, "Assets/MyMesh.mesh");
+        //AssetDatabase.SaveAssets();
     }
 
     /////////////////////////////////////////////////////////////////
 
-    private void FixedUpdateCheck_SpawnCameraChunks()
+    private void FixedUpdateCheck_FindCameraChunks()
     {
         ////////////////////////////////
 
@@ -171,8 +166,6 @@ public class MapSpawnController : MonoBehaviour
 
         //Update Camera Coords Under Camera
         bool isCameraInNewChunk = HexUtility_UpdateCoordsUnderTheCamera();
-
-        //Debug.Log("Current Chunks Loaded: " + currentlyLoaded_Chunks_List.Count);
 
         //Check that the current chunk is different then last frame
         if (!isCameraInNewChunk)
@@ -183,69 +176,14 @@ public class MapSpawnController : MonoBehaviour
 
         ////////////////////////////////
 
-
-        //Debug Version With Public List
-
         //Collect List Of Possible Chunks Around Camera Chunk Then Refresh Old and New Chunks For Reloading
-        chunksAroundCamera_List = HexFetcherUtility.GetHexChunks_AroundCamera(coordsUnderCamera_Chunk.x, coordsUnderCamera_Chunk.y, chunkRenderDistance);
-
-
-
+        chunksAroundCamera_List = HexFetcherUtility.GetHexChunks_AroundCameraCircle(coordsUnderCamera_Chunk.x, coordsUnderCamera_Chunk.y, chunkRenderDistance);
 
         //Remove All Old Out Of Range Chunks
         HexChunkFilter_RemoveOutOfRangeChunks(chunksAroundCamera_List);
 
         //Filter Chunks And Add to Queue
         HexChunkFilter_QueueUpMissingChunks(chunksAroundCamera_List);
-
-        //chunksCurrent_List = HexManage_UpdateCurrentChunkList(chunksAroundCamera_List);
-
-
-
-
-
-
-        //For each of the chunks to be loaded, if it has a match with the queue -> discard it else keep it
-
-
-        //Old Version With no Queue
-        /*
-        //Load All Chunks That are listed to be loaded
-        foreach (HexChunkCoords currentCoords in chunksCoordsToBeLoaded_List)
-        {
-            //Activate A New Chunk Then Set The Chunk As Active
-            HexChunk newChunk = HexPoolingController.Instance.ActivateObject();
-            newChunk.chunkCoords = currentCoords;
-
-            //Setup The Hexs In The Array That Were Spawned By The Pooler
-            HexFetcherUtility.SetHexChunk(newChunk, mapGenOpts_SO, hexSectors_Dict);
-            newChunk.SetChunkActive(currentCoords, HexFetcherUtility.GetHexCellDataList_ByChunk(currentCoords, mapGenOpts_SO, hexSectors_Dict));
-
-            //CHUNK THIS CHUNK
-            newChunk.Chunk();
-        }
-
-
-   
-         //Collect List Of Possible Chunks Around Camera Chunk Then Refresh Old and New Chunks For Reloading
-        List<HexChunkCoords> chunksCoordsToBeLoaded_List = HexFetcherUtility.GetHexChunks_AroundCamera(coordsUnderCamera_Chunk.x, coordsUnderCamera_Chunk.y, chunkRenderDistance);
-        chunksCoordsToBeLoaded_List = HexSpawn_UpdateCurrentChunkList(chunksCoordsToBeLoaded_List);
-
-        //Load All Chunks That are listed to be loaded
-        foreach (HexChunkCoords currentCoords in chunksCoordsToBeLoaded_List)
-        {
-            //Activate A New Chunk Then Set The Chunk As Active
-            HexChunk newChunk = HexPoolingController.Instance.ActivateObject();
-            newChunk.chunkCoords = currentCoords;
-
-            //Setup The Hexs In The Array That Were Spawned By The Pooler
-            HexFetcherUtility.SetHexChunk(newChunk, mapGenOpts_SO, hexSectors_Dict);
-            newChunk.SetChunkActive(currentCoords, HexFetcherUtility.GetHexCellDataList_ByChunk(currentCoords, mapGenOpts_SO, hexSectors_Dict));
-
-            //CHUNK THIS CHUNK
-            newChunk.Chunk();
-        }
-        */
     }
 
     private void UpdateCheck_RegenerateMap()
@@ -456,21 +394,67 @@ public class MapSpawnController : MonoBehaviour
 
     public void HexSpawnQueue_LoadNextChunk()
     {
-        HexChunkCoords currentCoords = hexChunks_AwaitingSpawnQueue.Dequeue();
+        //Check For Next Chunk Spawn
+        if (hexChunks_AwaitingSpawnQueue.Count == 0)
+        {
+            //No more chunks return
+            return;
+        }
 
-        //Activate A New Chunk Then Set The Chunk As Active
-        HexChunk newChunk = HexPoolingController.Instance.ActivateObject();
-        newChunk.chunkCoords = currentCoords;
+        //Check for double Spawn if cap is too high
+        int loopsPerFrame = Mathf.CeilToInt(hexChunks_AwaitingSpawnQueue.Count / 40f);
 
-        //Setup The Hexs In The Array That Were Spawned By The Pooler
-        HexFetcherUtility.SetHexChunk(newChunk, mapGenOpts_SO, hexSectors_Dict);
-        newChunk.SetChunkActive(currentCoords, HexFetcherUtility.GetHexCellDataList_ByChunk(currentCoords, mapGenOpts_SO, hexSectors_Dict));
+        Debug.Log("loops Per Frame: " + loopsPerFrame);
 
-        //CHUNK THIS CHUNK
-        newChunk.Chunk();
+        //Loop For The amount needed this frame
+        for (int i = 0; i < loopsPerFrame; i++)
+        {
+            //Dequeue the next Chunks
+            HexChunkCoords currentCoords = hexChunks_AwaitingSpawnQueue.Dequeue();
 
-        //Add Chunks As Currently Loaded
-        currentlyLoaded_Chunks_List.Add(currentCoords);
+            //Activate A New Chunk Then Set The Chunk As Active
+            HexChunk newChunk = HexPoolingController.Instance.ActivateObject();
+            newChunk.chunkCoords = currentCoords;
+
+            //Setup The Hexs In The Array That Were Spawned By The Pooler
+            HexFetcherUtility.SetHexChunk(newChunk, mapGenOpts_SO, hexSectors_Dict);
+            newChunk.SetChunkActive(currentCoords, HexFetcherUtility.GetHexCellDataList_ByChunk(currentCoords, mapGenOpts_SO, hexSectors_Dict));
+
+            //Chunk the Chunk 
+            newChunk.Chunk();
+
+            //Add Chunks As Currently Loaded
+            currentlyLoaded_Chunks_List.Add(currentCoords);
+
+            Debug.Log("Chunks Queued: " + hexChunks_AwaitingSpawnQueue.Count);
+        } 
+    }
+
+    public void HexSpawnQueue_LoadAllChunks()
+    {
+        //Get loops Count
+        int loopCount = hexChunks_AwaitingSpawnQueue.Count;
+
+        //Loop All of the chunks
+        for (int i = 0; i < loopCount; i++)
+        {
+            //Dequeue the next Chunks
+            HexChunkCoords currentCoords = hexChunks_AwaitingSpawnQueue.Dequeue();
+
+            //Activate A New Chunk Then Set The Chunk As Active
+            HexChunk newChunk = HexPoolingController.Instance.ActivateObject();
+            newChunk.chunkCoords = currentCoords;
+
+            //Setup The Hexs In The Array That Were Spawned By The Pooler
+            HexFetcherUtility.SetHexChunk(newChunk, mapGenOpts_SO, hexSectors_Dict);
+            newChunk.SetChunkActive(currentCoords, HexFetcherUtility.GetHexCellDataList_ByChunk(currentCoords, mapGenOpts_SO, hexSectors_Dict));
+
+            //Chunk the Chunk 
+            newChunk.Chunk();
+
+            //Add Chunks As Currently Loaded
+            currentlyLoaded_Chunks_List.Add(currentCoords);
+        }
     }
 
     /////////////////////////////////////////////////////////////////

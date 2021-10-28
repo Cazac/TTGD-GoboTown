@@ -6,7 +6,7 @@ using UnityEngine;
 public class MapGenerationOptions_SO : ScriptableObject
 {
     ////////////////////////////////
-    
+
     [Header("Hex Map Options")]
     public bool isShowingGenerationTime;
     public bool isShowingToDos;
@@ -26,8 +26,11 @@ public class MapGenerationOptions_SO : ScriptableObject
     ////////////////////////////////
 
     [Header("Map Gen Settings - Size")]
+    [Tooltip("This value needs to be Log(2) of 'SectorTotalSize'")]
     public int mapGen_StartingBiomeNodesCount;
+    [Tooltip("This value needs to be a divisable value of 'SectorTotalSize'")]
     public int mapGen_ChunkSize;
+    [Tooltip("This value needs to be 2^ of 'StartingBiomeNodesCount' and a divisable by 'ChunkSize'")]
     public int mapGen_SectorTotalSize;
 
     ////////////////////////////////
@@ -58,7 +61,8 @@ public class MapGenerationOptions_SO : ScriptableObject
     ////////////////////////////////
 
     [Header("Hex Uneditable Sizes")]
-    public const float outerRadius = 0.1f;
+    public const float outerRadius = 0.15f;
+    //public const float outerRadius = 0.1f;
     public const float innerRadius = outerRadius * 0.866025404f;
     public const float spacing_I = innerRadius * 2f;
     public const float spacing_J = outerRadius * 1.5f;

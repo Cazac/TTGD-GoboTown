@@ -15,14 +15,14 @@ public struct MapGenLayerHeight
 
     /////////////////////////////////////////////////////////////////
 
-    public static int[,] GenerateSectorValues(MapGenerationOptions_SO incomingMapOptions, int[,] incomingBiomeSets)
+    public static int[,] GenerateSectorValues(MapGenerationOptions_SO incomingMapOptions, HexSectorCoords sectorCoords, int[,] incomingBiomeSets)
     {
         //Set Options
         mapGenOpts = incomingMapOptions;
         mapHex_BiomeSets = incomingBiomeSets;
 
         //Run Biome Generation
-        HexGenHeight();
+        HexGenHeight(sectorCoords);
 
         //Return Biome Map Array
         return mapHex_HeightSets;
@@ -30,7 +30,7 @@ public struct MapGenLayerHeight
 
     /////////////////////////////////////////////////////////////////
 
-    private static void HexGenHeight()
+    private static void HexGenHeight(HexSectorCoords sectorCoords)
     {
         //Set New height array
         mapHex_HeightSets = new int[mapGenOpts.mapGen_SectorTotalSize, mapGenOpts.mapGen_SectorTotalSize];
@@ -46,27 +46,27 @@ public struct MapGenLayerHeight
                 {
                     //0 == Ocean
                     case 0:
-                        HexGenHeight_Flat_Ocean(x, y);
+                        HexGenHeight_Flat_Ocean(x, y, sectorCoords);
                         break;
 
                     //1 == Beach
                     case 1:
-                        HexGenHeight_Flat_Beach(x, y);
+                        HexGenHeight_Flat_Beach(x, y, sectorCoords);
                         break;
 
                     //2 == Plains
                     case 2:
-                        HexGenHeight_Perlin_Plains(x, y);
+                        HexGenHeight_Perlin_Plains(x, y, sectorCoords);
                         break;
 
                     //3 == Forest
                     case 3:
-                        HexGenHeight_Perlin_Plains(x, y);
+                        HexGenHeight_Perlin_Plains(x, y, sectorCoords);
                         break;
 
                     //4 == Swamp
                     case 4:
-                        HexGenHeight_Perlin_Plains(x, y);
+                        HexGenHeight_Perlin_Plains(x, y, sectorCoords);
                         break;
 
                     //??? == ???
@@ -79,7 +79,7 @@ public struct MapGenLayerHeight
 
     /////////////////////////////////////////////////////////////////
 
-    private static void HexGenHeight_Flat_Ocean(int x, int y)
+    private static void HexGenHeight_Flat_Ocean(int x, int y, HexSectorCoords sectorCoords)
     {
         //Create a Height Steps value based off of closeset step to the "Real" Height
         int heightSteps = 6;
@@ -88,7 +88,7 @@ public struct MapGenLayerHeight
         mapHex_HeightSets[x, y] = heightSteps;
     }
 
-    private static void HexGenHeight_Slope_Ocean(int x, int y)
+    private static void HexGenHeight_Slope_Ocean(int x, int y, HexSectorCoords sectorCoords)
     {
         /*
         //Create a Height Steps value based off of closeset step to the "Real" Height
@@ -223,7 +223,7 @@ public struct MapGenLayerHeight
        */
     }
 
-    private static void HexGenHeight_Flat_Beach(int x, int y)
+    private static void HexGenHeight_Flat_Beach(int x, int y, HexSectorCoords sectorCoords)
     {
         //Create a Height Steps value based off of closeset step to the "Real" Height
         int heightSteps = 8;
@@ -232,7 +232,7 @@ public struct MapGenLayerHeight
         mapHex_HeightSets[x, y] = heightSteps;
     }
 
-    private static void HexGenHeight_Perlin_Plains(int x, int y)
+    private static void HexGenHeight_Perlin_Plains(int x, int y, HexSectorCoords sectorCoords)
     {
         float neutralHeight = 0.5f;
 
@@ -242,8 +242,18 @@ public struct MapGenLayerHeight
 
         //float perlinZoomScale = 20;
 
-        float xScaled = (float)x / mapGenOpts.perlinZoomScale;
-        float yScaled = (float)y / mapGenOpts.perlinZoomScale;
+
+
+
+
+
+        //Need to use the sector scale as well as an offset
+        float xPositional = x + ((float)sectorCoords.x * mapGenOpts.mapGen_SectorTotalSize);
+        float yPositional = y + ((float)sectorCoords.y * mapGenOpts.mapGen_SectorTotalSize);
+
+        float xScaled = xPositional / mapGenOpts.perlinZoomScale;
+        float yScaled = yPositional / mapGenOpts.perlinZoomScale;
+
 
 
         float height = Mathf.PerlinNoise(xScaled + mapGenOpts.offsetX, yScaled + mapGenOpts.offsetY);

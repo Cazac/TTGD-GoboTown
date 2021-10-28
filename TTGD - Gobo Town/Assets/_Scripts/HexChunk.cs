@@ -27,6 +27,8 @@ public class HexChunk : MonoBehaviour
     public ChunkState currentState = ChunkState.Inactive;
     public HexChunkCoords chunkCoords;
 
+    public Mesh savedMesh = null;
+
     [Header("Hex Cells / Combined Meshes In Chunk")]
     public HexCell[] hexCellsInChunk_Arr;
     public List<MeshFilter> hexCellMergedMeshes_List;
@@ -59,14 +61,18 @@ public class HexChunk : MonoBehaviour
                 newHexCell.RePurposeCell(chunkDataCells_Arr[x, y]);
             }
         }
-
-        //Chunk();
     }
 
     /////////////////////////////////////////////////////////////////
 
     public void Chunk()
     {
+        if (savedMesh != null)
+        {
+            LoadChunk();
+            return;
+        }
+
         //Setup Lists
         List<List<CombineInstance>> combiningListOfLists_List = new List<List<CombineInstance>>();
         hexCellMergedMeshes_List = new List<MeshFilter>();
@@ -121,6 +127,11 @@ public class HexChunk : MonoBehaviour
             hexCellMergedMeshes_List[i].gameObject.name = "Chunk Merged Model (" + i + ")";
             hexCellMergedMeshes_List[i].gameObject.transform.SetAsFirstSibling();
         }
+    }
+
+    public void LoadChunk()
+    {
+        //savedMesh
     }
 
     public void Unchunk()

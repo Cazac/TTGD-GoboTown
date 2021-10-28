@@ -30187,8 +30187,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60bbd097e76312440bf0a090624b4e6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapGenOpts_SO: {fileID: 11400000, guid: 1e3786c8d5e559b47965244028ea3b06, type: 2}
-  chunkRenderDistance: 5
+  mapGenOpts_SO: {fileID: 0}
+  chunkRenderDistance: 7
   cameraRelativePosition: {x: 5, y: -2}
   setupGround_GO: {fileID: 987773081}
   sectorGroundContainer_GO: {fileID: 305887436}
@@ -30207,6 +30207,7 @@ MonoBehaviour:
     mapHex_Seed: 135135
   slowTimer: 0
   slowTimerCap: 0.08
+  MYGAMEOBJECT: {fileID: 0}
   chunksAroundCamera_List: []
   chunksCurrent_List: []
   chunksToBeQueued_List: []

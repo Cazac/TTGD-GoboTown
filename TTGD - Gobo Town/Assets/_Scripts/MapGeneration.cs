@@ -49,10 +49,10 @@ public struct MapGeneration
         HexGenUtility_SetMapSeed();
 
         //Generate Biome Sets
-        mapHex_BiomeSets = MapGenLayerBiome.GenerateSectorValues(mapGenOpts);
+        mapHex_BiomeSets = MapGenLayerBiome.GenerateSectorValues(mapGenOpts, sectorCoords);
 
         //Generate Height Sets
-        mapHex_HeightSets = MapGenLayerHeight.GenerateSectorValues(mapGenOpts, mapHex_BiomeSets);
+        mapHex_HeightSets = MapGenLayerHeight.GenerateSectorValues(mapGenOpts, sectorCoords, mapHex_BiomeSets);
 
         //Generate Mats and Colors For the Hex Cells
         HexGenUtility_MatsAndColors();
