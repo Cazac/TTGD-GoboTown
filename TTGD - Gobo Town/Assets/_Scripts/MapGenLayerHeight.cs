@@ -46,7 +46,8 @@ public struct MapGenLayerHeight
                 {
                     //0 == Ocean
                     case 0:
-                        HexGenHeight_Flat_Ocean(x, y, sectorCoords);
+                        //HexGenHeight_Flat_Ocean(x, y, sectorCoords);
+                        HexGenHeight_Perlin_Ocean(x, y, sectorCoords);
                         break;
 
                     //1 == Beach
@@ -71,6 +72,7 @@ public struct MapGenLayerHeight
 
                     //??? == ???
                     default:
+                        HexGenHeight_Perlin_Plains(x, y, sectorCoords);
                         break;
                 }
             }
@@ -82,7 +84,32 @@ public struct MapGenLayerHeight
     private static void HexGenHeight_Flat_Ocean(int x, int y, HexSectorCoords sectorCoords)
     {
         //Create a Height Steps value based off of closeset step to the "Real" Height
-        int heightSteps = 6;
+        int heightSteps = 8;
+
+        //Set Final Value To Array
+        mapHex_HeightSets[x, y] = heightSteps;
+    }
+
+    private static void HexGenHeight_Perlin_Ocean(int x, int y, HexSectorCoords sectorCoords)
+    {
+        //Using old perlin fromplains and removing -4 off the size
+
+        float neutralHeight = 0.5f;
+
+        //Need to use the sector scale as well as an offset
+        float xPositional = x + ((float)sectorCoords.x * mapGenOpts.mapGen_SectorTotalSize);
+        float yPositional = y + ((float)sectorCoords.y * mapGenOpts.mapGen_SectorTotalSize);
+ 
+        float xScaled = xPositional / mapGenOpts.perlinZoomScale_Height;
+        float yScaled = yPositional / mapGenOpts.perlinZoomScale_Height;
+
+        float height = Mathf.PerlinNoise(xScaled + mapGenOpts.perlinOffsetX_Height, yScaled + mapGenOpts.perlinOffsetY_Height);
+
+        //Create a Height Value the tends closer to the average of the Neutral Height
+        height = (neutralHeight + height) / 2;
+
+        //Create a Height Steps value based off of closeset step to the "Real" Height
+        int heightSteps = (int)(height / mapGenOpts.mapGen_HeightPerStep) - 4;
 
         //Set Final Value To Array
         mapHex_HeightSets[x, y] = heightSteps;

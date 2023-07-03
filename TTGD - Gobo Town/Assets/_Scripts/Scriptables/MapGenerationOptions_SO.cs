@@ -17,6 +17,8 @@ public class MapGenerationOptions_SO : ScriptableObject
     public bool isCameraFirstPerson;
     public bool isCameraThirdPerson;
 
+    public bool isUsingCircleCameraDrawDistance;
+
     ////////////////////////////////
 
     [Header("Hex Gen Settings - RNG")]

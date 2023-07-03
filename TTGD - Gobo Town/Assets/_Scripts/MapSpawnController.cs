@@ -81,9 +81,7 @@ public class MapSpawnController : MonoBehaviour
     public GameObject MYGAMEOBJECT;
 
     public List<HexChunkCoords> chunksAroundCamera_List;
-
     public List<HexChunkCoords> chunksCurrent_List;
-
     public List<HexChunkCoords> chunksToBeQueued_List; 
 
     /////////////////////////////////////////////////////////////////
@@ -142,6 +140,9 @@ public class MapSpawnController : MonoBehaviour
         //Check If Camera is in new chunk location
         FixedUpdateCheck_FindCameraChunks();
 
+
+
+
         //Load the next Chunk in queue
         HexSpawnQueue_LoadNextChunk();
 
@@ -176,8 +177,16 @@ public class MapSpawnController : MonoBehaviour
 
         ////////////////////////////////
 
-        //Collect List Of Possible Chunks Around Camera Chunk Then Refresh Old and New Chunks For Reloading
-        chunksAroundCamera_List = HexFetcherUtility.GetHexChunks_AroundCameraCircle(coordsUnderCamera_Chunk.x, coordsUnderCamera_Chunk.y, chunkRenderDistance);
+        if (mapGenOpts_SO.isUsingCircleCameraDrawDistance)
+        {
+            //Collect List Of Possible Chunks Around Camera Chunk Then Refresh Old and New Chunks For Reloading
+            chunksAroundCamera_List = HexFetcherUtility.GetHexChunks_AroundCameraCircle(coordsUnderCamera_Chunk.x, coordsUnderCamera_Chunk.y, chunkRenderDistance);
+        }
+        else
+        {
+            //Collect List Of Possible Chunks Around Camera Chunk Then Refresh Old and New Chunks For Reloading
+            chunksAroundCamera_List = HexFetcherUtility.GetHexChunks_AroundCameraSquare(coordsUnderCamera_Chunk.x, coordsUnderCamera_Chunk.y, chunkRenderDistance);
+        }
 
         //Remove All Old Out Of Range Chunks
         HexChunkFilter_RemoveOutOfRangeChunks(chunksAroundCamera_List);
@@ -520,8 +529,6 @@ public class MapSpawnController : MonoBehaviour
             HexSpawnQueue_AddChunkToQueue(currentCoords);
         }
     }
-
-
 
     /////////////////////////////////////////////////////////////////
 

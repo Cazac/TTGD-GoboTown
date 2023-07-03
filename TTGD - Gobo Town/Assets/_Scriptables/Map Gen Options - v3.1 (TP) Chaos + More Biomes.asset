@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1579799b532585b47a21a08895448734, type: 3}
+  m_Name: Map Gen Options - v3.1 (TP) Chaos + More Biomes
+  m_EditorClassIdentifier: Assembly-CSharp::MapGenerationOptions_SO
+  isShowingGenerationTime: 0
+  isShowingToDos: 0
+  isCameraFirstPerson: 0
+  isCameraThirdPerson: 1
+  isUsingCircleCameraDrawDistance: 0
+  mapGen_Seed: 1350
+  mapGen_StartingBiomeNodesCount: 8
+  mapGen_ChunkSize: 8
+  mapGen_SectorTotalSize: 64
+  mapGen_HeightMin: 0
+  mapGen_HeightMax: 5
+  mapGen_HeightPerStep: 0.03
+  mapGen_OceanSize: 10
+  mapGen_BeachSize: 2
+  perlinZoomScale_Height: 25
+  perlinOffsetX_Height: 0
+  perlinOffsetY_Height: 0
+  perlinZoomScale_Color: 50
+  perlinOffsetX_Color: 0
+  perlinOffsetY_Color: 0
+  colorRandomizationRange: 0
+  isColorStyleChaos: 1
+  allBiomes_Arr:
+  - biomeInfo_SO: {fileID: 11400000, guid: d91671e667a5d4e46bc5a62a262e4e87, type: 2}
+    weight: 8
+    totalChance: 94.117645
+  - biomeInfo_SO: {fileID: 11400000, guid: 9e96fb4b38704cd4b968e8536a6481b0, type: 2}
+    weight: 0
+    totalChance: 0
+  - biomeInfo_SO: {fileID: 11400000, guid: 71984f9814722c5408bf107ae609b598, type: 2}
+    weight: 0
+    totalChance: 0
+  - biomeInfo_SO: {fileID: 11400000, guid: 93fe46c8e9bc626419740c050a86a77d, type: 2}
+    weight: 0.5
+    totalChance: 5.882353
+  - biomeInfo_SO: {fileID: 11400000, guid: ed8793edfddea7b41817eb23f91252ae, type: 2}
+    weight: 0
+    totalChance: 0
+  - biomeInfo_SO: {fileID: 11400000, guid: c86cb19060adcbf4da3f20225421a663, type: 2}
+    weight: 0
+    totalChance: 0
